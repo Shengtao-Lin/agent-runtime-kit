@@ -10,10 +10,12 @@ from agent_runtime.models import (
     RuntimeResponse,
 )
 from agent_runtime.registry import AgentRegistry
+from agent_runtime.runtime import AgentRuntime
 
 __all__ = [
     "AgentDescriptor",
     "AgentRegistry",
+    "AgentRuntime",
     "InvocationInput",
     "InvocationOutput",
     "Message",

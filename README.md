@@ -3,8 +3,9 @@
 A framework-neutral Python runtime toolkit for building configurable, observable AI agents
 with PostgreSQL-backed memory.
 
-> **Project status:** early development. Framework-neutral contracts, native execution,
-> LangChain/LangGraph adapters, and the first PostgreSQL memory slice are available.
+> **Project status:** early development. Framework-neutral execution, LangChain/LangGraph
+> adapters, PostgreSQL memory, durable run idempotency, append-only feedback, lifecycle hooks,
+> guardrails, and runtime orchestration are available. The HTTP and telemetry layers are next.
 
 ## Why this project
 

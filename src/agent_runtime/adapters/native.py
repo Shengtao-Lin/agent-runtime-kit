@@ -79,6 +79,7 @@ class NativeAgentInvoker:
                     tool_call.name,
                     tool_call.arguments,
                     tool_call_id=tool_call.id,
+                    context=request.context,
                 )
                 tool_results.append(tool_result)
                 tool_message = Message(

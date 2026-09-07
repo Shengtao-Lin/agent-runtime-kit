@@ -132,6 +132,16 @@ class PostgresMemoryStore:
             await session.flush()
         return tuple(self._message_model(row) for row in rows)
 
+    async def get_thread(self, thread_id: UUID) -> ThreadRecord | None:
+        """Read one thread by identifier."""
+        async with self._sessions() as session:
+            row = (
+                await session.execute(
+                    select(AgentThreadTable).where(AgentThreadTable.id == thread_id)
+                )
+            ).scalar_one_or_none()
+        return None if row is None else self._thread_model(row)
+
     async def get_messages(self, thread_id: UUID) -> tuple[StoredMessage, ...]:
         """Read a thread's messages in deterministic sequence order."""
         async with self._sessions() as session:

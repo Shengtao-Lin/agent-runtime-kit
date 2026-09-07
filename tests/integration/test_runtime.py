@@ -1,0 +1,141 @@
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass
+from uuid import uuid4
+
+import pytest
+from sqlalchemy.ext.asyncio import create_async_engine
+
+from agent_runtime import AgentRegistry, AgentRuntime
+from agent_runtime.hooks import (
+    GuardrailBlockedError,
+    GuardrailHook,
+    HookManager,
+    PhraseBlockGuardrail,
+)
+from agent_runtime.memory import PostgresMemoryStore
+from agent_runtime.models import (
+    AgentDescriptor,
+    InvocationInput,
+    InvocationOutput,
+    Message,
+    RuntimeRequest,
+    TextContent,
+)
+from agent_runtime.runs import PostgresRunStore
+
+pytestmark = pytest.mark.integration
+
+
+def database_url() -> str:
+    value = os.getenv("AGENT_RUNTIME_TEST_DATABASE_URL")
+    if value is None:
+        pytest.skip("AGENT_RUNTIME_TEST_DATABASE_URL is not configured")
+    return value
+
+
+@dataclass
+class HistoryCountingInvoker:
+    descriptor: AgentDescriptor
+    call_count: int = 0
+    last_message_count: int = 0
+
+    async def invoke(self, request: InvocationInput) -> InvocationOutput:
+        self.call_count += 1
+        self.last_message_count = len(request.messages)
+        return InvocationOutput(
+            messages=[
+                Message(
+                    role="assistant",
+                    content=[TextContent(text=f"Saw {len(request.messages)} messages")],
+                )
+            ]
+        )
+
+
+@pytest.mark.asyncio
+async def test_runtime_persists_history_and_replays_idempotent_response() -> None:
+    url = database_url()
+    engine = create_async_engine(url)
+    memory = PostgresMemoryStore(engine)
+    runs = PostgresRunStore(engine)
+    invoker = HistoryCountingInvoker(
+        AgentDescriptor(agent_id="runtime-agent", version="1", framework="native")
+    )
+    registry = AgentRegistry()
+    registry.register(invoker)
+    runtime = AgentRuntime(
+        agents=registry,
+        memory=memory,
+        runs=runs,
+        namespace=f"runtime-{uuid4()}",
+    )
+    try:
+        first_request = RuntimeRequest(
+            messages=[Message(role="user", content=[TextContent(text="First")])]
+        )
+        key = f"runtime-idempotency-{uuid4()}"
+        first = await runtime.invoke("runtime-agent", first_request, idempotency_key=key)
+        replay_request = RuntimeRequest(
+            messages=[Message(role="user", content=[TextContent(text="First")])]
+        )
+        replay = await runtime.invoke("runtime-agent", replay_request, idempotency_key=key)
+        assert replay == first
+        assert invoker.call_count == 1
+
+        second = await runtime.invoke(
+            "runtime-agent",
+            RuntimeRequest(
+                thread_id=first.thread_id,
+                messages=[Message(role="user", content=[TextContent(text="Second")])],
+            ),
+        )
+        assert second.thread_id == first.thread_id
+        assert invoker.last_message_count == 3
+        stored = await memory.get_messages(first.thread_id)
+        assert len(stored) == 4
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_runtime_marks_guardrail_blocks_without_invoking_agent() -> None:
+    url = database_url()
+    engine = create_async_engine(url)
+    memory = PostgresMemoryStore(engine)
+    runs = PostgresRunStore(engine)
+    invoker = HistoryCountingInvoker(
+        AgentDescriptor(agent_id="guarded-agent", version="1", framework="native")
+    )
+    registry = AgentRegistry()
+    registry.register(invoker)
+    hooks = HookManager(
+        [
+            GuardrailHook(
+                PhraseBlockGuardrail(["blocked phrase"]),
+                phases={"before_model"},
+            )
+        ]
+    )
+    runtime = AgentRuntime(
+        agents=registry,
+        memory=memory,
+        runs=runs,
+        hooks=hooks,
+        namespace=f"guardrails-{uuid4()}",
+    )
+    key = f"blocked-{uuid4()}"
+    request = RuntimeRequest(
+        messages=[Message(role="user", content=[TextContent(text="A blocked phrase")])]
+    )
+    try:
+        with pytest.raises(GuardrailBlockedError):
+            await runtime.invoke("guarded-agent", request, idempotency_key=key)
+        assert invoker.call_count == 0
+        record = await runs.get_by_idempotency(agent_id="guarded-agent", idempotency_key=key)
+        assert record is not None
+        assert record.status == "blocked"
+        assert await memory.get_messages(record.thread_id) == ()
+    finally:
+        await engine.dispose()

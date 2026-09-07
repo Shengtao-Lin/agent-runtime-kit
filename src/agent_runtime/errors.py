@@ -69,3 +69,47 @@ class MaxToolIterationsError(RuntimeKitError):
     """Raised when a native agent requests tools beyond its configured limit."""
 
     code = "max_tool_iterations_exceeded"
+
+
+class IdempotencyConflictError(RuntimeKitError):
+    """Raised when an idempotency key is reused with a different payload."""
+
+    code = "idempotency_conflict"
+
+
+class InvalidRunTransitionError(RuntimeKitError):
+    """Raised when a durable run attempts an invalid state transition."""
+
+    code = "invalid_run_transition"
+
+
+class RunNotFoundError(RuntimeKitError):
+    """Raised when a durable run record cannot be found."""
+
+    code = "run_not_found"
+
+
+class InvalidFeedbackTargetError(RuntimeKitError):
+    """Raised when feedback references an artifact not owned by its run."""
+
+    code = "invalid_feedback_target"
+
+
+class InvocationTimeoutError(RuntimeKitError):
+    """Raised when total agent execution exceeds the runtime deadline."""
+
+    code = "invocation_timeout"
+    retryable = True
+
+
+class RunInProgressError(RuntimeKitError):
+    """Raised when an idempotent request is already being executed."""
+
+    code = "run_in_progress"
+    retryable = True
+
+
+class IdempotentRunUnavailableError(RuntimeKitError):
+    """Raised when a prior idempotent run completed without a replayable response."""
+
+    code = "idempotent_run_unavailable"

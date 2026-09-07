@@ -16,15 +16,17 @@ from agent_runtime.errors import (
     ToolTimeoutError,
     ToolValidationError,
 )
-from agent_runtime.models import ToolResult
+from agent_runtime.hooks import HookEvent, HookManager
+from agent_runtime.models import RuntimeContext, ToolResult
 from agent_runtime.tools.models import RegisteredTool, ToolDefinition
 
 
 class ToolRegistry:
     """Registry for schema-declared sync and async tools."""
 
-    def __init__(self) -> None:
+    def __init__(self, hooks: HookManager | None = None) -> None:
         self._tools: dict[str, RegisteredTool] = {}
+        self._hooks = hooks
 
     def register(
         self,
@@ -53,7 +55,12 @@ class ToolRegistry:
         return tuple(self._tools[name].definition for name in sorted(self._tools))
 
     async def invoke(
-        self, name: str, arguments: dict[str, Any], *, tool_call_id: str
+        self,
+        name: str,
+        arguments: dict[str, Any],
+        *,
+        tool_call_id: str,
+        context: RuntimeContext | None = None,
     ) -> ToolResult:
         """Validate and invoke a registered tool within its timeout."""
         try:
@@ -65,6 +72,17 @@ class ToolRegistry:
             validated = tool.input_model.model_validate(arguments)
         except ValidationError as exc:
             raise ToolValidationError(f"Arguments for tool '{name}' are invalid") from exc
+
+        if self._hooks is not None and context is not None:
+            await self._hooks.run(
+                HookEvent(
+                    phase="before_tool",
+                    context=context,
+                    tool_name=name,
+                    tool_call_id=tool_call_id,
+                    tool_arguments=arguments,
+                )
+            )
 
         async def execute() -> Any:
             values = validated.model_dump()
@@ -81,9 +99,20 @@ class ToolRegistry:
                 raise
             raise ToolExecutionError(f"Tool '{name}' failed") from exc
 
-        return ToolResult(
+        result = ToolResult(
             tool_call_id=tool_call_id,
             tool_name=name,
             status="succeeded",
             output=output,
         )
+        if self._hooks is not None and context is not None:
+            await self._hooks.run(
+                HookEvent(
+                    phase="after_tool",
+                    context=context,
+                    tool_name=name,
+                    tool_call_id=tool_call_id,
+                    tool_result=result,
+                )
+            )
+        return result

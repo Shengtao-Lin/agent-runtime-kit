@@ -31,6 +31,17 @@ contain sensitive data.
 Feedback is immutable evidence attached to a runtime artifact. Future evaluation systems may read
 or export it, but the runtime never changes prompts, models, routing, or memory based on feedback.
 
+## Runtime sequence
+
+`AgentRuntime` resolves an invoker without inspecting its framework, claims a durable run, loads
+PostgreSQL history, executes ordered policy hooks, invokes the agent under a total timeout, persists
+new canonical messages, and commits the response used for idempotent replay. Blocked and failed
+executions retain categorical run status without persisting rejected message content.
+
+Tool execution uses the same runtime context and surrounds validated calls with `before_tool` and
+`after_tool` hooks. Demonstration guardrails are ordinary hooks and are intentionally not presented
+as a production safety system.
+
 ## Delivery sequence
 
 1. Establish canonical models and registries.
@@ -38,4 +49,3 @@ or export it, but the runtime never changes prompts, models, routing, or memory 
 3. Add PostgreSQL repositories and migrations.
 4. Compose hooks, guardrails, persistence, and idempotency in `AgentRuntime`.
 5. Add telemetry, HTTP service, and the containerized example.
-
