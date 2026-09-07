@@ -1,0 +1,98 @@
+"""Native model-and-tool-loop agent implementation."""
+
+from __future__ import annotations
+
+from agent_runtime.errors import MaxToolIterationsError, ProviderError, RuntimeKitError
+from agent_runtime.models import (
+    AgentDescriptor,
+    InvocationInput,
+    InvocationOutput,
+    Message,
+    ToolResult,
+    ToolResultContent,
+)
+from agent_runtime.models_clients.base import ModelClient
+from agent_runtime.tools.registry import ToolRegistry
+
+
+class NativeAgentInvoker:
+    """Run a model with bounded calls to the shared tool registry."""
+
+    def __init__(
+        self,
+        *,
+        agent_id: str,
+        version: str,
+        model_client: ModelClient,
+        tools: ToolRegistry | None = None,
+        max_tool_iterations: int = 3,
+        capabilities: set[str] | None = None,
+    ) -> None:
+        if max_tool_iterations < 1:
+            raise ValueError("max_tool_iterations must be positive")
+        self._descriptor = AgentDescriptor(
+            agent_id=agent_id,
+            version=version,
+            framework="native",
+            capabilities=capabilities or set(),
+        )
+        self._model_client = model_client
+        self._tools = tools or ToolRegistry()
+        self._max_tool_iterations = max_tool_iterations
+
+    @property
+    def descriptor(self) -> AgentDescriptor:
+        """Return the stable public agent descriptor."""
+        return self._descriptor
+
+    async def invoke(self, request: InvocationInput) -> InvocationOutput:
+        """Generate messages and execute requested tools within a fixed bound."""
+        working_messages = list(request.messages)
+        generated_messages: list[Message] = []
+        tool_results: list[ToolResult] = []
+
+        for iteration in range(self._max_tool_iterations + 1):
+            try:
+                result = await self._model_client.generate(
+                    working_messages,
+                    tools=self._tools.definitions(),
+                    context=request.context,
+                )
+            except RuntimeKitError:
+                raise
+            except Exception as exc:
+                raise ProviderError("Model generation failed") from exc
+
+            generated_messages.append(result.message)
+            working_messages.append(result.message)
+            if not result.tool_calls:
+                return InvocationOutput(
+                    messages=generated_messages,
+                    tool_results=tool_results,
+                    usage=result.usage,
+                )
+            if iteration == self._max_tool_iterations:
+                break
+
+            for tool_call in result.tool_calls:
+                tool_result = await self._tools.invoke(
+                    tool_call.name,
+                    tool_call.arguments,
+                    tool_call_id=tool_call.id,
+                )
+                tool_results.append(tool_result)
+                tool_message = Message(
+                    role="tool",
+                    content=[
+                        ToolResultContent(
+                            tool_call_id=tool_call.id,
+                            result=tool_result.output,
+                        )
+                    ],
+                )
+                generated_messages.append(tool_message)
+                working_messages.append(tool_message)
+
+        raise MaxToolIterationsError(
+            f"Agent exceeded the maximum of {self._max_tool_iterations} tool iterations"
+        )
