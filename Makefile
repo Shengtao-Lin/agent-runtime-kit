@@ -1,4 +1,4 @@
-.PHONY: install postgres-up migrate format lint typecheck test verify
+.PHONY: install postgres-up migrate example docker-build docker-up docker-smoke format lint typecheck test verify
 
 install:
 	uv sync --all-extras --dev
@@ -8,6 +8,18 @@ postgres-up:
 
 migrate:
 	uv run alembic upgrade head
+
+example:
+	uv run python -m examples.support_agent.main --fake-model
+
+docker-build:
+	docker compose build app
+
+docker-up:
+	docker compose up -d app postgres
+
+docker-smoke:
+	python scripts/docker_smoke.py
 
 format:
 	uv run ruff format .

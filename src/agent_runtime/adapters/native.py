@@ -12,6 +12,7 @@ from agent_runtime.models import (
     ToolResultContent,
 )
 from agent_runtime.models_clients.base import ModelClient
+from agent_runtime.telemetry import RuntimeTelemetry
 from agent_runtime.tools.registry import ToolRegistry
 
 
@@ -27,6 +28,7 @@ class NativeAgentInvoker:
         tools: ToolRegistry | None = None,
         max_tool_iterations: int = 3,
         capabilities: set[str] | None = None,
+        telemetry: RuntimeTelemetry | None = None,
     ) -> None:
         if max_tool_iterations < 1:
             raise ValueError("max_tool_iterations must be positive")
@@ -39,6 +41,7 @@ class NativeAgentInvoker:
         self._model_client = model_client
         self._tools = tools or ToolRegistry()
         self._max_tool_iterations = max_tool_iterations
+        self._telemetry = telemetry or RuntimeTelemetry()
 
     @property
     def descriptor(self) -> AgentDescriptor:
@@ -53,11 +56,17 @@ class NativeAgentInvoker:
 
         for iteration in range(self._max_tool_iterations + 1):
             try:
-                result = await self._model_client.generate(
-                    working_messages,
-                    tools=self._tools.definitions(),
-                    context=request.context,
-                )
+                attributes: dict[str, object] = {
+                    "agent.run.id": str(request.context.run_id),
+                    "agent.message.count": len(working_messages),
+                }
+                attributes.update(self._telemetry.content_attributes(working_messages))
+                with self._telemetry.span("agent.model.generate", attributes):
+                    result = await self._model_client.generate(
+                        working_messages,
+                        tools=self._tools.definitions(),
+                        context=request.context,
+                    )
             except RuntimeKitError:
                 raise
             except Exception as exc:

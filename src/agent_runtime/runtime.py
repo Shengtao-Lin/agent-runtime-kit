@@ -13,10 +13,10 @@ from agent_runtime.errors import (
     InvocationTimeoutError,
     RunInProgressError,
     RuntimeKitError,
+    ThreadNotFoundError,
 )
 from agent_runtime.hooks import GuardrailBlockedError, HookEvent, HookManager
 from agent_runtime.memory.base import MemoryStore
-from agent_runtime.memory.postgres import ThreadNotFoundError
 from agent_runtime.models import (
     InvocationInput,
     Message,
@@ -27,6 +27,8 @@ from agent_runtime.models import (
 from agent_runtime.registry import AgentRegistry
 from agent_runtime.runs.base import RunStore
 from agent_runtime.runs.models import RunRecord
+from agent_runtime.telemetry import RuntimeTelemetry
+from agent_runtime.telemetry.attributes import AGENT_ID, REQUEST_ID
 
 
 class AgentRuntime:
@@ -41,6 +43,7 @@ class AgentRuntime:
         hooks: HookManager | None = None,
         namespace: str = "default",
         invocation_timeout_seconds: float = 60.0,
+        telemetry: RuntimeTelemetry | None = None,
     ) -> None:
         if invocation_timeout_seconds <= 0:
             raise ValueError("invocation_timeout_seconds must be positive")
@@ -50,6 +53,7 @@ class AgentRuntime:
         self._hooks = hooks or HookManager()
         self._namespace = namespace
         self._timeout = invocation_timeout_seconds
+        self._telemetry = telemetry or RuntimeTelemetry()
 
     async def invoke(
         self,
@@ -59,6 +63,22 @@ class AgentRuntime:
         idempotency_key: str | None = None,
     ) -> RuntimeResponse:
         """Execute one request or replay its completed idempotent response."""
+        attributes: dict[str, object] = {
+            AGENT_ID: agent_id,
+            REQUEST_ID: str(request.request_id),
+            "agent.runtime.contract_version": request.contract_version,
+        }
+        with self._telemetry.span("agent.runtime.run", attributes):
+            return await self._invoke(agent_id, request, idempotency_key=idempotency_key)
+
+    async def _invoke(
+        self,
+        agent_id: str,
+        request: RuntimeRequest,
+        *,
+        idempotency_key: str | None,
+    ) -> RuntimeResponse:
+        """Execute the internal runtime flow within the active runtime span."""
         invoker = self._agents.get(agent_id)
         request_hash = self.request_hash(request)
         if idempotency_key is not None:
@@ -137,12 +157,16 @@ class AgentRuntime:
                 message=assistant,
                 tool_results=output.tool_results,
                 usage=output.usage,
+                trace_id=self._telemetry.current_trace_id(),
                 metadata=output.metadata,
             )
             await self._runs.transition(run_id, "succeeded", response=response)
             return response
         except GuardrailBlockedError as exc:
             await self._runs.transition(run_id, "blocked", error_code=exc.code)
+            raise
+        except asyncio.CancelledError:
+            await self._runs.transition(run_id, "failed", error_code="invocation_cancelled")
             raise
         except Exception as exc:
             error_code = exc.code if isinstance(exc, RuntimeKitError) else "internal_error"

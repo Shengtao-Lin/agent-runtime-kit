@@ -17,4 +17,14 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run pyright
+      - run: docker compose up -d postgres
+      - run: uv run alembic upgrade head
       - run: uv run pytest -q
+        env:
+          AGENT_RUNTIME_TEST_DATABASE_URL: postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/agent_runtime
+      - run: docker compose build app
+      - run: docker compose run --rm migrate
+      - run: docker compose up -d app postgres
+      - run: uv run python scripts/docker_smoke.py
+      - if: always()
+        run: docker compose down -v

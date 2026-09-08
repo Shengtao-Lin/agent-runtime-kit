@@ -7,26 +7,25 @@ from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import UUID, uuid4
 
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import delete, func, or_, select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 
+from agent_runtime.errors import ThreadNotFoundError
 from agent_runtime.memory.models import MemoryPage, MemoryRecord, StoredMessage, ThreadRecord
 from agent_runtime.memory.tables import AgentMessageTable, AgentThreadTable, MemoryRecordTable
 from agent_runtime.models import Message
-
-
-class ThreadNotFoundError(LookupError):
-    """Raised when a conversation thread does not exist."""
+from agent_runtime.telemetry import RuntimeTelemetry
 
 
 class PostgresMemoryStore:
     """PostgreSQL-backed memory usable without constructing `AgentRuntime`."""
 
-    def __init__(self, engine: AsyncEngine) -> None:
+    def __init__(self, engine: AsyncEngine, telemetry: RuntimeTelemetry | None = None) -> None:
         self._engine = engine
         self._sessions = async_sessionmaker(engine, expire_on_commit=False)
+        self._telemetry = telemetry or RuntimeTelemetry()
 
     @classmethod
     def from_url(
@@ -36,6 +35,7 @@ class PostgresMemoryStore:
         pool_size: int = 5,
         max_overflow: int = 5,
         pool_timeout: float = 5.0,
+        telemetry: RuntimeTelemetry | None = None,
     ) -> PostgresMemoryStore:
         """Construct a store with a bounded SQLAlchemy connection pool."""
         engine = create_async_engine(
@@ -45,7 +45,7 @@ class PostgresMemoryStore:
             pool_timeout=pool_timeout,
             pool_pre_ping=True,
         )
-        return cls(engine)
+        return cls(engine, telemetry)
 
     async def close(self) -> None:
         """Release all pooled database connections."""
@@ -59,6 +59,19 @@ class PostgresMemoryStore:
         except Exception:
             return False
         return True
+
+    async def check_migrations(self, expected_revision: str) -> bool:
+        """Return whether Alembic reports the expected schema revision."""
+        try:
+            async with self._engine.connect() as connection:
+                current = (
+                    await connection.execute(
+                        text("SELECT version_num FROM alembic_version LIMIT 1")
+                    )
+                ).scalar_one_or_none()
+        except Exception:
+            return False
+        return current == expected_revision
 
     async def create_thread(
         self,
@@ -97,6 +110,20 @@ class PostgresMemoryStore:
         self, thread_id: UUID, messages: Sequence[Message]
     ) -> tuple[StoredMessage, ...]:
         """Append messages atomically while holding a per-thread row lock."""
+        with self._telemetry.span(
+            "agent.memory.write",
+            {
+                "agent.memory.operation": "append_messages",
+                "agent.thread.id": str(thread_id),
+                "agent.message.count": len(messages),
+            },
+        ):
+            return await self._append_messages(thread_id, messages)
+
+    async def _append_messages(
+        self, thread_id: UUID, messages: Sequence[Message]
+    ) -> tuple[StoredMessage, ...]:
+        """Execute an append inside the active memory span."""
         if not messages:
             return ()
         async with self._sessions.begin() as session:
@@ -144,6 +171,17 @@ class PostgresMemoryStore:
 
     async def get_messages(self, thread_id: UUID) -> tuple[StoredMessage, ...]:
         """Read a thread's messages in deterministic sequence order."""
+        with self._telemetry.span(
+            "agent.memory.read",
+            {
+                "agent.memory.operation": "get_messages",
+                "agent.thread.id": str(thread_id),
+            },
+        ):
+            return await self._get_messages(thread_id)
+
+    async def _get_messages(self, thread_id: UUID) -> tuple[StoredMessage, ...]:
+        """Execute a history read inside the active memory span."""
         async with self._sessions() as session:
             rows = (
                 await session.execute(
@@ -165,6 +203,30 @@ class PostgresMemoryStore:
         expires_at: datetime | None = None,
     ) -> MemoryRecord:
         """Create or replace one namespaced memory value."""
+        with self._telemetry.span(
+            "agent.memory.write",
+            {"agent.memory.operation": "put", "agent.memory.namespace": namespace},
+        ):
+            return await self._put(
+                namespace=namespace,
+                user_key=user_key,
+                memory_key=memory_key,
+                value=value,
+                tags=tags,
+                expires_at=expires_at,
+            )
+
+    async def _put(
+        self,
+        *,
+        namespace: str,
+        user_key: str,
+        memory_key: str,
+        value: Any,
+        tags: dict[str, Any] | None,
+        expires_at: datetime | None,
+    ) -> MemoryRecord:
+        """Execute a long-term memory upsert inside the active memory span."""
         now = datetime.now(UTC)
         statement = (
             insert(MemoryRecordTable)
@@ -194,6 +256,14 @@ class PostgresMemoryStore:
 
     async def get(self, *, namespace: str, user_key: str, memory_key: str) -> MemoryRecord | None:
         """Return an unexpired memory value, if present."""
+        with self._telemetry.span(
+            "agent.memory.read",
+            {"agent.memory.operation": "get", "agent.memory.namespace": namespace},
+        ):
+            return await self._get(namespace=namespace, user_key=user_key, memory_key=memory_key)
+
+    async def _get(self, *, namespace: str, user_key: str, memory_key: str) -> MemoryRecord | None:
+        """Execute a long-term memory read inside the active memory span."""
         now = datetime.now(UTC)
         async with self._sessions() as session:
             row = (

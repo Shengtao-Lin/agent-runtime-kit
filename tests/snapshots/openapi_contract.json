@@ -1,0 +1,28 @@
+{
+  "paths": {
+    "/healthz": ["get"],
+    "/readyz": ["get"],
+    "/v1/agents": ["get"],
+    "/v1/agents/{agent_id}/invoke": ["post"],
+    "/v1/feedback": ["post"]
+  },
+  "schemas": [
+    "AgentDescriptor",
+    "AgentListResponse",
+    "ErrorDetail",
+    "ErrorEnvelope",
+    "FeedbackRecord",
+    "FeedbackSubmission",
+    "HealthResponse",
+    "Message",
+    "ReadinessResponse",
+    "RuntimeRequest",
+    "RuntimeResponse",
+    "TextContent",
+    "ToolCall",
+    "ToolCallContent",
+    "ToolResult",
+    "ToolResultContent",
+    "Usage"
+  ]
+}

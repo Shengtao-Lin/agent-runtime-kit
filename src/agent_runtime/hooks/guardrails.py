@@ -10,6 +10,7 @@ from pydantic import Field
 from agent_runtime.errors import RuntimeKitError
 from agent_runtime.hooks.base import HookEvent, HookPhase
 from agent_runtime.models import Message, RuntimeContext, StrictModel, TextContent
+from agent_runtime.telemetry import RuntimeTelemetry
 
 
 class GuardrailDecision(StrictModel):
@@ -45,12 +46,19 @@ class Guardrail(Protocol):
 class GuardrailHook:
     """Apply a guardrail during configured model lifecycle phases."""
 
-    def __init__(self, guardrail: Guardrail, *, phases: set[HookPhase]) -> None:
+    def __init__(
+        self,
+        guardrail: Guardrail,
+        *,
+        phases: set[HookPhase],
+        telemetry: RuntimeTelemetry | None = None,
+    ) -> None:
         unsupported = phases - {"before_model", "after_model"}
         if unsupported:
             raise ValueError("Message guardrails only support before_model and after_model")
         self._guardrail = guardrail
         self._phases = phases
+        self._telemetry = telemetry or RuntimeTelemetry()
 
     @property
     def name(self) -> str:
@@ -61,7 +69,15 @@ class GuardrailHook:
         """Evaluate configured phases and raise an explicit block error."""
         if event.phase not in self._phases:
             return
-        decision = await self._guardrail.evaluate(event.messages, context=event.context)
+        with self._telemetry.span(
+            "agent.guardrail.evaluate",
+            {
+                "agent.guardrail.name": self._guardrail.name,
+                "agent.hook.phase": event.phase,
+                "agent.run.id": str(event.context.run_id),
+            },
+        ):
+            decision = await self._guardrail.evaluate(event.messages, context=event.context)
         if not decision.allowed:
             raise GuardrailBlockedError(decision)
 

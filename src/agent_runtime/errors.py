@@ -113,3 +113,9 @@ class IdempotentRunUnavailableError(RuntimeKitError):
     """Raised when a prior idempotent run completed without a replayable response."""
 
     code = "idempotent_run_unavailable"
+
+
+class ThreadNotFoundError(RuntimeKitError):
+    """Raised when a conversation thread does not exist."""
+
+    code = "thread_not_found"

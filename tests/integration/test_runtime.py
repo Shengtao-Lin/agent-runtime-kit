@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import os
 from dataclasses import dataclass
 from uuid import uuid4
@@ -52,6 +53,18 @@ class HistoryCountingInvoker:
                 )
             ]
         )
+
+
+@dataclass
+class BlockingInvoker:
+    descriptor: AgentDescriptor
+    started: asyncio.Event
+
+    async def invoke(self, request: InvocationInput) -> InvocationOutput:
+        del request
+        self.started.set()
+        await asyncio.Event().wait()
+        raise AssertionError("unreachable")
 
 
 @pytest.mark.asyncio
@@ -138,4 +151,46 @@ async def test_runtime_marks_guardrail_blocks_without_invoking_agent() -> None:
         assert record.status == "blocked"
         assert await memory.get_messages(record.thread_id) == ()
     finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_cancelled_invocation_does_not_leave_running_record() -> None:
+    url = database_url()
+    engine = create_async_engine(url)
+    memory = PostgresMemoryStore(engine)
+    runs = PostgresRunStore(engine)
+    started = asyncio.Event()
+    invoker = BlockingInvoker(
+        AgentDescriptor(agent_id="blocking-agent", version="1", framework="native"),
+        started,
+    )
+    registry = AgentRegistry()
+    registry.register(invoker)
+    runtime = AgentRuntime(
+        agents=registry,
+        memory=memory,
+        runs=runs,
+        namespace=f"cancellation-{uuid4()}",
+    )
+    key = f"cancelled-{uuid4()}"
+    task = asyncio.create_task(
+        runtime.invoke(
+            "blocking-agent",
+            RuntimeRequest(messages=[Message(role="user", content=[TextContent(text="Wait")])]),
+            idempotency_key=key,
+        )
+    )
+    try:
+        await started.wait()
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        record = await runs.get_by_idempotency(agent_id="blocking-agent", idempotency_key=key)
+        assert record is not None
+        assert record.status == "failed"
+        assert record.error_code == "invocation_cancelled"
+    finally:
+        if not task.done():
+            task.cancel()
         await engine.dispose()

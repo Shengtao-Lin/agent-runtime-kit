@@ -18,15 +18,21 @@ from agent_runtime.errors import (
 )
 from agent_runtime.hooks import HookEvent, HookManager
 from agent_runtime.models import RuntimeContext, ToolResult
+from agent_runtime.telemetry import RuntimeTelemetry
 from agent_runtime.tools.models import RegisteredTool, ToolDefinition
 
 
 class ToolRegistry:
     """Registry for schema-declared sync and async tools."""
 
-    def __init__(self, hooks: HookManager | None = None) -> None:
+    def __init__(
+        self,
+        hooks: HookManager | None = None,
+        telemetry: RuntimeTelemetry | None = None,
+    ) -> None:
         self._tools: dict[str, RegisteredTool] = {}
         self._hooks = hooks
+        self._telemetry = telemetry or RuntimeTelemetry()
 
     def register(
         self,
@@ -91,7 +97,14 @@ class ToolRegistry:
             return await asyncio.to_thread(tool.handler, **values)
 
         try:
-            output = await asyncio.wait_for(execute(), timeout=tool.timeout_seconds)
+            attributes: dict[str, object] = {
+                "agent.tool.name": name,
+                "agent.tool.call_id": tool_call_id,
+            }
+            if context is not None:
+                attributes["agent.run.id"] = str(context.run_id)
+            with self._telemetry.span("agent.tool.execute", attributes):
+                output = await asyncio.wait_for(execute(), timeout=tool.timeout_seconds)
         except TimeoutError as exc:
             raise ToolTimeoutError(f"Tool '{name}' timed out") from exc
         except Exception as exc:

@@ -23,16 +23,31 @@ from agent_runtime.feedback.models import (
 )
 from agent_runtime.memory.tables import FeedbackRecordTable, RuntimeRunTable
 from agent_runtime.models import RuntimeResponse
+from agent_runtime.telemetry import RuntimeTelemetry
 
 
 class PostgresFeedbackStore:
     """Persist immutable, target-validated feedback with idempotent retries."""
 
-    def __init__(self, engine: AsyncEngine) -> None:
+    def __init__(self, engine: AsyncEngine, telemetry: RuntimeTelemetry | None = None) -> None:
         self._sessions = async_sessionmaker(engine, expire_on_commit=False)
+        self._telemetry = telemetry or RuntimeTelemetry()
 
     async def record(self, submission: FeedbackSubmission) -> FeedbackRecord:
         """Validate ownership and insert feedback, or replay an equivalent retry."""
+        with self._telemetry.span(
+            "agent.feedback.record",
+            {
+                "agent.feedback.id": str(submission.feedback_id),
+                "agent.feedback.type": submission.feedback_type,
+                "agent.feedback.target_type": submission.target_type,
+                "agent.run.id": str(submission.run_id),
+            },
+        ):
+            return await self._record(submission)
+
+    async def _record(self, submission: FeedbackSubmission) -> FeedbackRecord:
+        """Execute feedback persistence within the active feedback span."""
         payload_hash = self._payload_hash(submission)
         async with self._sessions.begin() as session:
             existing = (
