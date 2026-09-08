@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from typing import Protocol, cast
 from uuid import UUID, uuid4
 
 from fastapi import FastAPI, Header, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from starlette.types import ASGIApp, Lifespan
@@ -194,6 +194,52 @@ def create_app(
         return response
 
     @app.post(
+        "/v1/agents/{agent_id}/invoke/stream",
+        response_class=StreamingResponse,
+        responses={409: {"model": ErrorEnvelope}, 422: {"model": ErrorEnvelope}},
+    )
+    async def stream_agent(  # pyright: ignore[reportUnusedFunction]
+        agent_id: str,
+        body: RuntimeRequest,
+        request: Request,
+        idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    ) -> StreamingResponse:
+        request.state.request_id = body.request_id
+        agents.get(agent_id)
+
+        async def events() -> AsyncIterator[str]:
+            try:
+                async for event in runtime.stream(agent_id, body, idempotency_key=idempotency_key):
+                    yield _sse(event.type, event.model_dump_json())
+            except RuntimeKitError as exc:
+                envelope = ErrorEnvelope(
+                    request_id=body.request_id,
+                    error=ErrorDetail(
+                        code=exc.code,
+                        message=exc.public_message,
+                        retryable=exc.retryable,
+                    ),
+                )
+                yield _sse("error", envelope.model_dump_json())
+            except Exception as exc:
+                LOGGER.exception("unhandled_stream_error", exc_info=exc)
+                envelope = ErrorEnvelope(
+                    request_id=body.request_id,
+                    error=ErrorDetail(
+                        code="internal_error",
+                        message="An internal error occurred",
+                        retryable=False,
+                    ),
+                )
+                yield _sse("error", envelope.model_dump_json())
+
+        return StreamingResponse(
+            events(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
+    @app.post(
         "/v1/feedback",
         response_model=FeedbackRecord,
         status_code=201,
@@ -253,3 +299,7 @@ def _status_code(exc: RuntimeKitError) -> int:
     if isinstance(exc, (ProviderError, ToolExecutionError, AgentInvocationError)):
         return 502
     return 400
+
+
+def _sse(event: str, data: str) -> str:
+    return f"event: {event}\ndata: {data}\n\n"

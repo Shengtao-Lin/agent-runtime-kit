@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, Sequence
+from collections.abc import AsyncIterator, Mapping, Sequence
 from typing import Any, cast
 
 import httpx
@@ -18,7 +18,12 @@ from agent_runtime.models import (
     ToolCallContent,
     Usage,
 )
-from agent_runtime.models_clients.base import ModelResult
+from agent_runtime.models_clients.base import (
+    ModelCompleted,
+    ModelResult,
+    ModelStreamEvent,
+    ModelTextDelta,
+)
 from agent_runtime.tools.models import ToolDefinition
 
 
@@ -129,6 +134,121 @@ class OpenAICompatibleModelClient:
             message=Message(role="assistant", content=content_parts),
             tool_calls=tool_calls,
             usage=usage,
+        )
+
+    async def stream(
+        self,
+        messages: Sequence[Message],
+        *,
+        tools: Sequence[ToolDefinition] = (),
+        context: RuntimeContext,
+    ) -> AsyncIterator[ModelStreamEvent]:
+        """Stream chat-completion deltas and finish with a canonical model result."""
+        del context
+        payload: dict[str, object] = {
+            "model": self.model,
+            "messages": [self._message_payload(message) for message in messages],
+            "stream": True,
+            "stream_options": {"include_usage": True},
+        }
+        if tools:
+            payload["tools"] = [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": tool.name,
+                        "description": tool.description,
+                        "parameters": dict(tool.input_schema),
+                    },
+                }
+                for tool in tools
+            ]
+
+        text_chunks: list[str] = []
+        tool_chunks: dict[int, dict[str, str]] = {}
+        usage: Usage | None = None
+        try:
+            async with self._client.stream(
+                "POST",
+                "/chat/completions",
+                json=payload,
+                headers={"Authorization": self._authorization},
+            ) as response:
+                response.raise_for_status()
+                async for line in response.aiter_lines():
+                    if not line.startswith("data:"):
+                        continue
+                    data = line.removeprefix("data:").strip()
+                    if not data or data == "[DONE]":
+                        continue
+                    body = self._mapping(cast(object, json.loads(data)), "stream event")
+                    raw_usage = body.get("usage")
+                    if isinstance(raw_usage, Mapping):
+                        usage_mapping = cast(Mapping[str, object], raw_usage)
+                        usage = Usage(
+                            input_tokens=int(str(usage_mapping.get("prompt_tokens", 0))),
+                            output_tokens=int(str(usage_mapping.get("completion_tokens", 0))),
+                        )
+                    choices = body.get("choices")
+                    if not isinstance(choices, Sequence) or isinstance(choices, (str, bytes)):
+                        continue
+                    for raw_choice in cast(Sequence[object], choices):
+                        choice = self._mapping(raw_choice, "stream choice")
+                        delta = self._mapping(choice.get("delta"), "stream delta")
+                        content = delta.get("content")
+                        if isinstance(content, str) and content:
+                            text_chunks.append(content)
+                            yield ModelTextDelta(delta=content)
+                        raw_calls = delta.get("tool_calls", [])
+                        if isinstance(raw_calls, Sequence) and not isinstance(
+                            raw_calls, (str, bytes)
+                        ):
+                            for raw_call in cast(Sequence[object], raw_calls):
+                                call = self._mapping(raw_call, "stream tool call")
+                                index = int(str(call.get("index", 0)))
+                                chunk = tool_chunks.setdefault(
+                                    index, {"id": "", "name": "", "arguments": ""}
+                                )
+                                if isinstance(call.get("id"), str):
+                                    chunk["id"] += cast(str, call["id"])
+                                function = call.get("function")
+                                if isinstance(function, Mapping):
+                                    function_mapping = cast(Mapping[str, object], function)
+                                    name = function_mapping.get("name")
+                                    arguments = function_mapping.get("arguments")
+                                    if isinstance(name, str):
+                                        chunk["name"] += name
+                                    if isinstance(arguments, str):
+                                        chunk["arguments"] += arguments
+        except (httpx.HTTPError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise ProviderError("OpenAI-compatible model stream failed") from exc
+
+        content_parts: list[ContentPart] = []
+        if text_chunks:
+            content_parts.append(TextContent(text="".join(text_chunks)))
+        tool_calls: list[ToolCall] = []
+        try:
+            for chunk in (tool_chunks[index] for index in sorted(tool_chunks)):
+                arguments = json.loads(chunk["arguments"] or "{}")
+                if not isinstance(arguments, dict):
+                    raise ValueError("Tool arguments must be an object")
+                call = ToolCall(
+                    id=chunk["id"],
+                    name=chunk["name"],
+                    arguments=cast(dict[str, Any], arguments),
+                )
+                tool_calls.append(call)
+                content_parts.append(ToolCallContent(tool_call=call))
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise ProviderError("Model returned an invalid streamed tool call") from exc
+        if not content_parts:
+            raise ProviderError("Model returned an empty streamed assistant message")
+        yield ModelCompleted(
+            result=ModelResult(
+                message=Message(role="assistant", content=content_parts),
+                tool_calls=tool_calls,
+                usage=usage,
+            )
         )
 
     @staticmethod

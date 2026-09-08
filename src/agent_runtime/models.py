@@ -177,3 +177,40 @@ class RuntimeResponse(MetadataModel):
     tool_results: list[ToolResult] = Field(default_factory=_empty_tool_results)
     usage: Usage | None = None
     trace_id: str | None = None
+
+
+class StreamStarted(StrictModel):
+    """First event emitted after a durable streaming run is claimed."""
+
+    type: Literal["started"] = "started"
+    run_id: UUID
+    request_id: UUID
+    thread_id: UUID
+    agent: AgentDescriptor
+
+
+class StreamTextDelta(StrictModel):
+    """Provider-neutral incremental assistant text."""
+
+    type: Literal["text_delta"] = "text_delta"
+    delta: str = Field(min_length=1)
+
+
+class StreamToolResult(StrictModel):
+    """Completed tool result emitted during a streaming invocation."""
+
+    type: Literal["tool_result"] = "tool_result"
+    result: ToolResult
+
+
+class StreamCompleted(StrictModel):
+    """Terminal success event containing the persisted canonical response."""
+
+    type: Literal["completed"] = "completed"
+    response: RuntimeResponse
+
+
+RuntimeStreamEvent = Annotated[
+    StreamStarted | StreamTextDelta | StreamToolResult | StreamCompleted,
+    Field(discriminator="type"),
+]

@@ -4,6 +4,7 @@
     "/readyz": ["get"],
     "/v1/agents": ["get"],
     "/v1/agents/{agent_id}/invoke": ["post"],
+    "/v1/agents/{agent_id}/invoke/stream": ["post"],
     "/v1/feedback": ["post"]
   },
   "schemas": [

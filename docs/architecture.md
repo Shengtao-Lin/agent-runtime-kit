@@ -42,6 +42,11 @@ Tool execution uses the same runtime context and surrounds validated calls with 
 `after_tool` hooks. Demonstration guardrails are ordinary hooks and are intentionally not presented
 as a production safety system.
 
+Streaming is a library contract rather than an HTTP-only feature. Provider adapters translate
+native chunks into model events, streaming invokers translate them into agent events, and
+`AgentRuntime.stream()` emits public canonical events. Only the completed canonical response is
+committed; partial text is never treated as a successful durable response.
+
 ## Delivery sequence
 
 1. Establish canonical models and registries.

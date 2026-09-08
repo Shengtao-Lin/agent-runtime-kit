@@ -12,7 +12,9 @@ RUN uv sync --frozen --no-dev \
     --extra service \
     --extra telemetry \
     --extra adapters \
-    --extra openai-compatible
+    --extra openai-compatible \
+    --extra anthropic \
+    --extra gemini
 
 FROM python:3.12-slim AS runtime
 ENV PATH="/app/.venv/bin:${PATH}" \

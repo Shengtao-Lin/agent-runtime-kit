@@ -16,6 +16,8 @@ class RuntimeSettings(BaseSettings):
     model_name: str = "replace-me"
     model_base_url: str | None = None
     model_api_key: SecretStr | None = None
+    model_max_tokens: int = Field(default=1_024, ge=1, le=65_536)
+    anthropic_api_version: str = "2023-06-01"
     fake_model: bool = True
     otel_exporter_otlp_endpoint: str | None = None
     otel_service_name: str = "agent-runtime-kit"

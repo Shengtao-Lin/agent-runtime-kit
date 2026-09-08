@@ -10,6 +10,15 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Shengtao Lin" }]
+keywords = ["ai-agents", "langchain", "langgraph", "opentelemetry", "postgresql"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Typing :: Typed",
+]
 dependencies = [
   "opentelemetry-api>=1.27,<2",
   "pydantic>=2.9,<3",
@@ -20,6 +29,8 @@ dependencies = [
 postgres = ["alembic>=1.13,<2", "psycopg[binary]>=3.2,<4", "sqlalchemy[asyncio]>=2.0,<3"]
 service = ["fastapi>=0.115,<1", "httpx>=0.27,<1", "uvicorn[standard]>=0.30,<1"]
 openai-compatible = ["httpx>=0.27,<1"]
+anthropic = ["httpx>=0.27,<1"]
+gemini = ["httpx>=0.27,<1"]
 telemetry = [
   "opentelemetry-exporter-otlp-proto-http>=1.27,<2",
   "opentelemetry-sdk>=1.27,<2",
@@ -31,6 +42,10 @@ dev = [
   "pytest-asyncio>=0.24,<1",
   "ruff>=0.7,<1",
 ]
+
+[project.urls]
+Repository = "https://github.com/Shengtao-Lin/agent-runtime-kit"
+Issues = "https://github.com/Shengtao-Lin/agent-runtime-kit/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent_runtime"]

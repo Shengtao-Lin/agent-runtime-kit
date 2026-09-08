@@ -105,3 +105,33 @@ async def test_native_invoker_hides_provider_exception() -> None:
     invoker = NativeAgentInvoker(agent_id="failure", version="1", model_client=FailingModel())
     with pytest.raises(ProviderError, match="Model generation failed"):
         await invoker.invoke(request())
+
+
+@pytest.mark.asyncio
+async def test_native_invoker_streams_text_and_tool_results() -> None:
+    call = ToolCall(id="call-1", name="lookup_order", arguments={"order_id": "DEMO-42"})
+    model = DeterministicModelClient(
+        [
+            ModelResult(
+                message=Message(role="assistant", content=[ToolCallContent(tool_call=call)]),
+                tool_calls=[call],
+            ),
+            ModelResult(
+                message=Message(role="assistant", content=[TextContent(text="It shipped")])
+            ),
+        ]
+    )
+    tools = ToolRegistry()
+    tools.register(
+        name="lookup_order",
+        description="Look up a synthetic order.",
+        input_model=LookupInput,
+        handler=lookup_order,
+    )
+    invoker = NativeAgentInvoker(
+        agent_id="streaming-support", version="1", model_client=model, tools=tools
+    )
+
+    events = [event async for event in invoker.stream(request())]
+
+    assert [event.type for event in events] == ["tool_result", "text_delta", "completed"]

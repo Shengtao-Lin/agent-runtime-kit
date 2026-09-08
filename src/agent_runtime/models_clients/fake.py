@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 
-from agent_runtime.models import Message, RuntimeContext
-from agent_runtime.models_clients.base import ModelResult
+from agent_runtime.models import Message, RuntimeContext, TextContent
+from agent_runtime.models_clients.base import (
+    ModelCompleted,
+    ModelResult,
+    ModelStreamEvent,
+    ModelTextDelta,
+)
 from agent_runtime.tools.models import ToolDefinition
 
 
@@ -32,3 +37,20 @@ class DeterministicModelClient:
         result = self._results[min(self._index, len(self._results) - 1)]
         self._index += 1
         return result.model_copy(deep=True)
+
+    async def stream(
+        self,
+        messages: Sequence[Message],
+        *,
+        tools: Sequence[ToolDefinition] = (),
+        context: RuntimeContext,
+    ) -> AsyncIterator[ModelStreamEvent]:
+        """Emit scripted text parts and the complete deterministic result."""
+        del tools, context
+        self.calls.append(tuple(messages))
+        result = self._results[min(self._index, len(self._results) - 1)].model_copy(deep=True)
+        self._index += 1
+        for part in result.message.content:
+            if isinstance(part, TextContent):
+                yield ModelTextDelta(delta=part.text)
+        yield ModelCompleted(result=result)

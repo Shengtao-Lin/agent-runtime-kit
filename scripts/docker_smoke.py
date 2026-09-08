@@ -42,6 +42,19 @@ def invocation(text: str, thread_id: str | None = None) -> dict[str, object]:
     return body
 
 
+def stream_events(path: str, body: dict[str, object]) -> list[str]:
+    """Collect SSE event names from one streaming invocation."""
+    request = urllib.request.Request(
+        f"{BASE_URL}{path}",
+        data=json.dumps(body).encode(),
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        lines = response.read().decode().splitlines()
+    return [line.removeprefix("event: ") for line in lines if line.startswith("event: ")]
+
+
 def main() -> None:
     """Exercise health, all frameworks, history, replay, and feedback."""
     assert request_json("GET", "/healthz") == {"status": "ok"}
@@ -76,6 +89,12 @@ def main() -> None:
             invocation("Hello"),
         )
         assert response["contract_version"] == "v1"
+
+    events = stream_events(
+        "/v1/agents/support-native/invoke/stream",
+        invocation("Hello from the stream"),
+    )
+    assert events == ["started", "text_delta", "completed"]
 
     feedback_key = f"smoke-feedback-{uuid4()}"
     feedback_body: dict[str, object] = {

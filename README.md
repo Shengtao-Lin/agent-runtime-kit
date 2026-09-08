@@ -1,11 +1,14 @@
 # Agent Runtime Kit
 
+[![CI](https://github.com/Shengtao-Lin/agent-runtime-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/Shengtao-Lin/agent-runtime-kit/actions/workflows/ci.yml)
+
 A framework-neutral Python runtime toolkit for building configurable, observable AI agents with
 PostgreSQL-backed memory.
 
-> **Project status:** active MVP development. The runtime, PostgreSQL persistence, HTTP service,
-> native/LangChain/LangGraph execution, feedback, telemetry, and containerized fake-model example
-> are runnable. Authentication and production deployment controls remain application concerns.
+> **Project status:** v0.1.0 release candidate. The installable library, PostgreSQL persistence,
+> provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
+> example are runnable. Authentication and production deployment controls remain application
+> concerns.
 
 ## Why this project
 
@@ -29,15 +32,71 @@ flowchart TD
 
 - One versioned request, response, message, error, and agent-discovery contract.
 - Framework-neutral core with native, LangChain Runnable, and LangGraph adapters.
+- Canonical Python and SSE streaming with persisted terminal responses.
+- OpenAI-compatible, Anthropic, and Gemini model-provider adapters.
 - PostgreSQL conversation history, long-term memory, runs, idempotency, and feedback.
 - Typed sync/async tools with validation, timeouts, and bounded model/tool loops.
 - Ordered lifecycle hooks and explicit allow/block guardrail decisions.
 - OpenTelemetry spans with content capture disabled by default.
-- FastAPI invocation, feedback, liveness, readiness, and discovery endpoints.
+- Optional FastAPI invocation, streaming, feedback, liveness, readiness, and discovery endpoints.
 - Deterministic fictional example requiring no model credentials.
 - Multi-stage non-root application image and explicit migration container.
 
-## Five-minute container quickstart
+## Install as a library
+
+The wheel contains only `agent_runtime`; the fictional agent remains an example outside the
+package. From a checkout, install the core and only the extras your application needs:
+
+```bash
+uv sync --extra postgres --extra telemetry
+uv build
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.0"
+```
+
+Available extras are `postgres`, `service`, `telemetry`, `adapters`, `openai-compatible`,
+`anthropic`, and `gemini`. GitHub Releases provide the wheel and source distribution; PyPI
+publishing is not enabled for v0.1.0.
+
+## Library quickstart
+
+```python
+from agent_runtime import AgentRegistry, AgentRuntime, RuntimeRequest
+from agent_runtime.adapters import NativeAgentInvoker
+from agent_runtime.memory import PostgresMemoryStore
+from agent_runtime.models import Message, TextContent
+from agent_runtime.runs import PostgresRunStore
+from sqlalchemy.ext.asyncio import create_async_engine
+
+engine = create_async_engine(database_url)
+memory = PostgresMemoryStore(engine)
+runs = PostgresRunStore(engine)
+agents = AgentRegistry()
+agents.register(NativeAgentInvoker(agent_id="my-agent", version="1.0.0", model_client=model_client))
+runtime = AgentRuntime(agents=agents, memory=memory, runs=runs, namespace="my-application")
+
+request = RuntimeRequest(messages=[Message(role="user", content=[TextContent(text="Hello")])])
+response = await runtime.invoke("my-agent", request, idempotency_key="request-123")
+
+stream_request = RuntimeRequest(
+    messages=[Message(role="user", content=[TextContent(text="Stream this response")])]
+)
+async for event in runtime.stream("my-agent", stream_request):
+    if event.type == "text_delta":
+        print(event.delta, end="")
+```
+
+All invokers use the same canonical contracts. LangChain and LangGraph adapters accept explicit
+input/output mappers and do not install persistent framework memory or a graph checkpointer.
+
+Provider adapters are imported directly from their optional modules:
+
+```python
+from agent_runtime.models_clients.anthropic import AnthropicModelClient
+from agent_runtime.models_clients.gemini import GeminiModelClient
+from agent_runtime.models_clients.openai_compatible import OpenAICompatibleModelClient
+```
+
+## Containerized example quickstart
 
 Prerequisites are Docker Desktop using Linux containers.
 
@@ -80,7 +139,7 @@ curl -sS -X POST http://127.0.0.1:8000/v1/agents/support-native/invoke \
   -d "{\"thread_id\":\"$THREAD_ID\",\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"What else can you do?\"}]}]}"
 ```
 
-## Local Python quickstart
+## Local example quickstart
 
 Prerequisites are Python 3.11+, `uv`, and Docker for PostgreSQL.
 
@@ -92,21 +151,6 @@ uv run python -m examples.support_agent.main --fake-model
 ```
 
 On Windows, the example entry point configures the Selector event loop required by Psycopg async.
-
-## Library usage
-
-```python
-from agent_runtime import AgentRegistry, AgentRuntime, RuntimeRequest
-from agent_runtime.models import Message, TextContent
-
-request = RuntimeRequest(messages=[Message(role="user", content=[TextContent(text="Hello")])])
-response = await runtime.invoke("my-agent", request, idempotency_key="request-123")
-```
-
-All invokers implement the same `AgentInvoker` protocol. LangChain and LangGraph adapters accept
-explicit input/output mappers for custom schemas. Their defaults exchange dictionaries containing
-canonical `messages`, `metadata`, and `context`. They do not install persistent framework memory or
-a LangGraph checkpointer; PostgreSQL history is loaded by `AgentRuntime`.
 
 ## Standalone memory usage
 
@@ -129,6 +173,7 @@ await store.close()
 ## HTTP contract
 
 - `POST /v1/agents/{agent_id}/invoke` invokes any registered implementation.
+- `POST /v1/agents/{agent_id}/invoke/stream` emits canonical Server-Sent Events.
 - `POST /v1/feedback` records append-only feedback; `Idempotency-Key` is required.
 - `GET /v1/agents` returns IDs, versions, frameworks, and capabilities.
 - `GET /healthz` reports process liveness.
@@ -150,6 +195,16 @@ Every failure uses this safe envelope and omits stack traces and provider/databa
 Validation and guardrail failures use 422, unknown resources use 404, idempotency conflicts use
 409, dependency failures use 502, and timeouts use 504.
 
+Streaming uses `started`, `text_delta`, `tool_result`, and `completed` events. The terminal event
+contains the same durable `RuntimeResponse` used for idempotent replay. After SSE headers are sent,
+failures use an `error` event containing the standard error envelope.
+
+```bash
+curl -N -X POST http://127.0.0.1:8000/v1/agents/support-native/invoke/stream \
+  -H 'Content-Type: application/json' \
+  -d '{"messages":[{"role":"user","content":[{"type":"text","text":"Hello"}]}]}'
+```
+
 ## Configuration
 
 | Variable | Default | Purpose |
@@ -159,9 +214,12 @@ Validation and guardrail failures use 422, unknown resources use 404, idempotenc
 | `DATABASE_MAX_OVERFLOW` | `5` | Additional bounded connections |
 | `DATABASE_POOL_TIMEOUT_SECONDS` | `5` | Readiness and pool acquisition bound |
 | `FAKE_MODEL` | `true` | Credential-free deterministic mode |
+| `MODEL_PROVIDER` | `openai_compatible` | `openai_compatible`, `anthropic`, or `gemini` |
 | `MODEL_NAME` | `replace-me` | Real provider model identifier |
-| `MODEL_BASE_URL` | OpenAI v1 endpoint | Compatible provider base URL |
+| `MODEL_BASE_URL` | Provider default | Optional provider base URL override |
 | `MODEL_API_KEY` | empty | Real provider bearer credential |
+| `MODEL_MAX_TOKENS` | `1024` | Anthropic output-token bound |
+| `ANTHROPIC_API_VERSION` | `2023-06-01` | Anthropic Messages API version header |
 | `MAX_TOOL_ITERATIONS` | `3` | Native tool-loop bound |
 | `TOOL_TIMEOUT_SECONDS` | `10` | Deadline applied to each registered example tool |
 | `INVOCATION_TIMEOUT_SECONDS` | `60` | Total agent invocation deadline |
@@ -212,9 +270,9 @@ and `make verify` expect the local Compose PostgreSQL service and applied migrat
 `TEST_DATABASE_URL` when using another disposable PostgreSQL database.
 
 Tags matching `v*.*.*` start the release workflow only after the same quality and pytest suite
-passes against PostgreSQL. It uploads the Python wheel and source distribution as workflow
-artifacts, then publishes the versioned container image to GitHub Container Registry. Publishing
-to PyPI is intentionally not enabled until trusted publishing is configured for this repository.
+passes against PostgreSQL. It creates a GitHub Release with the Python wheel and source
+distribution, then publishes the versioned container image to GitHub Container Registry.
+Publishing to PyPI is intentionally not enabled until trusted publishing is configured.
 
 ## Security and limitations
 
@@ -223,9 +281,10 @@ limiting, TLS termination, network policy, backups, and secret management are de
 responsibilities outside this MVP. The demonstration guardrails are not a production safety system.
 
 The MVP does not include an evaluation platform, workflow builder, hosted control plane, vector
-search, background scheduler, semantic retrieval, streaming, or multiple persistence backends.
+search, background scheduler, semantic retrieval, or multiple persistence backends.
 
-See [the architecture notes](docs/architecture.md) and [ADRs](docs/adr) for design rationale.
+See [the architecture notes](docs/architecture.md), [component runbooks](docs/runbooks/README.md),
+[ADRs](docs/adr), and [changelog](CHANGELOG.md) for design, operations, and release details.
 
 ## Independent project disclaimer
 

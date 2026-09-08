@@ -71,3 +71,43 @@ async def test_openai_compatible_invalid_response_is_safe_error() -> None:
             context=context(),
         )
     await http_client.aclose()
+
+
+@pytest.mark.asyncio
+async def test_openai_compatible_stream_translation() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        payload = json.loads(request.content)
+        assert payload["stream"] is True
+        content = "\n".join(
+            [
+                'data: {"choices":[{"delta":{"content":"Hel"}}]}',
+                'data: {"choices":[{"delta":{"content":"lo"}}]}',
+                'data: {"choices":[],"usage":{"prompt_tokens":2,"completion_tokens":1}}',
+                "data: [DONE]",
+                "",
+            ]
+        )
+        return httpx.Response(200, text=content, headers={"content-type": "text/event-stream"})
+
+    http_client = httpx.AsyncClient(
+        transport=httpx.MockTransport(handler), base_url="https://provider.invalid/v1"
+    )
+    client = OpenAICompatibleModelClient(
+        model="demo-model", api_key="test-secret", client=http_client
+    )
+    events = [
+        event
+        async for event in client.stream(
+            [Message(role="user", content=[TextContent(text="Hello")])],
+            context=context(),
+        )
+    ]
+    assert [event.type for event in events] == ["text_delta", "text_delta", "completed"]
+    completed = events[-1]
+    assert completed.type == "completed"
+    text = completed.result.message.content[0]
+    assert isinstance(text, TextContent)
+    assert text.text == "Hello"
+    assert completed.result.usage is not None
+    assert completed.result.usage.input_tokens == 2
+    await http_client.aclose()

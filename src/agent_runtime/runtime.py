@@ -5,8 +5,12 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+from collections.abc import AsyncGenerator, Awaitable, Callable
+from contextlib import suppress
+from typing import cast
 from uuid import uuid4
 
+from agent_runtime.adapters.base import StreamingAgentInvoker
 from agent_runtime.errors import (
     IdempotencyConflictError,
     IdempotentRunUnavailableError,
@@ -23,6 +27,11 @@ from agent_runtime.models import (
     RuntimeContext,
     RuntimeRequest,
     RuntimeResponse,
+    RuntimeStreamEvent,
+    StreamCompleted,
+    StreamStarted,
+    StreamTextDelta,
+    StreamToolResult,
 )
 from agent_runtime.registry import AgentRegistry
 from agent_runtime.runs.base import RunStore
@@ -71,12 +80,62 @@ class AgentRuntime:
         with self._telemetry.span("agent.runtime.run", attributes):
             return await self._invoke(agent_id, request, idempotency_key=idempotency_key)
 
+    async def stream(
+        self,
+        agent_id: str,
+        request: RuntimeRequest,
+        *,
+        idempotency_key: str | None = None,
+    ) -> AsyncGenerator[RuntimeStreamEvent, None]:
+        """Stream canonical events and finish with the persisted runtime response."""
+        queue: asyncio.Queue[RuntimeStreamEvent | Exception | object] = asyncio.Queue(maxsize=64)
+        sentinel = object()
+
+        async def emit(event: RuntimeStreamEvent) -> None:
+            await queue.put(event)
+
+        async def produce() -> None:
+            attributes: dict[str, object] = {
+                AGENT_ID: agent_id,
+                REQUEST_ID: str(request.request_id),
+                "agent.runtime.contract_version": request.contract_version,
+            }
+            try:
+                with self._telemetry.span("agent.runtime.run", attributes):
+                    response = await self._invoke(
+                        agent_id,
+                        request,
+                        idempotency_key=idempotency_key,
+                        emit=emit,
+                    )
+                await queue.put(StreamCompleted(response=response))
+            except Exception as exc:
+                await queue.put(exc)
+            finally:
+                await queue.put(sentinel)
+
+        task = asyncio.create_task(produce())
+        try:
+            while True:
+                item = await queue.get()
+                if item is sentinel:
+                    break
+                if isinstance(item, Exception):
+                    raise item
+                yield cast(RuntimeStreamEvent, item)
+        finally:
+            if not task.done():
+                task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await task
+
     async def _invoke(
         self,
         agent_id: str,
         request: RuntimeRequest,
         *,
         idempotency_key: str | None,
+        emit: Callable[[RuntimeStreamEvent], Awaitable[None]] | None = None,
     ) -> RuntimeResponse:
         """Execute the internal runtime flow within the active runtime span."""
         invoker = self._agents.get(agent_id)
@@ -86,7 +145,10 @@ class AgentRuntime:
                 agent_id=agent_id, idempotency_key=idempotency_key
             )
             if previous is not None:
-                return self._replay(previous, request_hash)
+                replay = self._replay(previous, request_hash)
+                if emit is not None:
+                    await emit(self._started(replay))
+                return replay
 
         if request.thread_id is None:
             thread = await self._memory.create_thread(
@@ -113,9 +175,21 @@ class AgentRuntime:
             request_hash=request_hash,
         )
         if not claim.created:
-            return self._replay(claim.run, request_hash)
+            replay = self._replay(claim.run, request_hash)
+            if emit is not None:
+                await emit(self._started(replay))
+            return replay
 
         await self._runs.transition(run_id, "running")
+        if emit is not None:
+            await emit(
+                StreamStarted(
+                    run_id=run_id,
+                    request_id=request.request_id,
+                    thread_id=thread.id,
+                    agent=invoker.descriptor,
+                )
+            )
         try:
             history = await self._memory.get_messages(thread.id)
             input_messages = [item.message for item in history] + list(request.messages)
@@ -128,13 +202,24 @@ class AgentRuntime:
             )
             try:
                 async with asyncio.timeout(self._timeout):
-                    output = await invoker.invoke(
-                        InvocationInput(
-                            context=context,
-                            messages=input_messages,
-                            metadata=request.metadata,
-                        )
+                    invocation = InvocationInput(
+                        context=context,
+                        messages=input_messages,
+                        metadata=request.metadata,
                     )
+                    if emit is not None and isinstance(invoker, StreamingAgentInvoker):
+                        output = None
+                        async for event in invoker.stream(invocation):
+                            if event.type == "text_delta":
+                                await emit(StreamTextDelta(delta=event.delta))
+                            elif event.type == "tool_result":
+                                await emit(StreamToolResult(result=event.result))
+                            else:
+                                output = event.output
+                        if output is None:
+                            raise ValueError("Agent stream ended without a completed output")
+                    else:
+                        output = await invoker.invoke(invocation)
             except TimeoutError as exc:
                 raise InvocationTimeoutError("Agent invocation timed out") from exc
             await self._hooks.run(
@@ -202,3 +287,12 @@ class AgentRuntime:
             if message.role == "assistant":
                 return message
         raise ValueError("Agent output must contain an assistant message")
+
+    @staticmethod
+    def _started(response: RuntimeResponse) -> StreamStarted:
+        return StreamStarted(
+            run_id=response.run_id,
+            request_id=response.request_id,
+            thread_id=response.thread_id,
+            agent=response.agent,
+        )

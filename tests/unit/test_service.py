@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
@@ -18,6 +19,10 @@ from agent_runtime.models import (
     Message,
     RuntimeRequest,
     RuntimeResponse,
+    RuntimeStreamEvent,
+    StreamCompleted,
+    StreamStarted,
+    StreamTextDelta,
     TextContent,
 )
 from agent_runtime.models_clients import DeterministicModelClient, ModelResult
@@ -49,6 +54,23 @@ class FakeRuntime:
             agent=self.descriptor,
             message=Message(role="assistant", content=[TextContent(text="Fake response")]),
         )
+
+    async def stream(
+        self,
+        agent_id: str,
+        request: RuntimeRequest,
+        *,
+        idempotency_key: str | None = None,
+    ) -> AsyncIterator[RuntimeStreamEvent]:
+        response = await self.invoke(agent_id, request, idempotency_key=idempotency_key)
+        yield StreamStarted(
+            run_id=response.run_id,
+            request_id=response.request_id,
+            thread_id=response.thread_id,
+            agent=response.agent,
+        )
+        yield StreamTextDelta(delta="Fake response")
+        yield StreamCompleted(response=response)
 
 
 class FakeFeedbackStore:
@@ -158,6 +180,35 @@ def test_request_body_limit_is_enforced() -> None:
     )
     assert response.status_code == 413
     assert response.json()["error"]["code"] == "request_too_large"
+
+
+def test_streaming_invocation_uses_canonical_sse_events() -> None:
+    client, _ = build_client()
+    with client.stream(
+        "POST",
+        "/v1/agents/test-agent/invoke/stream",
+        json=invocation_body(),
+    ) as response:
+        content = "".join(response.iter_text())
+    assert response.status_code == 200
+    assert "event: started" in content
+    assert "event: text_delta" in content
+    assert "event: completed" in content
+
+
+def test_streaming_failure_uses_safe_sse_error_envelope() -> None:
+    client, _ = build_client()
+    with client.stream(
+        "POST",
+        "/v1/agents/test-agent/invoke/stream",
+        headers={"Idempotency-Key": "running"},
+        json=invocation_body(),
+    ) as response:
+        content = "".join(response.iter_text())
+    assert response.status_code == 200
+    assert "event: error" in content
+    assert '"code":"run_in_progress"' in content
+    assert "Traceback" not in content
 
 
 def test_conflict_and_validation_errors_preserve_request_id() -> None:

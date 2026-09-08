@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import AsyncIterator, Mapping, Sequence
 from typing import TypedDict, cast
 
 from langchain_core.runnables import RunnableLambda
@@ -26,7 +26,13 @@ from agent_runtime.models import (
     ToolCallContent,
     ToolResultContent,
 )
-from agent_runtime.models_clients.base import ModelClient, ModelResult
+from agent_runtime.models_clients.base import (
+    ModelClient,
+    ModelCompleted,
+    ModelResult,
+    ModelStreamEvent,
+    ModelTextDelta,
+)
 from agent_runtime.registry import AgentRegistry
 from agent_runtime.telemetry import RuntimeTelemetry
 from agent_runtime.tools import ToolDefinition, ToolRegistry
@@ -94,6 +100,20 @@ class FakeSupportModel:
                 ],
             )
         )
+
+    async def stream(
+        self,
+        messages: Sequence[Message],
+        *,
+        tools: Sequence[ToolDefinition] = (),
+        context: RuntimeContext,
+    ) -> AsyncIterator[ModelStreamEvent]:
+        """Stream deterministic text without requiring provider credentials."""
+        result = await self.generate(messages, tools=tools, context=context)
+        for part in result.message.content:
+            if isinstance(part, TextContent):
+                yield ModelTextDelta(delta=part.text)
+        yield ModelCompleted(result=result)
 
 
 class SupportState(TypedDict):

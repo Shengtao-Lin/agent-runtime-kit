@@ -11,5 +11,8 @@ uv run python -m examples.support_agent.main --fake-model
 ```
 
 The default fake-model mode requires no API key. Set `FAKE_MODEL=false`, `MODEL_NAME`,
-`MODEL_API_KEY`, and optionally `MODEL_BASE_URL` to use an OpenAI-compatible provider.
+`MODEL_API_KEY`, and optionally `MODEL_BASE_URL` for a real provider. Choose
+`MODEL_PROVIDER=openai_compatible`, `anthropic`, or `gemini`.
 
+This directory is an integration example, not part of the Python wheel. Applications should import
+and compose `agent_runtime` components directly.

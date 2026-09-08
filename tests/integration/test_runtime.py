@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from uuid import uuid4
 
@@ -9,6 +10,7 @@ import pytest
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from agent_runtime import AgentRegistry, AgentRuntime
+from agent_runtime.adapters.base import AgentStreamEvent
 from agent_runtime.hooks import (
     GuardrailBlockedError,
     GuardrailHook,
@@ -66,6 +68,13 @@ class BlockingInvoker:
         await asyncio.Event().wait()
         raise AssertionError("unreachable")
 
+    async def stream(self, request: InvocationInput) -> AsyncIterator[AgentStreamEvent]:
+        del request
+        self.started.set()
+        await asyncio.Event().wait()
+        if False:
+            yield
+
 
 @pytest.mark.asyncio
 async def test_runtime_persists_history_and_replays_idempotent_response() -> None:
@@ -108,6 +117,15 @@ async def test_runtime_persists_history_and_replays_idempotent_response() -> Non
         assert invoker.last_message_count == 3
         stored = await memory.get_messages(first.thread_id)
         assert len(stored) == 4
+
+        stream_request = RuntimeRequest(
+            messages=[Message(role="user", content=[TextContent(text="Stream")])]
+        )
+        events = [event async for event in runtime.stream("runtime-agent", stream_request)]
+        assert [event.type for event in events] == ["started", "completed"]
+        completed = events[-1]
+        assert completed.type == "completed"
+        assert completed.response.message.role == "assistant"
     finally:
         await engine.dispose()
 
@@ -193,4 +211,45 @@ async def test_cancelled_invocation_does_not_leave_running_record() -> None:
     finally:
         if not task.done():
             task.cancel()
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_closed_stream_does_not_leave_running_record() -> None:
+    url = database_url()
+    engine = create_async_engine(url)
+    memory = PostgresMemoryStore(engine)
+    runs = PostgresRunStore(engine)
+    started = asyncio.Event()
+    invoker = BlockingInvoker(
+        AgentDescriptor(agent_id="stream-blocking-agent", version="1", framework="native"),
+        started,
+    )
+    registry = AgentRegistry()
+    registry.register(invoker)
+    runtime = AgentRuntime(
+        agents=registry,
+        memory=memory,
+        runs=runs,
+        namespace=f"stream-cancellation-{uuid4()}",
+    )
+    key = f"stream-cancelled-{uuid4()}"
+    stream = runtime.stream(
+        "stream-blocking-agent",
+        RuntimeRequest(messages=[Message(role="user", content=[TextContent(text="Wait")])]),
+        idempotency_key=key,
+    )
+    try:
+        first = await anext(stream)
+        assert first.type == "started"
+        await started.wait()
+        await stream.aclose()
+        record = await runs.get_by_idempotency(
+            agent_id="stream-blocking-agent", idempotency_key=key
+        )
+        assert record is not None
+        assert record.status == "failed"
+        assert record.error_code == "invocation_cancelled"
+    finally:
+        await stream.aclose()
         await engine.dispose()

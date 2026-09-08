@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Protocol
+from collections.abc import AsyncIterator, Sequence
+from typing import Annotated, Literal, Protocol, runtime_checkable
 
 from pydantic import Field
 
@@ -23,6 +23,26 @@ class ModelResult(StrictModel):
     usage: Usage | None = None
 
 
+class ModelTextDelta(StrictModel):
+    """Incremental provider text translated into the canonical stream."""
+
+    type: Literal["text_delta"] = "text_delta"
+    delta: str = Field(min_length=1)
+
+
+class ModelCompleted(StrictModel):
+    """Terminal provider event containing the complete canonical result."""
+
+    type: Literal["completed"] = "completed"
+    result: ModelResult
+
+
+ModelStreamEvent = Annotated[
+    ModelTextDelta | ModelCompleted,
+    Field(discriminator="type"),
+]
+
+
 class ModelClient(Protocol):
     """Async model generation boundary."""
 
@@ -33,3 +53,16 @@ class ModelClient(Protocol):
         tools: Sequence[ToolDefinition] = (),
         context: RuntimeContext,
     ) -> ModelResult: ...
+
+
+@runtime_checkable
+class StreamingModelClient(Protocol):
+    """Optional extension implemented by providers with token streaming."""
+
+    def stream(
+        self,
+        messages: Sequence[Message],
+        *,
+        tools: Sequence[ToolDefinition] = (),
+        context: RuntimeContext,
+    ) -> AsyncIterator[ModelStreamEvent]: ...

@@ -18,7 +18,9 @@ from agent_runtime.hooks import (
     PhraseBlockGuardrail,
 )
 from agent_runtime.memory import PostgresMemoryStore
+from agent_runtime.models_clients.anthropic import AnthropicModelClient
 from agent_runtime.models_clients.base import ModelClient
+from agent_runtime.models_clients.gemini import GeminiModelClient
 from agent_runtime.models_clients.openai_compatible import OpenAICompatibleModelClient
 from agent_runtime.runs import PostgresRunStore
 from agent_runtime.service import create_app
@@ -52,12 +54,31 @@ def build_application(settings: RuntimeSettings | None = None) -> FastAPI:
     else:
         if settings.model_api_key is None:
             raise ValueError("MODEL_API_KEY is required when FAKE_MODEL=false")
-        model = OpenAICompatibleModelClient(
-            model=settings.model_name,
-            api_key=settings.model_api_key.get_secret_value(),
-            base_url=settings.model_base_url or "https://api.openai.com/v1",
-            timeout_seconds=settings.invocation_timeout_seconds,
-        )
+        provider = settings.model_provider.lower()
+        common = {
+            "model": settings.model_name,
+            "api_key": settings.model_api_key.get_secret_value(),
+            "timeout_seconds": settings.invocation_timeout_seconds,
+        }
+        if provider == "openai_compatible":
+            model = OpenAICompatibleModelClient(
+                **common,
+                base_url=settings.model_base_url or "https://api.openai.com/v1",
+            )
+        elif provider == "anthropic":
+            model = AnthropicModelClient(
+                **common,
+                base_url=settings.model_base_url or "https://api.anthropic.com",
+                max_tokens=settings.model_max_tokens,
+                api_version=settings.anthropic_api_version,
+            )
+        elif provider == "gemini":
+            model = GeminiModelClient(
+                **common,
+                base_url=(settings.model_base_url or "https://generativelanguage.googleapis.com"),
+            )
+        else:
+            raise ValueError(f"Unsupported MODEL_PROVIDER: {settings.model_provider}")
         model_client = model
         close_model = model.close
 

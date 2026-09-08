@@ -80,9 +80,45 @@ jobs:
       - run: uv run alembic upgrade head
       - run: uv run pytest -m integration -q
 
+  package:
+    name: Build and import wheel
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv build
+      - run: mkdir .package-check
+      - run: uv venv --python 3.12 .core-venv
+      - run: uv pip install --python .core-venv/bin/python dist/*.whl
+      - name: Verify core imports with no optional dependencies
+        working-directory: .package-check
+        run: >-
+          ../.core-venv/bin/python -c
+          "from agent_runtime import AgentRuntime, RuntimeRequest, __version__;
+          print(__version__, AgentRuntime, RuntimeRequest)"
+      - run: uv venv --python 3.12 .extras-venv
+      - run: uv pip install --python .extras-venv/bin/python dist/*.whl "sqlalchemy[asyncio]" "psycopg[binary]" httpx
+      - name: Verify optional component imports from the wheel
+        working-directory: .package-check
+        run: >-
+          ../.extras-venv/bin/python -c
+          "from agent_runtime.memory import PostgresMemoryStore;
+          from agent_runtime.models_clients.anthropic import AnthropicModelClient;
+          from agent_runtime.models_clients.gemini import GeminiModelClient;
+          print(PostgresMemoryStore, AnthropicModelClient, GeminiModelClient)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-distributions
+          path: dist/
+          if-no-files-found: error
+
   container:
     name: Container smoke test
-    needs: integration
+    needs: [integration, package]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
