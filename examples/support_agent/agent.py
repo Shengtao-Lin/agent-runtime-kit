@@ -141,6 +141,7 @@ def build_agent_registry(
     model_client: ModelClient,
     tools: ToolRegistry,
     telemetry: RuntimeTelemetry,
+    max_tool_iterations: int = 3,
 ) -> AgentRegistry:
     """Register interchangeable native, LangChain, and LangGraph agents."""
     registry = AgentRegistry()
@@ -152,6 +153,7 @@ def build_agent_registry(
             tools=tools,
             capabilities={"tools", "multi_turn"},
             telemetry=telemetry,
+            max_tool_iterations=max_tool_iterations,
         )
     )
 
@@ -183,7 +185,9 @@ def build_agent_registry(
     return registry
 
 
-def build_tool_registry(*, telemetry: RuntimeTelemetry) -> ToolRegistry:
+def build_tool_registry(
+    *, telemetry: RuntimeTelemetry, timeout_seconds: float = 10
+) -> ToolRegistry:
     """Register synthetic example tools."""
     registry = ToolRegistry(telemetry=telemetry)
     registry.register(
@@ -191,11 +195,13 @@ def build_tool_registry(*, telemetry: RuntimeTelemetry) -> ToolRegistry:
         description="Look up a fictional order by its DEMO identifier.",
         input_model=LookupOrderInput,
         handler=lookup_order,
+        timeout_seconds=timeout_seconds,
     )
     registry.register(
         name="get_store_policy",
         description="Read a fictional store policy by topic.",
         input_model=StorePolicyInput,
         handler=get_store_policy,
+        timeout_seconds=timeout_seconds,
     )
     return registry

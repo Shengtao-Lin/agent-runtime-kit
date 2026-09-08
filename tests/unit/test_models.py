@@ -3,7 +3,14 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from agent_runtime.models import Message, RuntimeRequest, TextContent, ToolResultContent
+from agent_runtime.models import (
+    Message,
+    RuntimeRequest,
+    TextContent,
+    ToolCall,
+    ToolCallContent,
+    ToolResultContent,
+)
 
 
 def test_runtime_request_generates_stable_identifiers() -> None:
@@ -33,3 +40,24 @@ def test_tool_message_requires_tool_result() -> None:
         content=[ToolResultContent(tool_call_id="call-1", result={"ok": True})],
     )
     assert message.role == "tool"
+
+
+def test_message_roles_reject_mismatched_tool_content() -> None:
+    call = ToolCall(id="call-1", name="lookup", arguments={})
+    with pytest.raises(ValidationError, match="assistant role"):
+        Message(role="user", content=[ToolCallContent(tool_call=call)])
+    with pytest.raises(ValidationError, match="tool role"):
+        Message(
+            role="assistant",
+            content=[ToolResultContent(tool_call_id="call-1", result=True)],
+        )
+
+
+def test_metadata_is_bounded_and_json_compatible() -> None:
+    message = Message(role="user", content=[TextContent(text="Hello")])
+    with pytest.raises(ValidationError, match="64 keys"):
+        RuntimeRequest(messages=[message], metadata={str(index): index for index in range(65)})
+    with pytest.raises(ValidationError, match="16384 encoded bytes"):
+        RuntimeRequest(messages=[message], metadata={"large": "x" * 16_384})
+    with pytest.raises(ValidationError, match="JSON-compatible"):
+        RuntimeRequest(messages=[message], metadata={"unsupported": object()})

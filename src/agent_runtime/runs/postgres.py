@@ -141,7 +141,7 @@ class PostgresRunStore:
     def _status(value: str) -> RunStatus:
         if value not in _TRANSITIONS:
             raise InvalidRunTransitionError(f"Database contains unknown run status '{value}'")
-        return value  # type: ignore[return-value]
+        return value
 
     @classmethod
     def _model(cls, row: RuntimeRunTable) -> RunRecord:
@@ -149,10 +149,12 @@ class PostgresRunStore:
         return RunRecord(
             id=row.id,
             request_id=row.request_id,
-            agent=AgentDescriptor(
-                agent_id=row.agent_id,
-                version=row.agent_version,
-                framework=row.framework,  # type: ignore[arg-type]
+            agent=AgentDescriptor.model_validate(
+                {
+                    "agent_id": row.agent_id,
+                    "version": row.agent_version,
+                    "framework": row.framework,
+                }
             ),
             thread_id=row.thread_id,
             idempotency_key=row.idempotency_key,

@@ -32,5 +32,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
   CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"]
 ENTRYPOINT ["python", "-m"]
-CMD ["uvicorn", "examples.support_agent.api:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-graceful-shutdown", "20", "--log-config", "/app/infra/logging.json"]
-
+CMD ["examples.support_agent.main", "--host", "0.0.0.0", "--port", "8000", "--log-config", "/app/infra/logging.json"]

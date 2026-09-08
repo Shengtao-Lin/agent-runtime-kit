@@ -8,14 +8,14 @@ from uuid import UUID
 
 from pydantic import Field, model_validator
 
-from agent_runtime.models import StrictModel
+from agent_runtime.models import MetadataModel, StrictModel
 
 FeedbackTarget = Literal["run", "message", "tool_result"]
 FeedbackSource = Literal["user", "reviewer", "system"]
 FeedbackType = Literal["thumb", "rating", "correction", "comment", "label"]
 
 
-class FeedbackSubmission(StrictModel):
+class FeedbackSubmission(MetadataModel):
     """Caller-provided feedback linked to one completed runtime artifact."""
 
     feedback_id: UUID
@@ -28,7 +28,6 @@ class FeedbackSubmission(StrictModel):
     value: bool | int | float | str | dict[str, Any]
     comment: str | None = Field(default=None, max_length=8_000)
     labels: list[str] = Field(default_factory=list, max_length=50)
-    metadata: dict[str, Any] = Field(default_factory=dict)
     supersedes_feedback_id: UUID | None = None
     event_at: datetime | None = None
 

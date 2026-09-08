@@ -163,12 +163,13 @@ Validation and guardrail failures use 422, unknown resources use 404, idempotenc
 | `MODEL_BASE_URL` | OpenAI v1 endpoint | Compatible provider base URL |
 | `MODEL_API_KEY` | empty | Real provider bearer credential |
 | `MAX_TOOL_ITERATIONS` | `3` | Native tool-loop bound |
+| `TOOL_TIMEOUT_SECONDS` | `10` | Deadline applied to each registered example tool |
 | `INVOCATION_TIMEOUT_SECONDS` | `60` | Total agent invocation deadline |
 | `MAX_REQUEST_BODY_BYTES` | `1000000` | HTTP body limit |
 | `OTEL_SERVICE_NAME` | `agent-runtime-kit` | Trace service name |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | empty | OTLP HTTP traces endpoint, including `/v1/traces` |
 | `OTEL_CAPTURE_CONTENT` | `false` | Explicitly allow sensitive content in spans |
-| `SHUTDOWN_GRACE_SECONDS` | `20` | Intended graceful shutdown bound |
+| `SHUTDOWN_GRACE_SECONDS` | `20` | Graceful shutdown bound used by the example entry point |
 
 ## Observability and privacy
 
@@ -196,14 +197,24 @@ make example
 make lint
 make typecheck
 make test
+make test-unit
+make test-integration
 make docker-build
 make docker-up
 make docker-smoke
 make verify
 ```
 
-The CI workflow runs formatting, linting, strict type checking, real PostgreSQL tests, image build,
-migrations, and the container smoke test.
+All automated tests use pytest; asynchronous cases use pytest-asyncio. The CI workflow separates
+quality checks, unit tests on Linux and Windows with supported Python versions, real PostgreSQL
+integration tests, and a container smoke test. Jobs use the committed `uv.lock` file. `make test`
+and `make verify` expect the local Compose PostgreSQL service and applied migration; override
+`TEST_DATABASE_URL` when using another disposable PostgreSQL database.
+
+Tags matching `v*.*.*` start the release workflow only after the same quality and pytest suite
+passes against PostgreSQL. It uploads the Python wheel and source distribution as workflow
+artifacts, then publishes the versioned container image to GitHub Container Registry. Publishing
+to PyPI is intentionally not enabled until trusted publishing is configured for this repository.
 
 ## Security and limitations
 

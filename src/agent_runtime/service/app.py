@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable
-from typing import Protocol
+from typing import Protocol, cast
 from uuid import UUID, uuid4
 
 from fastapi import FastAPI, Header, Request
@@ -17,8 +17,10 @@ from starlette.types import ASGIApp, Lifespan
 from agent_runtime.errors import (
     AgentInvocationError,
     IdempotencyConflictError,
+    IdempotentRunUnavailableError,
     InvocationTimeoutError,
     ProviderError,
+    RunInProgressError,
     RuntimeKitError,
     ThreadNotFoundError,
     ToolExecutionError,
@@ -119,7 +121,13 @@ def create_app(
     async def validation_error_handler(  # pyright: ignore[reportUnusedFunction]
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
-        del exc
+        raw_body: object = exc.body
+        if isinstance(raw_body, dict):
+            candidate = cast(dict[str, object], raw_body).get("request_id")
+            try:
+                request.state.request_id = UUID(str(candidate))
+            except (TypeError, ValueError):
+                pass
         return _error_response(
             _request_id(request),
             "validation_error",
@@ -234,7 +242,9 @@ def _error_response(
 def _status_code(exc: RuntimeKitError) -> int:
     if isinstance(exc, (UnknownAgentError, ThreadNotFoundError, ToolNotFoundError)):
         return 404
-    if isinstance(exc, IdempotencyConflictError):
+    if isinstance(
+        exc, (IdempotencyConflictError, RunInProgressError, IdempotentRunUnavailableError)
+    ):
         return 409
     if isinstance(exc, (GuardrailBlockedError, ToolValidationError)):
         return 422

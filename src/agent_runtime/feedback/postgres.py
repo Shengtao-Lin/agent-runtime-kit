@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from datetime import datetime
+from typing import cast
 from uuid import UUID
 
 from sqlalchemy import select
@@ -106,9 +107,23 @@ class PostgresFeedbackStore:
                     supersedes_feedback_id=submission.supersedes_feedback_id,
                     event_at=submission.event_at,
                 )
+                .on_conflict_do_nothing(index_elements=[FeedbackRecordTable.idempotency_key])
                 .returning(FeedbackRecordTable)
             )
-            row = (await session.execute(statement)).scalar_one()
+            row = (await session.execute(statement)).scalar_one_or_none()
+            if row is None:
+                existing = (
+                    await session.execute(
+                        select(FeedbackRecordTable).where(
+                            FeedbackRecordTable.idempotency_key == submission.idempotency_key
+                        )
+                    )
+                ).scalar_one()
+                if existing.payload_hash != payload_hash:
+                    raise IdempotencyConflictError(
+                        "Feedback idempotency key was used with a different payload"
+                    )
+                return self._model(existing)
             return self._model(row)
 
     async def search(
@@ -189,10 +204,10 @@ class PostgresFeedbackStore:
             idempotency_key=row.idempotency_key,
             payload_hash=row.payload_hash,
             run_id=row.run_id,
-            target_type=row.target_type,  # type: ignore[arg-type]
+            target_type=cast(FeedbackTarget, row.target_type),
             target_id=row.target_id,
-            source=row.source,  # type: ignore[arg-type]
-            feedback_type=row.feedback_type,  # type: ignore[arg-type]
+            source=cast(FeedbackSource, row.source),
+            feedback_type=cast(FeedbackType, row.feedback_type),
             value=row.value,
             comment=row.comment,
             labels=row.labels,

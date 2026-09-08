@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from agent_runtime import AgentRegistry
 from agent_runtime.adapters import NativeAgentInvoker
-from agent_runtime.errors import UnknownAgentError
+from agent_runtime.errors import RunInProgressError, UnknownAgentError
 from agent_runtime.feedback.base import FeedbackStore
 from agent_runtime.feedback.models import FeedbackRecord, FeedbackSubmission
 from agent_runtime.models import (
@@ -40,6 +40,8 @@ class FakeRuntime:
         if agent_id != self.descriptor.agent_id:
             raise UnknownAgentError(f"Agent '{agent_id}' is not registered")
         self.last_idempotency_key = idempotency_key
+        if idempotency_key == "running":
+            raise RunInProgressError("The idempotent request is still running")
         return RuntimeResponse(
             run_id=uuid4(),
             request_id=request.request_id,
@@ -156,6 +158,25 @@ def test_request_body_limit_is_enforced() -> None:
     )
     assert response.status_code == 413
     assert response.json()["error"]["code"] == "request_too_large"
+
+
+def test_conflict_and_validation_errors_preserve_request_id() -> None:
+    client, _ = build_client()
+    request_id = uuid4()
+    conflict = client.post(
+        "/v1/agents/test-agent/invoke",
+        headers={"Idempotency-Key": "running"},
+        json={"request_id": str(request_id), **invocation_body()},
+    )
+    assert conflict.status_code == 409
+    assert conflict.json()["request_id"] == str(request_id)
+
+    invalid = client.post(
+        "/v1/agents/test-agent/invoke",
+        json={"request_id": str(request_id), "messages": []},
+    )
+    assert invalid.status_code == 422
+    assert invalid.json()["request_id"] == str(request_id)
 
 
 def test_openapi_contract_snapshot() -> None:

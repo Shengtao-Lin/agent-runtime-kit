@@ -75,11 +75,15 @@ def build_application(settings: RuntimeSettings | None = None) -> FastAPI:
             ),
         ]
     )
-    tools = build_tool_registry(telemetry=telemetry)
+    tools = build_tool_registry(
+        telemetry=telemetry,
+        timeout_seconds=settings.tool_timeout_seconds,
+    )
     agents = build_agent_registry(
         model_client=model_client,
         tools=tools,
         telemetry=telemetry,
+        max_tool_iterations=settings.max_tool_iterations,
     )
     runtime = AgentRuntime(
         agents=agents,

@@ -1,4 +1,6 @@
-.PHONY: install postgres-up migrate example docker-build docker-up docker-smoke format lint typecheck test verify
+.PHONY: install postgres-up migrate example docker-build docker-up docker-smoke format lint typecheck test test-unit test-integration verify
+
+TEST_DATABASE_URL ?= postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/agent_runtime
 
 install:
 	uv sync --all-extras --dev
@@ -32,6 +34,12 @@ typecheck:
 	uv run pyright
 
 test:
-	uv run pytest -q
+	AGENT_RUNTIME_TEST_DATABASE_URL=$(TEST_DATABASE_URL) uv run pytest -q
+
+test-unit:
+	uv run pytest -m "not integration" -q
+
+test-integration:
+	AGENT_RUNTIME_TEST_DATABASE_URL=$(TEST_DATABASE_URL) uv run pytest -m integration -q
 
 verify: lint typecheck test

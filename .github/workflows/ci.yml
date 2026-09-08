@@ -2,10 +2,19 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  unit:
+  quality:
+    name: Lint and type check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,18 +22,74 @@ jobs:
         with:
           python-version: "3.11"
           enable-cache: true
-      - run: uv sync --all-extras --dev
+      - run: uv sync --locked --all-extras --dev
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run pyright
-      - run: docker compose up -d postgres
-      - run: uv run alembic upgrade head
-      - run: uv run pytest -q
+
+  unit:
+    name: Pytest unit (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.11"
+          - os: ubuntu-latest
+            python: "3.12"
+          - os: windows-latest
+            python: "3.12"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - run: uv sync --locked --all-extras --dev
+      - run: uv run pytest -m "not integration" -q
+
+  integration:
+    name: Pytest integration (PostgreSQL)
+    needs: [quality, unit]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
         env:
-          AGENT_RUNTIME_TEST_DATABASE_URL: postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/agent_runtime
+          POSTGRES_DB: agent_runtime
+          POSTGRES_USER: agent_runtime
+          POSTGRES_PASSWORD: agent_runtime
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U agent_runtime -d agent_runtime"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/agent_runtime
+      AGENT_RUNTIME_TEST_DATABASE_URL: postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/agent_runtime
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --locked --all-extras --dev
+      - run: uv run alembic upgrade head
+      - run: uv run pytest -m integration -q
+
+  container:
+    name: Container smoke test
+    needs: integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - run: docker compose build app
-      - run: docker compose run --rm migrate
-      - run: docker compose up -d app postgres
-      - run: uv run python scripts/docker_smoke.py
+      - run: docker compose up -d --wait app postgres
+      - run: python scripts/docker_smoke.py
+      - if: failure()
+        run: docker compose logs --no-color
       - if: always()
         run: docker compose down -v
