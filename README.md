@@ -5,7 +5,7 @@
 A framework-neutral Python runtime toolkit for building configurable, observable AI agents with
 PostgreSQL-backed memory.
 
-> **Project status:** v0.1.0 release candidate. The installable library, PostgreSQL persistence,
+> **Project status:** v0.1.0. The installable library, PostgreSQL persistence,
 > provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
 > example are runnable. Authentication and production deployment controls remain application
 > concerns.
@@ -283,8 +283,9 @@ responsibilities outside this MVP. The demonstration guardrails are not a produc
 The MVP does not include an evaluation platform, workflow builder, hosted control plane, vector
 search, background scheduler, semantic retrieval, or multiple persistence backends.
 
-See [the architecture notes](docs/architecture.md), [component runbooks](docs/runbooks/README.md),
-[ADRs](docs/adr), and [changelog](CHANGELOG.md) for design, operations, and release details.
+See the [user runbook](docs/user-runbook.md), [architecture notes](docs/architecture.md),
+[component runbooks](docs/runbooks/README.md), [ADRs](docs/adr), and [changelog](CHANGELOG.md) for
+installation, operations, design, and release details.
 
 ## Independent project disclaimer
 
