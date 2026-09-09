@@ -6,7 +6,14 @@ import json
 from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_serializer,
+    field_validator,
+    model_validator,
+)
 
 MAX_METADATA_KEYS = 64
 MAX_METADATA_BYTES = 16_384
@@ -129,6 +136,11 @@ class AgentDescriptor(StrictModel):
     version: str = Field(min_length=1, max_length=64)
     framework: Literal["native", "langchain", "langgraph"]
     capabilities: set[str] = Field(default_factory=set)
+
+    @field_serializer("capabilities")
+    def serialize_capabilities(self, capabilities: set[str]) -> list[str]:
+        """Keep public JSON and durable replay ordering deterministic."""
+        return sorted(capabilities)
 
 
 class RuntimeContext(StrictModel):

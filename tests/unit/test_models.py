@@ -4,6 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from agent_runtime.models import (
+    AgentDescriptor,
     Message,
     RuntimeRequest,
     TextContent,
@@ -11,6 +12,17 @@ from agent_runtime.models import (
     ToolCallContent,
     ToolResultContent,
 )
+
+
+def test_agent_capabilities_serialize_in_stable_order() -> None:
+    descriptor = AgentDescriptor(
+        agent_id="support",
+        version="1.0.0",
+        framework="native",
+        capabilities={"tools", "multi_turn"},
+    )
+
+    assert descriptor.model_dump(mode="json")["capabilities"] == ["multi_turn", "tools"]
 
 
 def test_runtime_request_generates_stable_identifiers() -> None:
