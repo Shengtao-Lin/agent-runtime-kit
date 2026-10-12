@@ -12,7 +12,7 @@ sampling, alerting, and provider shutdown.
 Install the `telemetry` extra when exporting traces:
 
 ```bash
-uv add "agent-runtime-kit[telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.0"
+uv add "agent-runtime-kit[telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.1"
 ```
 
 | Example setting | Default | Purpose |

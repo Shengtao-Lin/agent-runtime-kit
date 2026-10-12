@@ -49,7 +49,9 @@ record = await feedback.record(submission)
 ```
 
 Use `search()` for paginated repository reads filtered by run, target, source, feedback type, or
-time window. Treat cursors as opaque values and continue until the returned page has no next cursor.
+time window. Pass the returned `next_offset` as the next call's `offset`, keeping filters and
+`limit` unchanged. Stop when `next_offset` is `None`. Offset pagination is not a snapshot; use a
+fixed `created_to` cutoff for repeatable exports while submissions continue.
 
 ## HTTP Workflow
 
@@ -109,7 +111,7 @@ do not silently record an unlinked replacement.
 
 ### Feedback is absent from analysis exports
 
-Verify time-zone boundaries, filters, cursor continuation, and whether the export intentionally
+Verify time-zone boundaries, filters, offset continuation, and whether the export intentionally
 includes superseded records. The store is append-only; consumers decide how corrections are folded.
 
 ## Data and Security Notes

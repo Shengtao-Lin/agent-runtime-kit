@@ -2,17 +2,19 @@
 
 All notable changes to Agent Runtime Kit are documented here.
 
-## Unreleased
+## 0.1.1 - 2026-10-11
 
 ### Fixed
 
 - Serialize agent capabilities in stable sorted order so durable replay structurally matches the
   original HTTP response.
+- Report the installed package version in the HTTP OpenAPI document.
 
 ### Documentation
 
 - Add an end-to-end user runbook and expand every component runbook with setup, workflows,
   diagnostics, recovery, and security guidance.
+- Correct feedback offset pagination, namespace boundaries, and streaming extension guidance.
 
 ## 0.1.0 - 2026-09-08
 

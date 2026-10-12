@@ -13,7 +13,7 @@ runtime supplies prior messages before invoking an adapter.
 ## Prerequisites and Installation
 
 ```bash
-uv add "agent-runtime-kit[adapters,postgres] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.0"
+uv add "agent-runtime-kit[adapters,postgres] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.1"
 ```
 
 Before registration, decide:

@@ -49,7 +49,7 @@ uv sync --locked --all-extras --dev
 To consume a tagged release from another project instead:
 
 ```bash
-uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.0"
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.1"
 ```
 
 Available extras are `postgres`, `service`, `telemetry`, `adapters`, `openai-compatible`,
@@ -303,8 +303,9 @@ application became ready.
 
 - PostgreSQL is the only durable backend in v0.1.0. Backups, restore drills, encryption, high
   availability, retention, and cleanup scheduling belong to the deployment.
-- Namespace every runtime and memory domain deliberately. A namespace is an application boundary,
-  not a substitute for authorization or database tenant isolation.
+- Namespace every runtime and memory domain deliberately. Runtime namespaces label newly created
+  threads but do not validate access to caller-supplied thread IDs. Idempotency keys are scoped by
+  agent ID, not namespace. Enforce access and tenant isolation in the hosting application.
 - The optional HTTP package does not provide authentication, authorization, TLS, public ingress,
   CORS policy, or rate limiting. Add them in the hosting application or platform.
 - Default telemetry records identifiers, counts, status, and timing. Enabling content capture may
@@ -342,3 +343,4 @@ values, or free-text feedback.
 | Version | Date | Change |
 | --- | --- | --- |
 | 1.0 | 2026-09-09 | Added an end-to-end user runbook for the v0.1.0 library and example |
+| 1.1 | 2026-10-11 | Updated installation references and clarified namespace boundaries for v0.1.1 |

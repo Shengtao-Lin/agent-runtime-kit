@@ -93,8 +93,9 @@ as an explicit one-shot operation instead of racing inside application replicas.
 Applications can add an `AgentInvoker`, model client, lifecycle hook, guardrail, or typed tool
 without changing `AgentRuntime`. Framework adapters own their input and output mapping and may
 wrap richer public framework APIs, but they must return canonical messages and must not introduce a
-second durable conversation store. New persistence backends, streaming, distributed execution,
-and semantic retrieval are deliberately outside the MVP contract.
+second durable conversation store. Canonical streaming is supported through the optional streaming
+protocols. New persistence backends, distributed execution, and semantic retrieval remain outside
+the MVP contract.
 
 ## Security and privacy
 

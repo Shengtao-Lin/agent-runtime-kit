@@ -50,9 +50,23 @@ jobs:
           path: dist/
           if-no-files-found: error
 
+  verify-container:
+    name: Verify release container
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose build app
+      - run: docker compose up -d --wait app postgres
+      - run: python scripts/docker_smoke.py
+      - if: failure()
+        run: docker compose logs --no-color
+      - if: always()
+        run: docker compose down
+
   publish-release:
     name: Publish GitHub release artifacts
-    needs: verify
+    needs: [verify, verify-container]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -73,7 +87,7 @@ jobs:
 
   publish-container:
     name: Publish container to GHCR
-    needs: verify
+    needs: [verify, verify-container]
     runs-on: ubuntu-latest
     permissions:
       contents: read

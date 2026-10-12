@@ -5,7 +5,7 @@
 A framework-neutral Python runtime toolkit for building configurable, observable AI agents with
 PostgreSQL-backed memory.
 
-> **Project status:** v0.1.0. The installable library, PostgreSQL persistence,
+> **Project status:** v0.1.1. The installable library, PostgreSQL persistence,
 > provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
 > example are runnable. Authentication and production deployment controls remain application
 > concerns.
@@ -50,12 +50,12 @@ package. From a checkout, install the core and only the extras your application 
 ```bash
 uv sync --extra postgres --extra telemetry
 uv build
-uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.0"
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.1"
 ```
 
 Available extras are `postgres`, `service`, `telemetry`, `adapters`, `openai-compatible`,
 `anthropic`, and `gemini`. GitHub Releases provide the wheel and source distribution; PyPI
-publishing is not enabled for v0.1.0.
+publishing is not enabled for v0.1.1.
 
 ## Library quickstart
 
