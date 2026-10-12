@@ -247,6 +247,11 @@ data and requires an explicit privacy, retention, and access-control review.
 
 ## Development and verification
 
+The [independent consumer validation](validation/consumer/README.md) installs a published or built
+wheel into a separate application venv outside the checkout. Its
+[integration report](docs/validation/independent-consumer.md) records normal workflows and the
+reliability work proposed for v0.2.0.
+
 ```bash
 make install
 make postgres-up
