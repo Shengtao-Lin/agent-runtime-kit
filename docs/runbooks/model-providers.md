@@ -22,7 +22,7 @@ and `stream()` and uses direct HTTP so the core package does not impose a vendor
 Install only the adapter required by the application:
 
 ```bash
-uv add "agent-runtime-kit[openai-compatible] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.0"
+uv add "agent-runtime-kit[openai-compatible] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.1"
 ```
 
 Replace the extra with `anthropic` or `gemini` as needed. Provision a provider credential through a

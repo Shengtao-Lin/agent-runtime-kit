@@ -14,6 +14,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from starlette.types import ASGIApp, Lifespan
 
+from agent_runtime import __version__
 from agent_runtime.errors import (
     AgentInvocationError,
     IdempotencyConflictError,
@@ -96,7 +97,7 @@ def create_app(
     lifespan: Lifespan[FastAPI] | None = None,
 ) -> FastAPI:
     """Build the optional framework-neutral HTTP application."""
-    app = FastAPI(title="Agent Runtime Kit", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="Agent Runtime Kit", version=__version__, lifespan=lifespan)
     app.add_middleware(BodyLimitMiddleware, max_bytes=max_request_body_bytes)
 
     @app.exception_handler(RuntimeKitError)

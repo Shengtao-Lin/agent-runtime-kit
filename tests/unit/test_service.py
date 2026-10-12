@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
-from agent_runtime import AgentRegistry
+from agent_runtime import AgentRegistry, __version__
 from agent_runtime.adapters import NativeAgentInvoker
 from agent_runtime.errors import RunInProgressError, UnknownAgentError
 from agent_runtime.feedback.base import FeedbackStore
@@ -233,6 +233,7 @@ def test_conflict_and_validation_errors_preserve_request_id() -> None:
 def test_openapi_contract_snapshot() -> None:
     client, _ = build_client()
     document = client.get("/openapi.json").json()
+    assert document["info"]["version"] == __version__
     projection = {
         "paths": {
             path: sorted(method for method in item if method != "parameters")

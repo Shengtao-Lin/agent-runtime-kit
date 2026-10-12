@@ -30,7 +30,7 @@ uv run alembic upgrade head
 
 | Setting | Example default | Operational meaning |
 | --- | --- | --- |
-| Runtime namespace | Application-defined | Separates threads and runtime-owned records by application |
+| Runtime namespace | Application-defined | Namespace assigned to newly created threads |
 | Invocation timeout | `60` seconds | Total bound including history, hooks, provider, tools, and persistence |
 | Agent ID | `my-agent` | Stable public routing key and part of idempotency lookup |
 | Agent version | `1.0.0` | Observable implementation version; change when behavior changes |
@@ -156,8 +156,10 @@ Do not persist displayed partial text as a successful assistant response.
 
 ## Data and Security Notes
 
-Runtime namespaces reduce accidental record mixing but do not provide authorization or tenant
-isolation. Keep public errors categorical, keep internal exception chains in protected logs, and do
+The runtime namespace labels newly created threads; it does not enforce ownership when a caller
+supplies a thread ID. Idempotency keys are scoped by agent ID, not namespace. Validate thread access
+in the hosting application and use distinct agent IDs or separate stores for isolated deployments.
+Keep public errors categorical, keep internal exception chains in protected logs, and do
 not edit durable run rows by hand. The hosting application owns authentication, resource limits,
 shutdown ordering, and retention policy.
 
