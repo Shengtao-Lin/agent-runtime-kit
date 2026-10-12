@@ -6,12 +6,12 @@ import asyncio
 import os
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import NullPool
 
 from agent_runtime.memory.tables import Base
-from alembic import context
 
 config = context.config
 if config.config_file_name is not None:
