@@ -45,9 +45,10 @@ async def test_deadline_includes_before_model_policy(database_url: str, identity
 )
 @pytest.mark.asyncio
 async def test_same_thread_calls_use_serial_history(database_url: str, identity: str) -> None:
-    async with application(database_url, identity) as app:
+    async with application(database_url, identity, invocation_deadline_seconds=10) as app:
         first = await app.runtime.invoke(identity, request("first"))
         started = asyncio.Event()
+        second_entered = asyncio.Event()
         release = asyncio.Event()
         histories: list[int] = []
         original = app.model.generate
@@ -56,7 +57,9 @@ async def test_same_thread_calls_use_serial_history(database_url: str, identity:
             histories.append(len(messages))
             if len(histories) == 1:
                 started.set()
-                await asyncio.wait_for(release.wait(), timeout=2)
+                await asyncio.wait_for(release.wait(), timeout=5)
+            else:
+                second_entered.set()
             return await original(messages, **kwargs)
 
         app.model.generate = synchronize
@@ -72,7 +75,12 @@ async def test_same_thread_calls_use_serial_history(database_url: str, identity:
                     app.runtime.invoke(identity, request("third", thread_id=first.thread_id))
                 )
             )
-            await asyncio.sleep(0.05)
+            # Current runtimes reach the second model deterministically. A future
+            # serializing runtime keeps it waiting until the first turn commits.
+            try:
+                await asyncio.wait_for(second_entered.wait(), timeout=2)
+            except TimeoutError:
+                pass
             release.set()
             await asyncio.gather(*tasks)
         finally:
