@@ -55,12 +55,19 @@ def main() -> None:
     )
     parser.add_argument("--expected-version", default="0.1.1")
     parser.add_argument("--expected-revision", default="0001")
+    parser.add_argument(
+        "--upgrade-from-baseline",
+        action="store_true",
+        help="Seed published v0.1.1 records before installing and migrating a candidate wheel",
+    )
     parser.add_argument("--acceptance-only", action="store_true", help="Exclude v0.2.0 gap probes")
     parser.add_argument("--report-dir", type=Path, default=Path("build/consumer-validation"))
     args = parser.parse_args()
     database_url = os.environ.get("AGENT_RUNTIME_TEST_DATABASE_URL")
     if not database_url:
         parser.error("Set AGENT_RUNTIME_TEST_DATABASE_URL to a disposable PostgreSQL database")
+    if args.upgrade_from_baseline and not args.wheel:
+        parser.error("--upgrade-from-baseline requires --wheel")
     repository = Path(__file__).resolve().parents[1]
     report_directory = args.report_dir.resolve()
     report_directory.mkdir(parents=True, exist_ok=True)
@@ -70,6 +77,7 @@ def main() -> None:
     environment["DATABASE_URL"] = database_url
     environment["CONSUMER_EXPECTED_VERSION"] = args.expected_version
     environment["CONSUMER_EXPECTED_REVISION"] = args.expected_revision
+    environment["CONSUMER_PACKAGED_MIGRATIONS"] = "1" if args.wheel else "0"
 
     def run(command: list[str], *, cwd: Path) -> None:
         subprocess.run(command, cwd=cwd, env=environment, check=True)
@@ -86,6 +94,15 @@ def main() -> None:
         python = (
             consumer / ".venv" / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
         )
+        migration = root / "migration-job"
+        migration.mkdir()
+        if not args.wheel or args.upgrade_from_baseline:
+            published_migrations(migration)
+            run([str(python), "-m", "alembic", "upgrade", "head"], cwd=migration)
+        if args.upgrade_from_baseline:
+            upgrade_state = root / "upgrade-state.json"
+            environment["CONSUMER_UPGRADE_STATE"] = str(upgrade_state)
+            run([str(python), "seed_upgrade.py"], cwd=consumer)
         if args.wheel:
             wheel = args.wheel.resolve(strict=True)
             run(
@@ -104,20 +121,11 @@ def main() -> None:
             )
         run(["uv", "pip", "check", "--python", str(python)], cwd=consumer)
 
-        # Baseline migrations come from the release sdist, not the checkout. A candidate
-        # wheel uses this checkout's migrations; neither path imports library source.
-        migration = root / "migration-job"
-        migration.mkdir()
         if args.wheel:
-            shutil.copy2(repository / "alembic.ini", migration / "alembic.ini")
-            shutil.copytree(
-                repository / "alembic",
-                migration / "alembic",
-                ignore=shutil.ignore_patterns("__pycache__"),
-            )
-        else:
-            published_migrations(migration)
-        run([str(python), "-m", "alembic", "upgrade", "head"], cwd=migration)
+            # Candidate schema setup uses only the installed wheel from an empty directory.
+            run([str(python), "-m", "agent_runtime.migrations", "upgrade"], cwd=root)
+            run([str(python), "-m", "agent_runtime.migrations", "upgrade"], cwd=root)
+            run([str(python), "-m", "agent_runtime.migrations", "current"], cwd=root)
         inventory = subprocess.run(
             [
                 str(python),
@@ -155,7 +163,7 @@ def main() -> None:
         )
         package_audit = json.loads(audit.stdout)
         package_audit["migration_source"] = (
-            "checkout"
+            "installed-wheel"
             if args.wheel
             else {"url": BASELINE_SOURCE_URL, "sha256": BASELINE_SOURCE_SHA256}
         )
@@ -171,6 +179,7 @@ def main() -> None:
             "-p",
             "no:cacheprovider",
             f"--junitxml={report_directory / 'results.xml'}",
+            f"--basetemp={root / 'pytest-temp'}",
         ]
         if args.acceptance_only:
             command.extend(["-m", "not readiness"])

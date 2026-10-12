@@ -29,6 +29,46 @@ and leaks.
 
 ## Start, Migrate, and Verify
 
+### Installed wheel (development builds for v0.2.0)
+
+The wheel ships the complete Alembic script directory under `agent_runtime.migrations`. Install
+the `postgres` extra, set an explicit database URL, and run from any working directory:
+
+```powershell
+$env:DATABASE_URL="postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/agent_runtime"
+python -m agent_runtime.migrations upgrade
+agent-runtime-migrate current
+agent-runtime-migrate heads
+```
+
+On POSIX shells, set the same URL with `export DATABASE_URL=...`. `upgrade` defaults to `head` and
+accepts an explicit revision; `upgrade --sql` generates SQL without connecting. `heads` needs no
+URL and opens no database connection. Missing targets and failed operations return nonzero exit
+codes. The CLI does not print raw database exceptions or credentials.
+
+A synchronous Python migration job can also call:
+
+```python
+from agent_runtime.migrations import upgrade
+
+upgrade(database_url)
+```
+
+Run this function outside an active asyncio event loop, preferably in a separate migration process.
+It closes its non-pooled engine in a `finally` block and selects a Windows-compatible event loop.
+URLs are passed directly rather than through ConfigParser, preserving percent-encoded credentials.
+
+Revision `0001` retains the v0.1.1 schema and version identifier. Existing databases need no restamp
+or rebuild; repeating `upgrade` is a no-op at the current head. Invocation history, stored responses,
+feedback, and memory remain intact. Future revisions must add an explicit upgrade path.
+
+The published v0.1.1 wheel does not have this command. Use its matching release source archive or
+checkout to run its migration job until v0.2.0 is published.
+
+### Repository checkout (compatible existing commands)
+
+The root `alembic.ini` now resolves the packaged script directory. Existing commands remain valid:
+
 ```bash
 docker compose up -d postgres
 uv run alembic upgrade head

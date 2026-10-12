@@ -1,4 +1,4 @@
-"""Create the initial runtime persistence schema.
+"""Create the initial runtime persistence schema (unchanged from v0.1.1).
 
 Revision ID: 0001
 Revises: None

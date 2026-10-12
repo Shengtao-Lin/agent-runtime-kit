@@ -47,6 +47,9 @@ dev = [
 Repository = "https://github.com/Shengtao-Lin/agent-runtime-kit"
 Issues = "https://github.com/Shengtao-Lin/agent-runtime-kit/issues"
 
+[project.scripts]
+agent-runtime-migrate = "agent_runtime.migrations.__main__:main"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent_runtime"]
 

@@ -52,9 +52,16 @@ uv build
 
 Replace the wheel filename and expected version when validating a future release. Candidate mode
 installs that wheel over the locked baseline without changing dependencies, checks compatibility
-with `uv pip check`, and uses the checkout's migration files in the isolated migration job. Update
+with `uv pip check`, and runs `python -m agent_runtime.migrations upgrade` from an empty temporary
+directory using only the wheel's packaged migration resources. It repeats the upgrade and reads
+the current revision to verify idempotency. Update
 the consumer lock deliberately if a candidate changes dependency requirements. Supply
 `--expected-revision` if the schema head changes.
+
+To validate preservation of v0.1.1 data during an upgrade, add `--upgrade-from-baseline`. This mode
+migrates with the published source archive, seeds messages, an idempotent response, feedback, and
+long-term memory using the released wheel, then installs the candidate wheel and runs its packaged
+migration. The additional pytest check verifies all seeded data and replay behavior survive.
 
 ## Acceptance and Readiness Results
 
@@ -89,8 +96,10 @@ Reports are written to `build/consumer-validation/` by default:
 - `package-audit.json`: installed wheel provenance, platform, migration-resource inventory, and
   migration source.
 
-CI runs the published baseline with gap probes and the current built wheel with acceptance checks.
-It uploads both report directories. The source project's normal pytest suite remains separate.
+CI runs the published baseline with gap probes, the built wheel against a fresh database, and
+a v0.1.1-to-candidate data-preservation check. It uploads all three report directories. The source
+project's normal pytest suite remains separate. Candidate tests also verify wheel migration files,
+the console entry point, and rejection of a missing database target.
 
 See the [integration report and v0.2.0 plan](../../docs/validation/independent-consumer.md) for the
 measured results, limitations, and implementation priorities.

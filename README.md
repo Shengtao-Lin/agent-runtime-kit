@@ -59,6 +59,19 @@ publishing is not enabled for v0.1.1.
 
 ## Library quickstart
 
+For the upcoming v0.2.0, schema migration resources and commands are included in the wheel. In an
+application with the `postgres` extra installed, explicitly set `DATABASE_URL` and run:
+
+```bash
+python -m agent_runtime.migrations upgrade
+agent-runtime-migrate current
+agent-runtime-migrate heads
+```
+
+These commands are available in development builds on `main`; the published v0.1.1 wheel still
+requires the migration files from its source archive. See the
+[PostgreSQL runbook](docs/runbooks/postgres.md) for setup and compatibility details.
+
 ```python
 from agent_runtime import AgentRegistry, AgentRuntime, RuntimeRequest
 from agent_runtime.adapters import NativeAgentInvoker
