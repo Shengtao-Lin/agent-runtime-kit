@@ -116,6 +116,50 @@ jobs:
           path: dist/
           if-no-files-found: error
 
+  consumer:
+    name: Independent wheel consumer (PostgreSQL)
+    needs: quality
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: agent_runtime_consumer
+          POSTGRES_USER: agent_runtime
+          POSTGRES_PASSWORD: agent_runtime
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U agent_runtime -d agent_runtime_consumer"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      AGENT_RUNTIME_TEST_DATABASE_URL: postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/agent_runtime_consumer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --locked --all-extras --dev
+      - name: Validate published baseline and record reliability gaps
+        run: uv run python scripts/validate_consumer.py --report-dir build/consumer-baseline
+      - run: uv build
+      - name: Validate candidate wheel with the same downstream application
+        run: |
+          VERSION=$(uv run python -c 'import agent_runtime; print(agent_runtime.__version__)')
+          uv run python scripts/validate_consumer.py \
+            --wheel "dist/agent_runtime_kit-$VERSION-py3-none-any.whl" \
+            --expected-version "$VERSION" --acceptance-only \
+            --report-dir build/consumer-candidate
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: independent-consumer-results
+          path: build/consumer-*/
+          if-no-files-found: warn
+
   container:
     name: Container smoke test
     needs: [integration, package]

@@ -2,6 +2,16 @@
 
 All notable changes to Agent Runtime Kit are documented here.
 
+## Unreleased
+
+### Added
+
+- A locked independent consumer application with pytest acceptance checks against published and
+  built wheels, run outside the source checkout in its own venv.
+- Reproducible probes and a v0.2.0 readiness report for crash recovery, same-thread concurrency,
+  atomic finalization, complete deadlines, and wheel migration resources.
+- A CI consumer job with PostgreSQL and baseline/candidate report artifacts.
+
 ## 0.1.1 - 2026-10-11
 
 ### Fixed

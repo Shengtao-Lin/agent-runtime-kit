@@ -1,0 +1,18 @@
+[project]
+name = "runtime-kit-consumer-validation"
+version = "0.0.0"
+requires-python = ">=3.11"
+dependencies = [
+  "agent-runtime-kit[postgres,telemetry] @ https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.1.1/agent_runtime_kit-0.1.1-py3-none-any.whl",
+  "pytest>=8.3,<9",
+  "pytest-asyncio>=0.24,<1",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = ["readiness: expected failures demonstrating v0.2.0 reliability gaps"]
