@@ -26,7 +26,6 @@ WORKDIR /app
 COPY --from=builder --chown=agent-runtime:agent-runtime /app/.venv ./.venv
 COPY --chown=agent-runtime:agent-runtime src ./src
 COPY --chown=agent-runtime:agent-runtime examples ./examples
-COPY --chown=agent-runtime:agent-runtime alembic ./alembic
 COPY --chown=agent-runtime:agent-runtime alembic.ini ./alembic.ini
 COPY --chown=agent-runtime:agent-runtime infra ./infra
 USER agent-runtime

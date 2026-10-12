@@ -6,6 +6,9 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ### Added
 
+- Packaged Alembic migration resources and explicit `agent-runtime-migrate` / Python entry points
+  that work from an installed wheel without a checkout.
+- Fresh-database and v0.1.1 data-preservation migration checks in independent consumer CI.
 - A locked independent consumer application with pytest acceptance checks against published and
   built wheels, run outside the source checkout in its own venv.
 - Reproducible probes and a v0.2.0 readiness report for crash recovery, same-thread concurrency,

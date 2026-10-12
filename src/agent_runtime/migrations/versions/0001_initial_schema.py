@@ -1,4 +1,4 @@
-"""Create the initial runtime persistence schema.
+"""Create the initial runtime persistence schema (unchanged from v0.1.1).
 
 Revision ID: 0001
 Revises: None
@@ -7,9 +7,8 @@ Revises: None
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
-
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 revision: str = "0001"
 down_revision: str | None = None

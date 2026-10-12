@@ -56,6 +56,18 @@ recorded by the package audit and demonstrated by the source-archive migration r
 
 ## Proposed v0.2.0 Delivery Sequence
 
+### Migration packaging implementation status (2026-10-12)
+
+R5 is implemented in development builds: migrations ship under `agent_runtime.migrations`, with
+`python -m agent_runtime.migrations` and `agent-runtime-migrate` entry points. Revision `0001` is
+unchanged. Repository and Docker jobs resolve the same packaged resources.
+
+The candidate validation path no longer copies migration code from the checkout. It initializes
+a database through the installed wheel and repeats the upgrade. A separate upgrade check seeds
+messages, a canonical response, feedback, and long-term memory with the released v0.1.1 wheel,
+then verifies the candidate migration preserves them. The baseline remains pinned to v0.1.1 and
+still records R1-R4 as expected failures. v0.2.0 has not been released.
+
 ### 1. Make wheel-only setup complete
 
 Package versioned migration resources and expose a documented entry point that does not depend on
