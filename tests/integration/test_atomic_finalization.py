@@ -162,9 +162,9 @@ async def test_lost_commit_acknowledgment_preserves_success(
     complete = harness.runs.complete
 
     async def lose_ack(
-        run_id: UUID, *, messages: Sequence[Message], response: RuntimeResponse
+        run_id: UUID, *, owner_token: UUID, messages: Sequence[Message], response: RuntimeResponse
     ) -> RunRecord:
-        await complete(run_id, messages=messages, response=response)
+        await complete(run_id, owner_token=owner_token, messages=messages, response=response)
         raise ConnectionError("Synthetic lost commit acknowledgment")
 
     monkeypatch.setattr(harness.runs, "complete", lose_ack)
@@ -234,9 +234,11 @@ async def test_cancellation_after_commit_preserves_replay(
     complete = harness.runs.complete
 
     async def wait_after_commit(
-        run_id: UUID, *, messages: Sequence[Message], response: RuntimeResponse
+        run_id: UUID, *, owner_token: UUID, messages: Sequence[Message], response: RuntimeResponse
     ) -> RunRecord:
-        result = await complete(run_id, messages=messages, response=response)
+        result = await complete(
+            run_id, owner_token=owner_token, messages=messages, response=response
+        )
         committed.set()
         await asyncio.Event().wait()
         return result
@@ -267,9 +269,9 @@ async def test_cleanup_outage_does_not_replace_original_error(
     harness: Harness, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
     async def fail_complete(
-        run_id: UUID, *, messages: Sequence[Message], response: RuntimeResponse
+        run_id: UUID, *, owner_token: UUID, messages: Sequence[Message], response: RuntimeResponse
     ) -> RunRecord:
-        del run_id, messages, response
+        del run_id, owner_token, messages, response
         raise RuntimeError("original-sentinel")
 
     async def fail_cleanup(*args: object, **kwargs: object) -> RunRecord:
@@ -295,6 +297,7 @@ async def test_complete_rejects_foreign_response_without_writes(
     harness: Harness, field: str
 ) -> None:
     run_id = uuid4()
+    owner_token = uuid4()
     assert harness.request.thread_id is not None
     await harness.runs.claim(
         run_id=run_id,
@@ -303,8 +306,10 @@ async def test_complete_rejects_foreign_response_without_writes(
         thread_id=harness.request.thread_id,
         idempotency_key=harness.key,
         request_hash="hash",
+        owner_token=owner_token,
+        lease_seconds=60,
     )
-    await harness.runs.transition(run_id, "running")
+    await harness.runs.transition(run_id, "running", owner_token=owner_token)
     assistant = Message(role="assistant", content=[TextContent(text="Synthetic result")])
     response = RuntimeResponse(
         run_id=run_id,
@@ -323,7 +328,10 @@ async def test_complete_rejects_foreign_response_without_writes(
     invalid = response.model_copy(update={field: replacements[field]})
     with pytest.raises(InvalidRunTransitionError):
         await harness.runs.complete(
-            run_id, messages=[*harness.request.messages, assistant], response=invalid
+            run_id,
+            owner_token=owner_token,
+            messages=[*harness.request.messages, assistant],
+            response=invalid,
         )
     record = await harness.runs.get(run_id)
     assert record is not None and record.status == "running" and record.response is None
@@ -335,13 +343,22 @@ async def test_terminal_cleanup_and_repeated_completion_cannot_rewrite_success(
     harness: Harness,
 ) -> None:
     response = await invoke(harness, "invoke")
-    preserved = await harness.runs.fail_if_running(response.run_id, error_code="late_failure")
+    record = await harness.runs.get(response.run_id)
+    assert record is not None and record.owner_token is not None
+    owner_token = record.owner_token
+    preserved = await harness.runs.fail_if_running(
+        response.run_id, owner_token=owner_token, error_code="late_failure"
+    )
     assert preserved.status == "succeeded" and preserved.response == response
     assert preserved.error_code is None
     with pytest.raises(InvalidRunTransitionError):
-        await harness.runs.complete(response.run_id, messages=[response.message], response=response)
+        await harness.runs.complete(
+            response.run_id, owner_token=owner_token, messages=[response.message], response=response
+        )
     with pytest.raises(InvalidRunTransitionError, match="complete"):
-        await harness.runs.transition(response.run_id, "succeeded", response=response)
+        await harness.runs.transition(
+            response.run_id, "succeeded", owner_token=owner_token, response=response
+        )
     assert len(await harness.memory.get_messages(response.thread_id)) == 2
 
 
@@ -364,11 +381,11 @@ async def test_deadline_at_commit_boundary(
     complete = harness.runs.complete
 
     async def pause(
-        run_id: UUID, *, messages: Sequence[Message], response: RuntimeResponse
+        run_id: UUID, *, owner_token: UUID, messages: Sequence[Message], response: RuntimeResponse
     ) -> RunRecord:
         nonlocal reached
         if committed:
-            await complete(run_id, messages=messages, response=response)
+            await complete(run_id, owner_token=owner_token, messages=messages, response=response)
         reached = True
         await asyncio.Event().wait()
         raise AssertionError("unreachable")
@@ -393,6 +410,7 @@ async def test_deadline_at_commit_boundary(
 @pytest.mark.asyncio
 async def test_accepted_run_can_be_cleaned_after_lost_claim_ack(harness: Harness) -> None:
     run_id = uuid4()
+    owner_token = uuid4()
     assert harness.request.thread_id is not None
     await harness.runs.claim(
         run_id=run_id,
@@ -401,6 +419,10 @@ async def test_accepted_run_can_be_cleaned_after_lost_claim_ack(harness: Harness
         thread_id=harness.request.thread_id,
         idempotency_key=harness.key,
         request_hash="hash",
+        owner_token=owner_token,
+        lease_seconds=60,
     )
-    result = await harness.runs.fail_if_running(run_id, error_code="invocation_timeout")
+    result = await harness.runs.fail_if_running(
+        run_id, owner_token=owner_token, error_code="invocation_timeout"
+    )
     assert result.status == "failed" and result.error_code == "invocation_timeout"

@@ -52,9 +52,13 @@ async def test_commit_acknowledgment_loss_replays_without_model_work(
         complete = app.runs.complete
 
         async def lose_ack(
-            run_id: UUID, *, messages: Sequence[Message], response: RuntimeResponse
+            run_id: UUID,
+            *,
+            owner_token: UUID,
+            messages: Sequence[Message],
+            response: RuntimeResponse,
         ) -> RunRecord:
-            await complete(run_id, messages=messages, response=response)
+            await complete(run_id, owner_token=owner_token, messages=messages, response=response)
             raise ConnectionError("Synthetic lost commit acknowledgment")
 
         app.runs.complete = lose_ack

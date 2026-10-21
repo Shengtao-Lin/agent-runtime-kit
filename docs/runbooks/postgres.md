@@ -58,9 +58,11 @@ Run this function outside an active asyncio event loop, preferably in a separate
 It closes its non-pooled engine in a `finally` block and selects a Windows-compatible event loop.
 URLs are passed directly rather than through ConfigParser, preserving percent-encoded credentials.
 
-Revision `0001` retains the v0.1.1 schema and version identifier. Existing databases need no restamp
-or rebuild; repeating `upgrade` is a no-op at the current head. Invocation history, stored responses,
-feedback, and memory remain intact. Future revisions must add an explicit upgrade path.
+Revision `0001` remains unchanged. Development head `0002` adds fenced thread ownership.
+Stop/drain all old workers before upgrading; mixed-version rollout is unsupported. The migration
+preserves history, successful responses, feedback, and memory, but settles legacy accepted/running
+rows as failed with `legacy_owner_unavailable` because they have no ownership proof. Back up and
+inspect unfinished work first. No restamp or rebuild is needed; repeating `upgrade` is a no-op.
 
 The published v0.1.1 wheel does not have this command. Use its matching release source archive or
 checkout to run its migration job until v0.2.0 is published.
@@ -120,10 +122,11 @@ engine once during shutdown after in-flight work completes.
 ## Operational Checks
 
 Successful finalization uses `PostgresRunStore.complete()` to atomically append messages and store
-the succeeded run plus canonical response. It locks the run row before the thread row.
-`fail_if_running()` obtains the run-row lock before deciding whether cleanup is needed, preserving
+the succeeded run plus canonical response. Mutations consistently lock the thread before the run.
+`fail_if_running()` checks the original owner before deciding whether cleanup is needed, preserving
 success when a commit outcome is uncertain. Standalone memory appends use the same ordinal
-allocator within their own transaction. The schema remains at revision `0001`.
+allocator within their own transaction. Do not append directly to an active runtime thread.
+The development schema head and default HTTP readiness revision are `0002`.
 
 - Monitor connection acquisition latency, active and idle connections, storage growth, transaction
   age, lock waits, query latency, and expired long-term records.
@@ -132,6 +135,9 @@ allocator within their own transaction. The schema remains at revision `0001`.
 - Verify completed idempotent responses remain replayable after process restart.
 - Schedule `PostgresMemoryStore.cleanup_expired()` in an application-owned maintenance process; the
   library does not start a scheduler.
+- Schedule bounded `PostgresRunStore.recover_expired(limit=100)` batches if abandoned runs need
+  proactive recovery. This settles expired owners as failed; it never re-executes tools. Batches
+  skip locked threads. Record recovered IDs/counts and categorical errors, not owner tokens.
 - Test backups and restores against a non-production target before relying on them.
 
 ## Migration Procedure
@@ -175,6 +181,15 @@ unexpected transaction boundary.
 
 Preserve the row and investigate competing owners or repeated finalization. Do not rewrite status
 manually; run state is evidence used for replay and diagnosis.
+
+### Expired owner or permanently busy thread
+
+Inspect `lease_expires_at` and the stored error. The database clock determines expiry. Runtime
+leases include the invocation budget, cleanup budget, and five seconds of grace. An equivalent
+runtime retry or a new thread claim triggers conditional recovery; operations can instead call
+`await runs.recover(run_id)` or `await runs.recover_expired(limit=100)`. Live leases are not stolen.
+Recovered keys return `idempotent_run_unavailable`. Reconcile uncertain external effects before
+submitting a deliberate new request/key. See [ADR 0009](../adr/0009-fenced-thread-ownership.md).
 
 ### Expired records keep growing
 

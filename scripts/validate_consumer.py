@@ -54,7 +54,7 @@ def main() -> None:
         "--wheel", type=Path, help="Override the published baseline with a built wheel"
     )
     parser.add_argument("--expected-version", default="0.1.1")
-    parser.add_argument("--expected-revision", default="0001")
+    parser.add_argument("--expected-revision")
     parser.add_argument(
         "--upgrade-from-baseline",
         action="store_true",
@@ -63,6 +63,7 @@ def main() -> None:
     parser.add_argument("--acceptance-only", action="store_true", help="Exclude v0.2.0 gap probes")
     parser.add_argument("--report-dir", type=Path, default=Path("build/consumer-validation"))
     args = parser.parse_args()
+    args.expected_revision = args.expected_revision or ("0002" if args.wheel else "0001")
     database_url = os.environ.get("AGENT_RUNTIME_TEST_DATABASE_URL")
     if not database_url:
         parser.error("Set AGENT_RUNTIME_TEST_DATABASE_URL to a disposable PostgreSQL database")

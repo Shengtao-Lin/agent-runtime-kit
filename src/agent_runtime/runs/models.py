@@ -6,6 +6,8 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
+from pydantic import Field
+
 from agent_runtime.models import AgentDescriptor, RuntimeResponse, StrictModel
 
 RunStatus = Literal["accepted", "running", "succeeded", "failed", "blocked"]
@@ -25,6 +27,8 @@ class RunRecord(StrictModel):
     error_code: str | None = None
     started_at: datetime
     completed_at: datetime | None = None
+    owner_token: UUID | None = Field(default=None, exclude=True)
+    lease_expires_at: datetime | None = None
 
 
 class RunClaim(StrictModel):

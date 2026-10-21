@@ -61,6 +61,7 @@ def harness() -> SimpleNamespace:
         get_messages=AsyncMock(return_value=()),
     )
     runs = SimpleNamespace(
+        recover=AsyncMock(return_value=record),
         get_by_idempotency=AsyncMock(return_value=None),
         claim=AsyncMock(return_value=RunClaim(run=record, created=True)),
         transition=AsyncMock(return_value=record),
@@ -113,6 +114,7 @@ async def stall(*args: object, **kwargs: object) -> None:
     "phase",
     [
         "lookup",
+        "recover",
         "create",
         "get_thread",
         "claim",
@@ -130,6 +132,7 @@ async def test_every_phase_obeys_one_deadline(
 ) -> None:
     h = harness()
     points = {
+        "recover": h.runs.recover,
         "lookup": h.runs.get_by_idempotency,
         "create": h.memory.create_thread,
         "get_thread": h.memory.get_thread,
@@ -140,6 +143,10 @@ async def test_every_phase_obeys_one_deadline(
     }
     if phase == "create":
         h.request = h.request.model_copy(update={"thread_id": None})
+    if phase == "recover":
+        h.runs.get_by_idempotency.return_value = h.record.model_copy(
+            update={"request_hash": AgentRuntime.request_hash(h.request)}
+        )
     if phase in points:
         points[phase].side_effect = stall
     elif phase == "model":
@@ -154,7 +161,7 @@ async def test_every_phase_obeys_one_deadline(
     async with asyncio.timeout(2):
         with pytest.raises(InvocationTimeoutError):
             await call(h, mode)
-    if phase in {"lookup", "create", "get_thread"}:
+    if phase in {"lookup", "recover", "create", "get_thread"}:
         h.runs.fail_if_running.assert_not_awaited()
     else:
         assert h.runs.fail_if_running.await_args.kwargs["error_code"] == "invocation_timeout"

@@ -119,3 +119,16 @@ class ThreadNotFoundError(RuntimeKitError):
     """Raised when a conversation thread does not exist."""
 
     code = "thread_not_found"
+
+
+class ThreadBusyError(RuntimeKitError):
+    """Another durable owner is executing a turn on this thread."""
+
+    code = "thread_busy"
+    retryable = True
+
+
+class RunOwnershipLostError(RuntimeKitError):
+    """A run's owner token is invalid or its lease has expired."""
+
+    code = "run_ownership_lost"

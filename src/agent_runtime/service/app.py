@@ -23,6 +23,7 @@ from agent_runtime.errors import (
     ProviderError,
     RunInProgressError,
     RuntimeKitError,
+    ThreadBusyError,
     ThreadNotFoundError,
     ToolExecutionError,
     ToolNotFoundError,
@@ -93,7 +94,7 @@ def create_app(
     feedback: FeedbackStore,
     readiness: ReadinessStore,
     max_request_body_bytes: int = 1_000_000,
-    expected_migration_revision: str = "0001",
+    expected_migration_revision: str = "0002",
     lifespan: Lifespan[FastAPI] | None = None,
 ) -> FastAPI:
     """Build the optional framework-neutral HTTP application."""
@@ -290,7 +291,13 @@ def _status_code(exc: RuntimeKitError) -> int:
     if isinstance(exc, (UnknownAgentError, ThreadNotFoundError, ToolNotFoundError)):
         return 404
     if isinstance(
-        exc, (IdempotencyConflictError, RunInProgressError, IdempotentRunUnavailableError)
+        exc,
+        (
+            IdempotencyConflictError,
+            RunInProgressError,
+            IdempotentRunUnavailableError,
+            ThreadBusyError,
+        ),
     ):
         return 409
     if isinstance(exc, (GuardrailBlockedError, ToolValidationError)):

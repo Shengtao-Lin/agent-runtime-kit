@@ -22,6 +22,8 @@ class RunStore(Protocol):
         thread_id: UUID,
         idempotency_key: str | None,
         request_hash: str,
+        owner_token: UUID,
+        lease_seconds: float,
     ) -> RunClaim: ...
 
     async def transition(
@@ -29,6 +31,7 @@ class RunStore(Protocol):
         run_id: UUID,
         status: RunStatus,
         *,
+        owner_token: UUID,
         response: RuntimeResponse | None = None,
         error_code: str | None = None,
     ) -> RunRecord: ...
@@ -36,15 +39,29 @@ class RunStore(Protocol):
     async def get(self, run_id: UUID) -> RunRecord | None: ...
 
     async def complete(
-        self, run_id: UUID, *, messages: Sequence[Message], response: RuntimeResponse
+        self,
+        run_id: UUID,
+        *,
+        owner_token: UUID,
+        messages: Sequence[Message],
+        response: RuntimeResponse,
     ) -> RunRecord:
         """Atomically append messages and persist the succeeded run and replay response."""
         ...
 
     async def fail_if_running(
-        self, run_id: UUID, *, error_code: str, status: Literal["failed", "blocked"] = "failed"
+        self,
+        run_id: UUID,
+        *,
+        owner_token: UUID,
+        error_code: str,
+        status: Literal["failed", "blocked"] = "failed",
     ) -> RunRecord:
         """Settle accepted/running state without overwriting a committed terminal result."""
+        ...
+
+    async def recover(self, run_id: UUID) -> RunRecord:
+        """Fail an expired owner using the store clock; never re-execute its work."""
         ...
 
     async def get_by_idempotency(

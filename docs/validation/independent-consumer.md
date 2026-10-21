@@ -56,6 +56,16 @@ recorded by the package audit and demonstrated by the source-archive migration r
 
 ## Proposed v0.2.0 Delivery Sequence
 
+### Ownership and recovery implementation status (2026-10-20)
+
+Development builds address R2 by rejecting overlapping turns on one thread across processes.
+R1 is addressed by finite database-clock leases, owner-fenced mutations, and conditional recovery
+to terminal failure, not automatic re-execution. Recovery runs on retries/new claims or explicit
+application-owned maintenance. Revision `0002` requires drained old workers and preserves terminal
+evidence while settling unowned legacy active runs. Candidate tests exercise independent pools,
+real killed processes, stale owners, fresh histories, and upgrades. The frozen published baseline
+keeps its four measured expected failures. See [ADR 0009](../adr/0009-fenced-thread-ownership.md).
+
 ### Full deadline implementation status (2026-10-20)
 
 Development builds address R4 with one cooperative budget for all invocation phases, including
