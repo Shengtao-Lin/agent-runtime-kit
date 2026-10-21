@@ -21,7 +21,11 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.orm import Mapper
 
 from agent_runtime import AgentRegistry, AgentRuntime
-from agent_runtime.errors import IdempotentRunUnavailableError, InvalidRunTransitionError
+from agent_runtime.errors import (
+    IdempotentRunUnavailableError,
+    InvalidRunTransitionError,
+    InvocationTimeoutError,
+)
 from agent_runtime.memory import PostgresMemoryStore
 from agent_runtime.memory.tables import AgentMessageTable, RuntimeRunTable
 from agent_runtime.models import (
@@ -339,3 +343,64 @@ async def test_terminal_cleanup_and_repeated_completion_cannot_rewrite_success(
     with pytest.raises(InvalidRunTransitionError, match="complete"):
         await harness.runs.transition(response.run_id, "succeeded", response=response)
     assert len(await harness.memory.get_messages(response.thread_id)) == 2
+
+
+@pytest.mark.parametrize("mode", ["invoke", "stream"])
+@pytest.mark.parametrize("committed", [False, True])
+@pytest.mark.asyncio
+async def test_deadline_at_commit_boundary(
+    harness: Harness, mode: str, committed: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    agents = AgentRegistry()
+    agents.register(harness.invoker)
+    harness.runtime = AgentRuntime(
+        agents=agents,
+        memory=harness.memory,
+        runs=harness.runs,
+        invocation_timeout_seconds=0.5,
+        cleanup_timeout_seconds=0.5,
+    )
+    reached = False
+    complete = harness.runs.complete
+
+    async def pause(
+        run_id: UUID, *, messages: Sequence[Message], response: RuntimeResponse
+    ) -> RunRecord:
+        nonlocal reached
+        if committed:
+            await complete(run_id, messages=messages, response=response)
+        reached = True
+        await asyncio.Event().wait()
+        raise AssertionError("unreachable")
+
+    monkeypatch.setattr(harness.runs, "complete", pause)
+    if committed:
+        response = await invoke(harness, mode)
+        assert await invoke(harness, mode) == response
+    else:
+        with pytest.raises(InvocationTimeoutError):
+            await invoke(harness, mode)
+    assert reached
+    record = await harness.runs.get_by_idempotency(
+        agent_id=harness.agent_id, idempotency_key=harness.key
+    )
+    assert record is not None
+    assert record.status == ("succeeded" if committed else "failed")
+    assert len(await harness.memory.get_messages(record.thread_id)) == (2 if committed else 0)
+    assert harness.invoker.calls == 1
+
+
+@pytest.mark.asyncio
+async def test_accepted_run_can_be_cleaned_after_lost_claim_ack(harness: Harness) -> None:
+    run_id = uuid4()
+    assert harness.request.thread_id is not None
+    await harness.runs.claim(
+        run_id=run_id,
+        request_id=harness.request.request_id,
+        agent=harness.invoker.descriptor,
+        thread_id=harness.request.thread_id,
+        idempotency_key=harness.key,
+        request_hash="hash",
+    )
+    result = await harness.runs.fail_if_running(run_id, error_code="invocation_timeout")
+    assert result.status == "failed" and result.error_code == "invocation_timeout"

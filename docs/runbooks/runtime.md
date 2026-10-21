@@ -31,13 +31,19 @@ uv run alembic upgrade head
 | Setting | Example default | Operational meaning |
 | --- | --- | --- |
 | Runtime namespace | Application-defined | Namespace assigned to newly created threads |
-| Invocation timeout | `60` seconds | Total bound including history, hooks, provider, tools, and persistence |
+| Invocation timeout | `60` seconds | Shared cooperative budget for lookup, claim, history, hooks, provider, tools, and persistence |
+| Cleanup timeout | `5` seconds | Additional conditional cleanup and commit-reconciliation budget |
 | Agent ID | `my-agent` | Stable public routing key and part of idempotency lookup |
 | Agent version | `1.0.0` | Observable implementation version; change when behavior changes |
 | Idempotency key | Caller-defined | Stable key for retries of the same semantic request |
 
 The example maps `INVOCATION_TIMEOUT_SECONDS` to the runtime timeout. Library consumers pass the
 value directly when constructing `AgentRuntime`.
+
+Consumers can also pass `cleanup_timeout_seconds`. Both values must be finite and positive.
+Expect the invocation budget plus one cleanup budget and cooperative teardown overhead, not a
+hard real-time guarantee. Blocking code and slow driver cancellation require host-side limits.
+Cancellation cannot undo tool effects. See [ADR 0008](../adr/0008-full-invocation-deadline.md).
 
 ## Core Workflow
 
@@ -90,6 +96,8 @@ async for event in runtime.stream(
         response = event.response
 ```
 
+The stream budget starts on first iteration and includes partial-event backpressure. Delivery
+to a paused consumer after durable completion is not deadline-bound.
 Consume through `completed`. If the caller stops early, close the async iterator so cancellation
 can transition the claimed run instead of leaving it active.
 

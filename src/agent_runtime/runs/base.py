@@ -44,7 +44,7 @@ class RunStore(Protocol):
     async def fail_if_running(
         self, run_id: UUID, *, error_code: str, status: Literal["failed", "blocked"] = "failed"
     ) -> RunRecord:
-        """Settle an unfinished run without overwriting an already committed terminal result."""
+        """Settle accepted/running state without overwriting a committed terminal result."""
         ...
 
     async def get_by_idempotency(

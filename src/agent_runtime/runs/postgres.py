@@ -176,7 +176,7 @@ class PostgresRunStore:
     async def fail_if_running(
         self, run_id: UUID, *, error_code: str, status: Literal["failed", "blocked"] = "failed"
     ) -> RunRecord:
-        """Lock and settle a running run; preserve existing terminal states and responses."""
+        """Settle accepted/running state; preserve existing terminal states and responses."""
         if status not in {"failed", "blocked"}:
             raise InvalidRunTransitionError("Cleanup status must be failed or blocked")
         async with self._sessions.begin() as session:
@@ -187,7 +187,7 @@ class PostgresRunStore:
             ).scalar_one_or_none()
             if row is None:
                 raise RunNotFoundError(f"Run '{run_id}' does not exist")
-            if row.status == "running":
+            if row.status in {"accepted", "running"}:
                 row.status = status
                 row.response = None
                 row.error_code = error_code
