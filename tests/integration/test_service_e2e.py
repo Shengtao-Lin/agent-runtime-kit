@@ -61,6 +61,18 @@ def test_all_example_agents_share_http_contract_and_feedback_is_idempotent() -> 
             assert response.json()["contract_version"] == "v1"
             response_body = cast(dict[str, Any], response.json())
             assert response_body["trace_id"]
+            assert response_body["tool_results"][0]["tool_name"] == "lookup_order"
+            continued = client.post(
+                f"/v1/agents/{agent_id}/invoke",
+                json={
+                    "thread_id": response_body["thread_id"],
+                    "messages": [
+                        {"role": "user", "content": [{"type": "text", "text": "Continue"}]}
+                    ],
+                },
+            )
+            assert continued.status_code == 200
+            assert continued.json()["thread_id"] == response_body["thread_id"]
             responses.append(response_body)
 
         native = responses[0]
@@ -90,3 +102,21 @@ def test_all_example_agents_share_http_contract_and_feedback_is_idempotent() -> 
         assert first.status_code == 201
         assert repeated.status_code == 201
         assert first.json()["feedback_id"] == repeated.json()["feedback_id"]
+
+
+@pytest.mark.parametrize("agent_id", ["support-langchain", "support-langgraph"])
+def test_framework_stream_fallback_completes_tool_flow_without_fake_deltas(agent_id: str) -> None:
+    settings = RuntimeSettings(database_url=SecretStr(database_url()), fake_model=True)
+    with TestClient(build_application(settings)) as client:
+        response = client.post(
+            f"/v1/agents/{agent_id}/invoke/stream",
+            json={
+                "messages": [
+                    {"role": "user", "content": [{"type": "text", "text": "Where is DEMO-42?"}]}
+                ]
+            },
+        )
+        assert response.status_code == 200
+        assert "event: started" in response.text and "event: completed" in response.text
+        assert "event: text_delta" not in response.text
+        assert '"tool_name":"lookup_order"' in response.text

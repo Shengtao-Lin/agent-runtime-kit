@@ -89,6 +89,10 @@ def main() -> None:
             invocation("Hello"),
         )
         assert response["contract_version"] == "v1"
+        tool_response = request_json(
+            "POST", f"/v1/agents/{agent_id}/invoke", invocation("Where is DEMO-42?")
+        )
+        assert tool_response["tool_results"][0]["tool_name"] == "lookup_order"
 
     events = stream_events(
         "/v1/agents/support-native/invoke/stream",
