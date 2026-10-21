@@ -68,7 +68,13 @@ class ConsumerModel:
                 message=Message(role="assistant", content=[ToolCallContent(tool_call=call)]),
                 tool_calls=[call],
             )
-        answer = "Result: 14" if last.role == "tool" else f"Saw {len(messages)} messages"
+        answer = (
+            "x" * 1024
+            if text == "slow stream"
+            else "Result: 14"
+            if last.role == "tool"
+            else f"Saw {len(messages)} messages"
+        )
         return ModelResult(message=Message(role="assistant", content=[TextContent(text=answer)]))
 
     async def stream(
@@ -81,9 +87,13 @@ class ConsumerModel:
         result = await self.generate(messages, tools=tools, context=context)
         for part in result.message.content:
             if isinstance(part, TextContent):
-                midpoint = len(part.text) // 2
-                yield ModelTextDelta(delta=part.text[:midpoint])
-                yield ModelTextDelta(delta=part.text[midpoint:])
+                if part.text == "x" * 1024:
+                    for offset in range(0, len(part.text), 8):
+                        yield ModelTextDelta(delta=part.text[offset : offset + 8])
+                else:
+                    midpoint = len(part.text) // 2
+                    yield ModelTextDelta(delta=part.text[:midpoint])
+                    yield ModelTextDelta(delta=part.text[midpoint:])
         yield ModelCompleted(result=result)
 
     async def close(self) -> None:
