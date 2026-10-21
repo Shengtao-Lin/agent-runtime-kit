@@ -65,14 +65,16 @@ async def test_http_error_retry_hints_and_response_cleanup(
 
 
 async def test_sse_multiline_crlf_and_split_utf8() -> None:
-    text = 'data: {"text":\r\ndata: "你好"}\r\n\r\n: heartbeat\r\n\r\n'
+    text = 'data: {"text":\r\ndata: "\U0001f30d"}\r\n\r\n: heartbeat\r\n\r\n'
     wire = TrackedStream([bytes([value]) for value in text.encode()])
     async with httpx.AsyncClient(
         transport=httpx.MockTransport(lambda _: httpx.Response(200, stream=wire)),
         base_url="https://provider.invalid",
     ) as client:
         async with client.stream("POST", "/") as response:
-            assert [event async for event in _http.sse_data(response)] == ['{"text":\n"你好"}']
+            assert [event async for event in _http.sse_data(response)] == [
+                '{"text":\n"\U0001f30d"}'
+            ]
     assert wire.closed
 
 

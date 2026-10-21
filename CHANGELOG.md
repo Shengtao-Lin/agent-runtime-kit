@@ -6,6 +6,9 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ## 0.4.0 - Unreleased
 
+- Add bounded installed-wheel sustained-operation probes with concurrent turns/tools, slow streams,
+  replay, cancellation, backpressure abandonment and repeated managed lifetimes; CI/Release and
+  lower/latest compatibility gates retain task/pool/allocation evidence.
 - Add optional checked runtime lifespan management and an application-owned resource integration
   guide; injected resources remain host-owned and manual shutdown semantics are unchanged.
 

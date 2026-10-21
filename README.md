@@ -322,6 +322,8 @@ Successful tag runs create a GitHub Release with the Python wheel and source
 distribution, then publishes the versioned container image to GitHub Container Registry.
 Publishing to PyPI is intentionally not enabled until trusted publishing is configured.
 See the [release runbook](docs/runbooks/release.md) for the release and rollback procedure.
+The [installed-wheel sustained-operation report](docs/validation/sustained-operation.md) distinguishes
+shared-pool operation from repeated host/engine churn and documents the short-run measurement limits.
 
 ## Security and limitations
 
