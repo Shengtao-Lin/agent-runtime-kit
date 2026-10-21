@@ -1,0 +1,79 @@
+# Release Runbook
+
+## Purpose and Ownership
+
+Use this runbook to prepare and verify an importable library release, publish existing approved
+artifacts through GitHub Actions, and handle failures without silently changing published history.
+The latest published version remains v0.1.1 until a v0.2.0 tag workflow actually publishes it.
+
+## Preconditions
+
+- Main and the exact candidate PR commit have green CI; no unrelated local changes are included.
+- Package metadata and `uv.lock` agree. Changelog and versioned release notes describe breaking
+  changes, schema revision, rollback limits, and distribution channels.
+- [The v0.2.0 upgrade guide](../upgrading-to-v0.2.0.md) has been rehearsed with preserved evidence.
+- Repository permissions permit GitHub Releases and GHCR. PyPI publishing is intentionally absent.
+- Publication and its target version/commit are authorized by the repository owner.
+
+## Verification Gates
+
+Normal CI uses locked venv environments and pytest for Linux/Windows unit tests, PostgreSQL
+integration, wheel imports, independent baseline/fresh/upgrade consumers, and container smoke.
+The Release workflow repeats quality/full pytest, builds distributions once, and passes that exact
+wheel artifact to a separate independent-consumer job. Both fresh installation and v0.1.1 upgrade
+must pass, alongside the release container smoke job, before either publishing job can run.
+
+Changes to release metadata/workflow/notes also run this verification path on pull requests.
+Manual `workflow_dispatch` runs verify without publishing, including when dispatched at a tag.
+Publishing requires the event to be a tag **push**, not merely a tag-shaped ref. No manual job
+starts a release or pushes an image. Preserve the candidate's exact SHA and result links.
+
+Local rehearsal in the project venv:
+
+```bash
+uv sync --locked --all-extras --dev
+uv run ruff format --check .
+uv run ruff check .
+uv run pyright
+uv run pytest -q
+uv build --out-dir build/release-dist
+```
+
+Use migrated disposable PostgreSQL for root tests. Run `scripts/validate_consumer.py` with the
+candidate wheel, explicit expected version, and `--acceptance-only` on a fresh disposable database.
+Repeat with `--upgrade-from-baseline` on a separate empty database. The frozen baseline is still
+v0.1.1 and intentionally records four historical expected failures; those are not candidate passes.
+
+## Publication
+
+1. Verify the final main SHA and non-publishing Release run are green. Stop if checks fail or the
+   target version is already published; do not overwrite/move an existing tag.
+2. Create/push the authorized version tag at that exact verified commit. For v0.2.0, the tag must
+   be `v0.2.0`; the workflow verifies it matches installed package metadata.
+3. Monitor `Verify release`, `Verify release container`, and `Verify release wheel and v0.1.1
+   upgrade`. Both publishing jobs depend on all three.
+4. Confirm the GitHub Release has the wheel and source archive, and GHCR has the versioned image.
+   Versioned notes under `docs/releases/<tag>.md` override generated notes when present.
+5. Download/install the actual published wheel into a new consumer venv and repeat a synthetic
+   migration/invoke/replay canary. Report artifact/workflow links, not just a successful tag push.
+6. Update the README's latest-published status and move the release-candidate changelog heading
+   to the verified release date. Never claim publication from version metadata alone.
+
+## Failures and Recovery
+
+If verification fails, neither publication job should run. Fix through a PR and choose a new
+approved immutable release commit/tag as appropriate; do not force-update published tags.
+If only one publishing job succeeds, inspect the exact run before retrying that job. A GitHub
+Release may already exist; do not blindly rerun `gh release create` or republish different bytes
+under an existing version. Surface partial publication explicitly.
+
+Application/database rollback is separate from artifact publication. Follow the upgrade guide,
+drain workers, and use a verified restore plan. Never automatically downgrade production or delete
+volumes. A schema downgrade cannot undo tool effects or resurrect settled runs.
+
+## Evidence and Escalation
+
+Collect commit/tag, workflow/job URLs, package version, migration revision, JUnit results, wheel
+provenance and dependency inventory. Do not collect tokens, provider credentials, customer content,
+or database URLs in release notes. Account-level package permissions and PyPI trusted-publishing
+configuration require repository-owner intervention; tests use no live provider credentials.

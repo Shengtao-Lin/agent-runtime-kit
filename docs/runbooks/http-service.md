@@ -101,7 +101,7 @@ allow a timeout longer than the runtime invocation deadline.
 | --- | --- | --- |
 | `400` | Other safe runtime request failure | Correct the request or application state |
 | `404` | Unknown agent, thread, or tool | Refresh discovery or caller state |
-| `409` | Idempotency conflict, unavailable replay, or active run | Follow idempotency policy |
+| `409` | Idempotency conflict, unavailable replay, active run, or busy thread | Follow replay/concurrency policy |
 | `413` | Request exceeds `MAX_REQUEST_BODY_BYTES` | Reduce the request body |
 | `422` | Validation, guardrail, or tool-argument rejection | Correct input; do not blindly retry |
 | `502` | Provider, framework, or tool dependency failed | Inspect protected dependency telemetry |
@@ -137,6 +137,8 @@ intentionally generic; reproduce with sanitized input in a protected development
 
 Retry an active equivalent request with backoff. Use a new key for changed input. Do not discard a
 successfully replayed terminal response.
+`thread_busy` rejects a different request overlapping the same thread. `idempotent_run_unavailable`
+is not an invitation to rerun tools automatically: inspect failed/recovered run evidence first.
 
 ### Stream buffers until completion
 

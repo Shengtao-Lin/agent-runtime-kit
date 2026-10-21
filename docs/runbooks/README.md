@@ -23,6 +23,7 @@ integration example and is not included in the wheel.
 | Telemetry | `agent_runtime.telemetry` | [OTLP configuration, trace verification, privacy, and exporter failures](telemetry.md) |
 | Optional HTTP service | `agent_runtime.service` | [Endpoints, health/readiness, SSE, status codes, and gateway boundaries](http-service.md) |
 | Containerized example | `examples.support_agent` | [Local exploration, Docker smoke tests, and provider canaries](example-application.md) |
+| Release and upgrade | Packaging and GitHub Actions | [Verification gates, publication, compatibility, and rollback](release.md) |
 
 ## First Response by Symptom
 

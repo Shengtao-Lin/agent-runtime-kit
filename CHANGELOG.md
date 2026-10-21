@@ -2,7 +2,7 @@
 
 All notable changes to Agent Runtime Kit are documented here.
 
-## Unreleased
+## 0.2.0 - Release candidate (not yet published)
 
 ### Added
 
@@ -32,8 +32,15 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ### Changed
 
-- Runtime success now requires `complete()`; `transition(..., "succeeded")` is rejected. Custom
-  run stores must implement both new operations. No database schema change is required.
+- Runtime success requires atomic `complete()`; `transition(..., "succeeded")` is rejected.
+  Custom stores must implement owner-fenced mutations, atomic same-thread claim, and conditional
+  `recover()`. This is a breaking store-protocol change; see the v0.2.0 upgrade guide.
+- Schema head and default HTTP readiness advance to `0002`. Old workers must be drained before
+  upgrading; mixed-version rollout is unsupported.
+- Invocation timeout now covers the complete flow. Conditional cleanup has a separate additional
+  budget (default five seconds); it is cooperative, not a hard real-time bound.
+- Release publication now requires exact-wheel fresh/upgrade validation, and manual release
+  verification skips all publishing jobs.
 
 ## 0.1.1 - 2026-10-11
 
