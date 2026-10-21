@@ -9,6 +9,9 @@ on:
       - ".github/workflows/application.yml"
   pull_request:
     paths:
+      - "src/agent_runtime/**"
+      - "pyproject.toml"
+      - "uv.lock"
       - "applications/release_desk/**"
       - "scripts/validate_release_desk.py"
       - ".github/workflows/application.yml"
