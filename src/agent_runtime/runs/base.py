@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Protocol
+from collections.abc import Sequence
+from typing import Literal, Protocol
 from uuid import UUID
 
-from agent_runtime.models import AgentDescriptor, RuntimeResponse
+from agent_runtime.models import AgentDescriptor, Message, RuntimeResponse
 from agent_runtime.runs.models import RunClaim, RunRecord, RunStatus
 
 
@@ -33,6 +34,18 @@ class RunStore(Protocol):
     ) -> RunRecord: ...
 
     async def get(self, run_id: UUID) -> RunRecord | None: ...
+
+    async def complete(
+        self, run_id: UUID, *, messages: Sequence[Message], response: RuntimeResponse
+    ) -> RunRecord:
+        """Atomically append messages and persist the succeeded run and replay response."""
+        ...
+
+    async def fail_if_running(
+        self, run_id: UUID, *, error_code: str, status: Literal["failed", "blocked"] = "failed"
+    ) -> RunRecord:
+        """Settle an unfinished run without overwriting an already committed terminal result."""
+        ...
 
     async def get_by_idempotency(
         self, *, agent_id: str, idempotency_key: str

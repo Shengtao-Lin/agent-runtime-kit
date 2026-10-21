@@ -119,6 +119,12 @@ engine once during shutdown after in-flight work completes.
 
 ## Operational Checks
 
+Successful finalization uses `PostgresRunStore.complete()` to atomically append messages and store
+the succeeded run plus canonical response. It locks the run row before the thread row.
+`fail_if_running()` obtains the run-row lock before deciding whether cleanup is needed, preserving
+success when a commit outcome is uncertain. Standalone memory appends use the same ordinal
+allocator within their own transaction. The schema remains at revision `0001`.
+
 - Monitor connection acquisition latency, active and idle connections, storage growth, transaction
   age, lock waits, query latency, and expired long-term records.
 - Compare `alembic current` with the revision expected by the running application image.

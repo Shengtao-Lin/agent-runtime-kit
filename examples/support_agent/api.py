@@ -45,7 +45,7 @@ def build_application(settings: RuntimeSettings | None = None) -> FastAPI:
         pool_pre_ping=True,
     )
     memory = PostgresMemoryStore(engine, telemetry)
-    runs = PostgresRunStore(engine)
+    runs = PostgresRunStore(engine, telemetry)
     feedback = PostgresFeedbackStore(engine, telemetry)
     model_client: ModelClient
     close_model = None

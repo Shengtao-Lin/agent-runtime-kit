@@ -156,6 +156,18 @@ Do not persist displayed partial text as a successful assistant response.
 
 ## Data and Security Notes
 
+Development builds for v0.2.0 commit messages and the replayable response through one
+`RunStore.complete()` transaction. Direct `transition(..., "succeeded")` calls are rejected. Custom
+stores must implement `complete()` and `fail_if_running()` before runtime construction. Memory and
+runs must use the same persistence domain, normally sharing one async engine.
+
+After a completion exception, conditional cleanup preserves a committed success and returns that
+response when readable. Cancellation still propagates; retrying the same idempotency key can replay
+a response committed before cancellation. If cleanup cannot reach the database, the original error
+is retained and a `run_cleanup_unavailable` warning identifies the run and error category. Resolve
+durable state before retrying side effects. Tool actions are not rolled back by this transaction,
+and abandoned-run recovery is still a separate target.
+
 The runtime namespace labels newly created threads; it does not enforce ownership when a caller
 supplies a thread ID. Idempotency keys are scoped by agent ID, not namespace. Validate thread access
 in the hosting application and use distinct agent IDs or separate stores for isolated deployments.

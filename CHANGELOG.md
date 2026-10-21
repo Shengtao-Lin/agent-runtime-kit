@@ -6,6 +6,10 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ### Added
 
+- Atomic `RunStore.complete()` and conditional `fail_if_running()` contracts, with PostgreSQL
+  message/response finalization in one transaction and commit-acknowledgment reconciliation.
+- Database fault injection for rollback, cancellation, uncertain commits, ownership validation,
+  and cleanup outages, plus independent candidate-wheel regression checks.
 - Packaged Alembic migration resources and explicit `agent-runtime-migrate` / Python entry points
   that work from an installed wheel without a checkout.
 - Fresh-database and v0.1.1 data-preservation migration checks in independent consumer CI.
@@ -14,6 +18,11 @@ All notable changes to Agent Runtime Kit are documented here.
 - Reproducible probes and a v0.2.0 readiness report for crash recovery, same-thread concurrency,
   atomic finalization, complete deadlines, and wheel migration resources.
 - A CI consumer job with PostgreSQL and baseline/candidate report artifacts.
+
+### Changed
+
+- Runtime success now requires `complete()`; `transition(..., "succeeded")` is rejected. Custom
+  run stores must implement both new operations. No database schema change is required.
 
 ## 0.1.1 - 2026-10-11
 
