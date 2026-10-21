@@ -119,7 +119,6 @@ async def application(
         pool_pre_ping=True,
     )
     memory = PostgresMemoryStore(engine)
-    runtime = None
     try:
         if not await memory.check_ready() or not await memory.check_migrations("0002"):
             raise RuntimeError(
@@ -163,10 +162,7 @@ async def application(
             namespace=settings.namespace,
             invocation_timeout_seconds=30,
         )
-        yield Application(agent_id, runtime, memory, PostgresFeedbackStore(engine))
+        async with runtime.lifespan(shutdown_timeout_seconds=6):
+            yield Application(agent_id, runtime, memory, PostgresFeedbackStore(engine))
     finally:
-        try:
-            if runtime is not None and not await runtime.shutdown(timeout_seconds=6):
-                raise RuntimeError("Shutdown exceeded its budget; inspect durable run state")
-        finally:
-            await engine.dispose()
+        await engine.dispose()

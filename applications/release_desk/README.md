@@ -3,6 +3,8 @@
 A separately packaged, read-only CLI for reviewing public Python release metadata. It consumes
 the published Agent Runtime Kit wheel; the application is not part of the runtime distribution.
 The application owns its GitHub reader, checklist, routing, configuration and resource lifecycle.
+Its own lock pins the actual v0.4.0 wheel and digest, not an editable checkout. It adopts the public
+checked runtime lifetime while retaining ownership of its engine and business logic.
 
 This is a deliberately deterministic operational tool, not an LLM-quality demonstration. It needs
 no provider account. For each requested stable tag, it checks tag identity, published/non-prerelease
@@ -41,8 +43,8 @@ auto-migrate. Secrets are read from environment settings and not printed in CLI 
 ## Daily workflows
 
 ```bash
-uv run release-desk review Shengtao-Lin/agent-runtime-kit v0.3.0 --key release-review-001
-uv run release-desk review Shengtao-Lin/agent-runtime-kit v0.3.0 --key release-review-002 --stream
+uv run release-desk review Shengtao-Lin/agent-runtime-kit v0.4.0 --key release-review-v040-001
+uv run release-desk review Shengtao-Lin/agent-runtime-kit v0.4.0 --key release-review-v040-002 --stream
 ```
 
 Normal mode prints the canonical JSON response; stream mode prints canonical JSON events as
@@ -82,7 +84,9 @@ an invented readiness verdict. Review bodies, credentials and arbitrary GitHub m
 copied into the result. A requested namespace is stable across application restarts.
 
 Database pools are bounded to two connections without overflow. Runtime/tool budgets are 30/12
-seconds. Shutdown calls `runtime.shutdown()` before engine disposal. Cancellation is cooperative;
+seconds. The checked `runtime.lifespan(shutdown_timeout_seconds=6)` exits before engine disposal
+and raises on incomplete shutdown. Body failures still close the runtime and application-owned
+engine; this is not a hard kill or rollback. Cancellation is cooperative;
 the bounded blocking HTTP reader may finish after its async caller has been cancelled. It performs
 no external writes. No background scheduler, model credentials or telemetry exporter is configured.
 
@@ -99,7 +103,7 @@ From repository root, point `RELEASE_DESK_DATABASE_URL` at a disposable database
 uv run python scripts/validate_release_desk.py
 ```
 
-Add `--live` for one public metadata review of this repository's v0.3.0, followed by cross-process
+Add `--live` for one public metadata review of this repository's v0.4.0, followed by cross-process
 replay, history and idempotent feedback checks. It makes no provider calls and no GitHub writes.
 The runner saves JUnit, package inventory and optional canary evidence under
 `build/release-desk-validation/`. `--wheel PATH` is an explicitly non-locked candidate override

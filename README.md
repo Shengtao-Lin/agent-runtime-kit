@@ -5,8 +5,8 @@
 A framework-neutral Python runtime toolkit for building configurable, observable AI agents with
 PostgreSQL-backed memory.
 
-> **Project status:** latest published release v0.3.1; `main` is preparing v0.4.0 library integration
-> and sustained-operation validation. Development APIs are marked explicitly.
+> **Project status:** latest published release v0.4.0; `main` includes independent application
+> adoption and documentation updates on the released library API.
 > The installable library, PostgreSQL persistence,
 > provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
 > example are runnable. Authentication and production deployment controls remain application
@@ -21,6 +21,9 @@ See the [v0.3.0 upgrade guide](docs/upgrading-to-v0.3.0.md) and
 [publication evidence](docs/validation/v0.3.0-publication.md).
 v0.3.1 hardens provider completion, bounded decoding and safe retry hints; see its
 [upgrade guide](docs/upgrading-to-v0.3.1.md) and [publication evidence](docs/validation/v0.3.1-publication.md).
+v0.4.0 adds optional checked runtime lifetimes, public signature checks and sustained-operation
+gates. See its [upgrade guide](docs/upgrading-to-v0.4.0.md) and
+[publication evidence](docs/validation/v0.4.0-publication.md).
 The [initial-spec closure report](docs/validation/initial-spec-closure.md) records implemented
 features, concrete acceptance evidence, and deliberately limited framework/security boundaries.
 
@@ -62,7 +65,7 @@ The wheel contains only `agent_runtime`; the fictional agent remains an example 
 package. Install only the extras your application needs. For the published library:
 
 ```bash
-uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.3.1"
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.4.0"
 ```
 
 For checkout development:
@@ -80,7 +83,7 @@ changes below; use its matching tag documentation when adopting that release.
 ## Library quickstart
 
 See the [library integration guide](docs/library-integration.md) for resource ownership, startup,
-stream abandonment, retry boundaries and the opt-in v0.4.0-development lifespan API.
+stream abandonment, retry boundaries and the opt-in managed lifespan API.
 
 For a separately packaged operator application that consumes the published wheel, see
 [Release Desk](applications/release_desk/README.md). It owns a read-only release checklist, CLI,
@@ -101,6 +104,8 @@ requires the migration files from its source archive. See the
 [PostgreSQL runbook](docs/runbooks/postgres.md) for setup and compatibility details.
 
 ```python
+from contextlib import aclosing
+
 from agent_runtime import AgentRegistry, AgentRuntime, RuntimeRequest
 from agent_runtime.adapters import NativeAgentInvoker
 from agent_runtime.memory import PostgresMemoryStore
@@ -108,22 +113,32 @@ from agent_runtime.models import Message, TextContent
 from agent_runtime.runs import PostgresRunStore
 from sqlalchemy.ext.asyncio import create_async_engine
 
-engine = create_async_engine(database_url)
+engine = create_async_engine(
+    database_url, pool_size=2, max_overflow=0, pool_timeout=5, pool_pre_ping=True
+)
 memory = PostgresMemoryStore(engine)
 runs = PostgresRunStore(engine)
 agents = AgentRegistry()
 agents.register(NativeAgentInvoker(agent_id="my-agent", version="1.0.0", model_client=model_client))
 runtime = AgentRuntime(agents=agents, memory=memory, runs=runs, namespace="my-application")
 
-request = RuntimeRequest(messages=[Message(role="user", content=[TextContent(text="Hello")])])
-response = await runtime.invoke("my-agent", request, idempotency_key="request-123")
+try:
+    async with runtime.lifespan(shutdown_timeout_seconds=6):
+        request = RuntimeRequest(
+            messages=[Message(role="user", content=[TextContent(text="Hello")])]
+        )
+        response = await runtime.invoke("my-agent", request, idempotency_key="request-123")
 
-stream_request = RuntimeRequest(
-    messages=[Message(role="user", content=[TextContent(text="Stream this response")])]
-)
-async for event in runtime.stream("my-agent", stream_request):
-    if event.type == "text_delta":
-        print(event.delta, end="")
+        stream_request = RuntimeRequest(
+            messages=[Message(role="user", content=[TextContent(text="Stream this response")])]
+        )
+        async with aclosing(runtime.stream("my-agent", stream_request)) as stream:
+            async for event in stream:
+                if event.type == "text_delta":
+                    print(event.delta, end="")
+finally:
+    await engine.dispose()
+# The injected model_client remains caller-owned; close it after the runtime when appropriate.
 ```
 
 All invokers use the same canonical contracts. LangChain and LangGraph adapters accept explicit
