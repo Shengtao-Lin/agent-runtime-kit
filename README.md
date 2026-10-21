@@ -5,10 +5,15 @@
 A framework-neutral Python runtime toolkit for building configurable, observable AI agents with
 PostgreSQL-backed memory.
 
-> **Project status:** v0.1.1. The installable library, PostgreSQL persistence,
+> **Project status:** latest published release v0.1.1; `main` is the v0.2.0 release candidate.
+> The installable library, PostgreSQL persistence,
 > provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
 > example are runnable. Authentication and production deployment controls remain application
 > concerns.
+
+The v0.2.0 candidate adds wheel-only migrations, atomic finalization, full cooperative deadlines,
+and fenced thread ownership/recovery. It requires a drained-worker database upgrade to `0002`.
+Read the [upgrade guide](docs/upgrading-to-v0.2.0.md) before adopting `main`.
 
 ## Why this project
 
@@ -287,10 +292,13 @@ integration tests, and a container smoke test. Jobs use the committed `uv.lock` 
 and `make verify` expect the local Compose PostgreSQL service and applied migration; override
 `TEST_DATABASE_URL` when using another disposable PostgreSQL database.
 
-Tags matching `v*.*.*` start the release workflow only after the same quality and pytest suite
-passes against PostgreSQL. It creates a GitHub Release with the Python wheel and source
+Tags matching `v*.*.*` start release verification: quality, pytest against PostgreSQL, container
+smoke, and independent installation/upgrade of the exact built wheel must all pass before
+publication. A manual Release workflow run performs the same checks without publishing.
+Successful tag runs create a GitHub Release with the Python wheel and source
 distribution, then publishes the versioned container image to GitHub Container Registry.
 Publishing to PyPI is intentionally not enabled until trusted publishing is configured.
+See the [release runbook](docs/runbooks/release.md) for the release and rollback procedure.
 
 ## Security and limitations
 

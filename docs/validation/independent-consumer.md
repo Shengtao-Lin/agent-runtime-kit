@@ -56,6 +56,16 @@ recorded by the package audit and demonstrated by the source-archive migration r
 
 ## Proposed v0.2.0 Delivery Sequence
 
+### Consolidated candidate status
+
+The five measured gaps now have candidate acceptance coverage rather than candidate expected
+failures. The published baseline remains unchanged. Current local validation uses the project
+venv and PostgreSQL: 121 root pytest cases pass; independent candidate installation passes 17
+cases with one upgrade-only skip; the separate v0.1.1 upgrade passes 18. Candidate runs deselect
+the four frozen historical probes. Release-candidate version metadata is `0.2.0`, schema `0002`;
+this does not mean the version has been published. CI and the non-publishing Release workflow
+provide the exact-commit evidence required before publication.
+
 ### Ownership and recovery implementation status (2026-10-20)
 
 Development builds address R2 by rejecting overlapping turns on one thread across processes.

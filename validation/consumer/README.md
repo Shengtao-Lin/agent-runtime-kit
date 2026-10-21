@@ -47,7 +47,7 @@ their synthetic run evidence in the disposable database. It does not drop or res
 
 ```powershell
 uv build
-.\.venv\Scripts\python.exe scripts/validate_consumer.py --wheel dist/agent_runtime_kit-0.1.1-py3-none-any.whl --expected-version 0.1.1 --acceptance-only --report-dir build/consumer-candidate
+.\.venv\Scripts\python.exe scripts/validate_consumer.py --wheel dist/agent_runtime_kit-0.2.0-py3-none-any.whl --expected-version 0.2.0 --acceptance-only --report-dir build/consumer-candidate
 ```
 
 Replace the wheel filename and expected version when validating a future release. Candidate mode

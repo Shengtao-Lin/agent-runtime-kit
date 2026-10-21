@@ -23,6 +23,10 @@ composition; it is not included in the Python wheel and is not the product bound
 
 ## Prerequisites
 
+`main` is the v0.2.0 candidate; v0.1.1 remains the published installation reference below.
+Candidate adopters must follow the [v0.2.0 upgrade guide](upgrading-to-v0.2.0.md), drain old
+workers, and explicitly migrate to `0002` before starting new workers.
+
 Choose the prerequisites that match how you plan to use the project:
 
 | Use case | Required |
@@ -263,6 +267,9 @@ incompatible schema.
 ### Invocation returns 409
 
 - `run_in_progress`: the same request is already running; retry with backoff.
+- `thread_busy`: a different request owns the same thread; retry with bounded backoff.
+- `idempotent_run_unavailable`: the old run failed or was recovered; reconcile any uncertain
+  external effects before deliberately creating a new request/key.
 - `idempotency_conflict`: the key was reused with different canonical input; issue a new key.
 - a completed replay is not an error; use the stored response.
 
