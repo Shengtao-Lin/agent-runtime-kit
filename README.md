@@ -52,17 +52,24 @@ flowchart TD
 ## Install as a library
 
 The wheel contains only `agent_runtime`; the fictional agent remains an example outside the
-package. From a checkout, install the core and only the extras your application needs:
+package. Install only the extras your application needs. For the documented v0.2.0 candidate API,
+use a reviewed commit from `main` (replace `COMMIT_SHA` with its full SHA):
+
+```bash
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@COMMIT_SHA"
+```
+
+For checkout development:
 
 ```bash
 uv sync --extra postgres --extra telemetry
 uv build
-uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.1"
 ```
 
 Available extras are `postgres`, `service`, `telemetry`, `adapters`, `openai-compatible`,
 `anthropic`, and `gemini`. GitHub Releases provide the wheel and source distribution; PyPI
-publishing is not enabled for v0.1.1.
+publishing is not enabled. The published v0.1.1 API predates the packaged migrations and store
+changes below; use its matching tag documentation when adopting that release.
 
 ## Library quickstart
 

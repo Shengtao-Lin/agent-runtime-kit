@@ -14,8 +14,11 @@ ingress must be supplied by the hosting application or platform.
 Install the `service` extra plus the persistence and other component extras used by the app:
 
 ```bash
-uv add "agent-runtime-kit[service,postgres] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.1"
+uv add "agent-runtime-kit[service,postgres] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@COMMIT_SHA"
 ```
+
+This runbook describes the v0.2.0 candidate. Replace `COMMIT_SHA` with a reviewed full commit
+from `main`, and migrate explicitly to schema `0002` before starting workers.
 
 Construct the runtime, registry, feedback store, and readiness store, then pass them to
 `create_app()`:

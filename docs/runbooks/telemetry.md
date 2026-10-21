@@ -31,8 +31,11 @@ sampling, alerting, and provider shutdown.
 Install the `telemetry` extra when exporting traces:
 
 ```bash
-uv add "agent-runtime-kit[telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.1"
+uv add "agent-runtime-kit[telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@COMMIT_SHA"
 ```
+
+This runbook describes the v0.2.0 candidate. Replace `COMMIT_SHA` with a reviewed full commit
+from `main`; task-local correlation and categorical exception export require that candidate.
 
 | Example setting | Default | Purpose |
 | --- | --- | --- |

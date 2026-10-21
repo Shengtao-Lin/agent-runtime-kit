@@ -13,8 +13,11 @@ runtime supplies prior messages before invoking an adapter.
 ## Prerequisites and Installation
 
 ```bash
-uv add "agent-runtime-kit[adapters,postgres] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.1"
+uv add "agent-runtime-kit[adapters,postgres] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@COMMIT_SHA"
 ```
+
+This runbook describes the v0.2.0 candidate. Replace `COMMIT_SHA` with a reviewed full commit
+from `main`; native-message helpers below are not part of the published v0.1.1 API.
 
 Before registration, decide:
 
