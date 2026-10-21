@@ -151,6 +151,7 @@ async def test_run_idempotency_state_and_append_only_feedback() -> None:
         thread = await memory.create_thread(namespace=f"runs-{suffix}")
         run_id = uuid4()
         request_id = uuid4()
+        owner_token = uuid4()
         agent = AgentDescriptor(agent_id="integration-agent", version="1", framework="native")
         claim = await runs.claim(
             run_id=run_id,
@@ -159,6 +160,8 @@ async def test_run_idempotency_state_and_append_only_feedback() -> None:
             thread_id=thread.id,
             idempotency_key=f"invoke-{suffix}",
             request_hash="same-request",
+            owner_token=owner_token,
+            lease_seconds=60,
         )
         assert claim.created
         replay = await runs.claim(
@@ -168,6 +171,8 @@ async def test_run_idempotency_state_and_append_only_feedback() -> None:
             thread_id=thread.id,
             idempotency_key=f"invoke-{suffix}",
             request_hash="same-request",
+            owner_token=uuid4(),
+            lease_seconds=60,
         )
         assert not replay.created
         assert replay.run.id == run_id
@@ -179,9 +184,11 @@ async def test_run_idempotency_state_and_append_only_feedback() -> None:
                 thread_id=thread.id,
                 idempotency_key=f"invoke-{suffix}",
                 request_hash="different-request",
+                owner_token=uuid4(),
+                lease_seconds=60,
             )
 
-        await runs.transition(run_id, "running")
+        await runs.transition(run_id, "running", owner_token=owner_token)
         assistant = Message(role="assistant", content=[TextContent(text="Completed")])
         response = RuntimeResponse(
             run_id=run_id,
@@ -190,10 +197,12 @@ async def test_run_idempotency_state_and_append_only_feedback() -> None:
             agent=agent,
             message=assistant,
         )
-        completed = await runs.complete(run_id, messages=[assistant], response=response)
+        completed = await runs.complete(
+            run_id, owner_token=owner_token, messages=[assistant], response=response
+        )
         assert completed.response == response
         with pytest.raises(InvalidRunTransitionError):
-            await runs.transition(run_id, "failed", error_code="too_late")
+            await runs.transition(run_id, "failed", owner_token=owner_token, error_code="too_late")
 
         submission = FeedbackSubmission(
             feedback_id=uuid4(),

@@ -17,7 +17,7 @@ def test_packaged_revision_and_template_are_available(capsys: pytest.CaptureFixt
     assert resources.joinpath("script.py.mako").is_file()
     assert resources.joinpath("versions", "0001_initial_schema.py").is_file()
     heads()
-    assert "0001 (head)" in capsys.readouterr().out
+    assert "0002 (head)" in capsys.readouterr().out
 
 
 def test_offline_upgrade_preserves_percent_encoded_url(capsys: pytest.CaptureFixture[str]) -> None:
@@ -26,6 +26,9 @@ def test_offline_upgrade_preserves_percent_encoded_url(capsys: pytest.CaptureFix
     assert "CREATE TABLE runtime_runs" in output
     assert "CREATE TABLE feedback_records" in output
     assert "0001" in output
+    assert "0002" in output
+    assert "legacy_owner_unavailable" in output
+    assert "uq_runtime_runs_active_thread" in output
     assert "percent%25encoded" not in output
 
 
@@ -46,7 +49,7 @@ def test_cli_heads_does_not_require_database_url(
     monkeypatch.delenv("DATABASE_URL", raising=False)
     monkeypatch.setattr(sys, "argv", ["agent-runtime-migrate", "heads"])
     cli.main()
-    assert "0001 (head)" in capsys.readouterr().out
+    assert "0002 (head)" in capsys.readouterr().out
 
 
 def test_cli_hides_database_exception_details(

@@ -30,7 +30,7 @@ def test_installed_cli_and_resources(tmp_path: Path) -> None:
     result = subprocess.run(
         [str(executable), "heads"], cwd=tmp_path, capture_output=True, text=True, check=True
     )
-    assert "0001 (head)" in result.stdout
+    assert f"{os.environ['CONSUMER_EXPECTED_REVISION']} (head)" in result.stdout
     environment = dict(os.environ)
     environment.pop("DATABASE_URL", None)
     missing = subprocess.run(
@@ -61,3 +61,8 @@ async def test_upgrade_preserves_published_records(database_url: str) -> None:
             namespace=app.agent_id, user_key="synthetic", memory_key="language"
         )
         assert memory is not None and memory.value == {"language": "en"}
+        from uuid import UUID
+
+        legacy = await app.runs.get(UUID(state["legacy_pending_id"]))
+        assert legacy is not None and legacy.status == "failed"
+        assert legacy.error_code == "legacy_owner_unavailable" and legacy.response is None

@@ -8,7 +8,7 @@ import json
 import logging
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from math import isfinite
 from typing import Literal, cast
 from uuid import UUID, uuid4
@@ -19,6 +19,7 @@ from agent_runtime.errors import (
     IdempotentRunUnavailableError,
     InvocationTimeoutError,
     RunInProgressError,
+    RunNotFoundError,
     RuntimeKitError,
     ThreadNotFoundError,
 )
@@ -49,6 +50,7 @@ LOGGER = logging.getLogger(__name__)
 class _InvocationState:
     # Set before claim: cancellation can arrive after the database committed it.
     run_id: UUID | None = None
+    owner_token: UUID = field(default_factory=uuid4)
 
 
 class AgentRuntime:
@@ -70,8 +72,11 @@ class AgentRuntime:
             raise ValueError("invocation_timeout_seconds must be finite and positive")
         if not isfinite(cleanup_timeout_seconds) or cleanup_timeout_seconds <= 0:
             raise ValueError("cleanup_timeout_seconds must be finite and positive")
-        if not all(callable(getattr(runs, name, None)) for name in ("complete", "fail_if_running")):
-            raise TypeError("RunStore must implement complete() and fail_if_running()")
+        if not isfinite(invocation_timeout_seconds + cleanup_timeout_seconds + 5):
+            raise ValueError("Combined invocation and cleanup budgets must be finite")
+        required = ("complete", "fail_if_running", "recover")
+        if not all(callable(getattr(runs, name, None)) for name in required):
+            raise TypeError("RunStore must implement complete(), fail_if_running(), and recover()")
         self._agents = agents
         self._memory = memory
         self._runs = runs
@@ -162,7 +167,9 @@ class AgentRuntime:
                 return await self._execute(agent_id, request, idempotency_key, emit, state)
         except asyncio.CancelledError:
             if state.run_id is not None:
-                await self._record_failure(state.run_id, error_code="invocation_cancelled")
+                await self._record_failure(
+                    state.run_id, owner_token=state.owner_token, error_code="invocation_cancelled"
+                )
             raise
         except Exception as exc:
             if isinstance(exc, TimeoutError) and budget.expired():
@@ -173,7 +180,10 @@ class AgentRuntime:
             status = "blocked" if isinstance(error, GuardrailBlockedError) else "failed"
             if state.run_id is not None:
                 record = await self._record_failure(
-                    state.run_id, error_code=error_code, status=status
+                    state.run_id,
+                    owner_token=state.owner_token,
+                    error_code=error_code,
+                    status=status,
                 )
                 if (
                     record is not None
@@ -201,6 +211,11 @@ class AgentRuntime:
                 agent_id=agent_id, idempotency_key=idempotency_key
             )
             if previous is not None:
+                if previous.request_hash == request_hash and previous.status in {
+                    "accepted",
+                    "running",
+                }:
+                    previous = await self._runs.recover(previous.id)
                 replay = self._replay(previous, request_hash)
                 if emit is not None:
                     await emit(self._started(replay))
@@ -230,15 +245,19 @@ class AgentRuntime:
             thread_id=thread.id,
             idempotency_key=idempotency_key,
             request_hash=request_hash,
+            owner_token=state.owner_token,
+            lease_seconds=self._timeout + self._cleanup_timeout + 5,
         )
         if not claim.created:
             state.run_id = None
+            if claim.run.status in {"accepted", "running"}:
+                claim = claim.model_copy(update={"run": await self._runs.recover(claim.run.id)})
             replay = self._replay(claim.run, request_hash)
             if emit is not None:
                 await emit(self._started(replay))
             return replay
 
-        await self._runs.transition(run_id, "running")
+        await self._runs.transition(run_id, "running", owner_token=state.owner_token)
         if emit is not None:
             await emit(
                 StreamStarted(
@@ -285,19 +304,30 @@ class AgentRuntime:
             metadata=output.metadata,
         )
         await self._runs.complete(
-            run_id, messages=[*request.messages, *output.messages], response=response
+            run_id,
+            owner_token=state.owner_token,
+            messages=[*request.messages, *output.messages],
+            response=response,
         )
         return response
 
     async def _record_failure(
-        self, run_id: UUID, *, error_code: str, status: Literal["failed", "blocked"] = "failed"
+        self,
+        run_id: UUID,
+        *,
+        owner_token: UUID,
+        error_code: str,
+        status: Literal["failed", "blocked"] = "failed",
     ) -> RunRecord | None:
         """Reconcile uncertain commits without masking the original error or a durable success."""
         try:
             async with asyncio.timeout(self._cleanup_timeout):
                 return await self._runs.fail_if_running(
-                    run_id, error_code=error_code, status=status
+                    run_id, owner_token=owner_token, error_code=error_code, status=status
                 )
+        except RunNotFoundError:
+            # Claim may have been canceled before its transaction committed.
+            return None
         except Exception:
             LOGGER.warning(
                 "run_cleanup_unavailable", extra={"run_id": str(run_id), "error_code": error_code}

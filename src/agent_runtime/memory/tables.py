@@ -93,6 +93,22 @@ class RuntimeRunTable(Base):
     __tablename__ = "runtime_runs"
     __table_args__ = (
         CheckConstraint(
+            "status NOT IN ('accepted', 'running') OR "
+            "(owner_token IS NOT NULL AND lease_expires_at IS NOT NULL)",
+            name="ck_runtime_runs_active_owner",
+        ),
+        Index(
+            "uq_runtime_runs_active_thread",
+            "thread_id",
+            unique=True,
+            postgresql_where=text("status IN ('accepted', 'running')"),
+        ),
+        Index(
+            "ix_runtime_runs_active_expiry",
+            "lease_expires_at",
+            postgresql_where=text("status IN ('accepted', 'running')"),
+        ),
+        CheckConstraint(
             "status IN ('accepted', 'running', 'succeeded', 'failed', 'blocked')",
             name="ck_runtime_runs_status",
         ),
@@ -120,6 +136,8 @@ class RuntimeRunTable(Base):
     error_code: Mapped[str | None] = mapped_column(Text)
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    owner_token: Mapped[UUID | None] = mapped_column(PG_UUID(as_uuid=True))
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class FeedbackRecordTable(Base):

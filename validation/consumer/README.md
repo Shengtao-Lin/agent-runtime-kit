@@ -56,12 +56,14 @@ with `uv pip check`, and runs `python -m agent_runtime.migrations upgrade` from 
 directory using only the wheel's packaged migration resources. It repeats the upgrade and reads
 the current revision to verify idempotency. Update
 the consumer lock deliberately if a candidate changes dependency requirements. Supply
-`--expected-revision` if the schema head changes.
+`--expected-revision` to override the current defaults (baseline `0001`, candidate `0002`).
 
 To validate preservation of v0.1.1 data during an upgrade, add `--upgrade-from-baseline`. This mode
 migrates with the published source archive, seeds messages, an idempotent response, feedback, and
 long-term memory using the released wheel, then installs the candidate wheel and runs its packaged
 migration. The additional pytest check verifies all seeded data and replay behavior survive.
+It also seeds a legacy running row and verifies migration settles it as
+`legacy_owner_unavailable`, without changing the successful evidence.
 
 ## Acceptance and Readiness Results
 
@@ -104,6 +106,9 @@ the console entry point, and rejection of a missing database target.
 Candidate checks additionally inject a terminal SQL-write failure to verify that no message batch
 is committed on rollback, and simulate a lost commit acknowledgment to verify replay without
 repeating model work. These checks do not reinterpret the published v0.1.1 R3 expected failure.
+Candidate checks also enforce hook deadlines, reject same-thread overlaps between independent
+applications, require fresh continuation history, and kill a separate lease-owning process to
+verify recovery without automatic model/tool work. The original readiness probes remain frozen.
 
 See the [integration report and v0.2.0 plan](../../docs/validation/independent-consumer.md) for the
 measured results, limitations, and implementation priorities.

@@ -41,6 +41,18 @@ async def main() -> None:
             "response": response.model_dump(mode="json"),
             "feedback_id": str(feedback.feedback_id),
         }
+        # Seed an old unowned run, exercising the documented drained-worker upgrade policy.
+        legacy_id = uuid4()
+        await app.runs.claim(
+            run_id=legacy_id,
+            request_id=uuid4(),
+            agent=response.agent,
+            thread_id=response.thread_id,
+            idempotency_key="legacy-pending",
+            request_hash="legacy-hash",
+        )
+        await app.runs.transition(legacy_id, "running")
+        state["legacy_pending_id"] = str(legacy_id)
         await asyncio.to_thread(
             Path(os.environ["CONSUMER_UPGRADE_STATE"]).write_text,
             json.dumps(state),

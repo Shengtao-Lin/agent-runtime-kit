@@ -110,6 +110,8 @@ can transition the claimed run instead of leaving it active.
 | Equivalent retry with the same key | The stored terminal response is replayed |
 | Different request with the same key | `idempotency_conflict` |
 | Concurrent retry while the run is active | `run_in_progress` |
+| Different request overlapping the same thread | Retryable `thread_busy`; retry with bounded backoff |
+| Equivalent retry after owner lease expires | Conditional recovery to failure; `idempotent_run_unavailable`, no model/tool rerun |
 | Streaming invoker | `started`, zero or more deltas/results, then `completed` |
 | Non-streaming invoker through `stream()` | `started`, then `completed` |
 
@@ -146,6 +148,15 @@ Retry the same payload and key with bounded backoff. If the condition persists b
 invocation duration plus shutdown grace, inspect the owning process and run transition history.
 Do not manually mark the row successful.
 
+### `thread_busy` and `run_ownership_lost`
+
+Only one runtime turn per thread is accepted across workers, even for different agents. Retry an
+overlap with bounded backoff after the owner finishes. Unrelated threads remain independent. Do
+not use standalone message appends to mutate an active runtime thread. An expired or foreign owner
+cannot commit; inspect/recover its run rather than trying to bypass the token check. Recovery uses
+the database clock and never automatically repeats external effects. See
+[ADR 0009](../adr/0009-fenced-thread-ownership.md) for lease duration and custom-store requirements.
+
 ### `idempotency_conflict`
 
 Compare the caller's canonical payload generation. A semantically different request needs a new
@@ -166,7 +177,8 @@ Do not persist displayed partial text as a successful assistant response.
 
 Development builds for v0.2.0 commit messages and the replayable response through one
 `RunStore.complete()` transaction. Direct `transition(..., "succeeded")` calls are rejected. Custom
-stores must implement `complete()` and `fail_if_running()` before runtime construction. Memory and
+stores must implement `complete()`, `fail_if_running()`, and `recover()`, including owner-token
+checks and atomic same-thread arbitration, before runtime construction. Memory and
 runs must use the same persistence domain, normally sharing one async engine.
 
 After a completion exception, conditional cleanup preserves a committed success and returns that
@@ -174,7 +186,8 @@ response when readable. Cancellation still propagates; retrying the same idempot
 a response committed before cancellation. If cleanup cannot reach the database, the original error
 is retained and a `run_cleanup_unavailable` warning identifies the run and error category. Resolve
 durable state before retrying side effects. Tool actions are not rolled back by this transaction,
-and abandoned-run recovery is still a separate target.
+and expired owners require a retry, new claim, or application-owned recovery sweep. Recovery
+records terminal failure rather than re-executing uncertain work.
 
 The runtime namespace labels newly created threads; it does not enforce ownership when a caller
 supplies a thread ID. Idempotency keys are scoped by agent ID, not namespace. Validate thread access

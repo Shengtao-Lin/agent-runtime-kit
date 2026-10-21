@@ -67,7 +67,8 @@ of callers while retaining one source of truth for four related concerns:
 
 Successful message batches and their run's canonical replay response are committed in one
 transaction through `RunStore.complete()`. Sequence allocation locks the thread row so concurrent
-appends cannot reuse an ordinal. Conditional `fail_if_running()` cleanup locks the run row and
+appends cannot reuse an ordinal. Mutations lock the thread before the run. Owner-checked
+`fail_if_running()` cleanup
 preserves committed success, including when a commit acknowledgment is lost. Standalone memory
 appends retain their own transaction. Runtime-run transitions follow the explicit
 `accepted -> running -> succeeded | failed | blocked` state machine. The runtime stores canonical
@@ -75,7 +76,9 @@ objects only; provider and framework objects never cross the repository boundary
 
 Custom run stores must implement atomic completion and conditional cleanup; there is no separate
 message-write fallback. See [ADR 0007](adr/0007-atomic-run-finalization.md) for compatibility and
-uncertain-commit behavior.
+uncertain-commit behavior. [ADR 0009](adr/0009-fenced-thread-ownership.md) adds one durable active
+owner per thread, finite database-clock leases, token-fenced mutations, and explicit failed-run
+recovery. Overlapping turns receive a retryable conflict; recovery never repeats external tools.
 
 Feedback targets are polymorphic, so a single relational foreign key cannot validate every target
 kind. The feedback repository locks validation to a successful stored response and verifies target

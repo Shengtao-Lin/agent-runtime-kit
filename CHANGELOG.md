@@ -6,6 +6,12 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ### Added
 
+- Database-clock leases, owner-token fenced mutations, conditional stale-run recovery, and a
+  bounded skip-locked recovery sweep; recovery never automatically repeats external effects.
+- Cross-process same-thread arbitration with retryable `thread_busy` conflicts.
+- Revision `0002` ownership constraints/indexes and drained-worker upgrade validation. Successful
+  evidence is preserved; unowned legacy active runs become `legacy_owner_unavailable` failures.
+
 - A shared deadline covering all invocation phases, plus configurable bounded failure cleanup.
 - Per-phase deadline tests and installed-wheel hook acceptance checks.
 - Cancellation-safe stream shutdown with full buffers, and accepted-run cleanup after uncertain
