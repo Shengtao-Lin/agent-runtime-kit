@@ -101,5 +101,9 @@ a v0.1.1-to-candidate data-preservation check. It uploads all three report direc
 project's normal pytest suite remains separate. Candidate tests also verify wheel migration files,
 the console entry point, and rejection of a missing database target.
 
+Candidate checks additionally inject a terminal SQL-write failure to verify that no message batch
+is committed on rollback, and simulate a lost commit acknowledgment to verify replay without
+repeating model work. These checks do not reinterpret the published v0.1.1 R3 expected failure.
+
 See the [integration report and v0.2.0 plan](../../docs/validation/independent-consumer.md) for the
 measured results, limitations, and implementation priorities.

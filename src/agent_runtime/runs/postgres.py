@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import UTC, datetime
+from typing import Literal
 from uuid import UUID
 
 from sqlalchemy import select
@@ -14,9 +16,11 @@ from agent_runtime.errors import (
     InvalidRunTransitionError,
     RunNotFoundError,
 )
+from agent_runtime.memory._message_batch import append_message_batch
 from agent_runtime.memory.tables import RuntimeRunTable
-from agent_runtime.models import AgentDescriptor, RuntimeResponse
+from agent_runtime.models import AgentDescriptor, Message, RuntimeResponse
 from agent_runtime.runs.models import RunClaim, RunRecord, RunStatus
+from agent_runtime.telemetry import RuntimeTelemetry
 
 _TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
     "accepted": frozenset({"running"}),
@@ -30,8 +34,9 @@ _TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
 class PostgresRunStore:
     """Persist run state and arbitrate per-agent idempotency keys."""
 
-    def __init__(self, engine: AsyncEngine) -> None:
+    def __init__(self, engine: AsyncEngine, telemetry: RuntimeTelemetry | None = None) -> None:
         self._sessions = async_sessionmaker(engine, expire_on_commit=False)
+        self._telemetry = telemetry or RuntimeTelemetry()
 
     async def claim(
         self,
@@ -91,6 +96,8 @@ class PostgresRunStore:
         error_code: str | None = None,
     ) -> RunRecord:
         """Apply one valid transition while holding the run row lock."""
+        if status == "succeeded":
+            raise InvalidRunTransitionError("Successful runs must be finalized with complete()")
         async with self._sessions.begin() as session:
             row = (
                 await session.execute(
@@ -104,17 +111,90 @@ class PostgresRunStore:
                 raise InvalidRunTransitionError(
                     f"Run cannot transition from '{current}' to '{status}'"
                 )
-            if status == "succeeded" and response is None:
-                raise InvalidRunTransitionError("A succeeded run requires a canonical response")
-            if status != "succeeded" and response is not None:
+            if response is not None:
                 raise InvalidRunTransitionError("Only a succeeded run may store a response")
             row.status = status
-            row.response = response.model_dump(mode="json") if response is not None else None
+            row.response = None
             row.error_code = error_code
-            if status in {"succeeded", "failed", "blocked"}:
+            if status in {"failed", "blocked"}:
                 row.completed_at = datetime.now(UTC)
             await session.flush()
             return self._model(row)
+
+    async def complete(
+        self, run_id: UUID, *, messages: Sequence[Message], response: RuntimeResponse
+    ) -> RunRecord:
+        """Commit the message batch and successful replay result in one transaction."""
+        with self._telemetry.span(
+            "agent.memory.write",
+            {
+                "agent.memory.operation": "complete_run",
+                "agent.run.id": str(run_id),
+                "agent.thread.id": str(response.thread_id),
+                "agent.message.count": len(messages),
+            },
+        ):
+            async with self._sessions.begin() as session:
+                row = (
+                    await session.execute(
+                        select(RuntimeRunTable)
+                        .where(RuntimeRunTable.id == run_id)
+                        .with_for_update()
+                    )
+                ).scalar_one_or_none()
+                if row is None:
+                    raise RunNotFoundError(f"Run '{run_id}' does not exist")
+                if (
+                    response.run_id != row.id
+                    or response.request_id != row.request_id
+                    or response.thread_id != row.thread_id
+                    or response.agent.agent_id != row.agent_id
+                    or response.agent.version != row.agent_version
+                    or response.agent.framework != row.framework
+                ):
+                    raise InvalidRunTransitionError(
+                        "Completion response does not belong to the run"
+                    )
+                assistant = next(
+                    (message for message in reversed(messages) if message.role == "assistant"), None
+                )
+                if assistant != response.message:
+                    raise InvalidRunTransitionError(
+                        "Completion message does not match the response"
+                    )
+                if row.status != "running":
+                    raise InvalidRunTransitionError("Only a running run can be completed")
+                await append_message_batch(session, row.thread_id, messages)
+                row.status = "succeeded"
+                row.response = response.model_dump(mode="json")
+                row.error_code = None
+                row.completed_at = datetime.now(UTC)
+                await session.flush()
+                result = self._model(row)
+            return result
+
+    async def fail_if_running(
+        self, run_id: UUID, *, error_code: str, status: Literal["failed", "blocked"] = "failed"
+    ) -> RunRecord:
+        """Lock and settle a running run; preserve existing terminal states and responses."""
+        if status not in {"failed", "blocked"}:
+            raise InvalidRunTransitionError("Cleanup status must be failed or blocked")
+        async with self._sessions.begin() as session:
+            row = (
+                await session.execute(
+                    select(RuntimeRunTable).where(RuntimeRunTable.id == run_id).with_for_update()
+                )
+            ).scalar_one_or_none()
+            if row is None:
+                raise RunNotFoundError(f"Run '{run_id}' does not exist")
+            if row.status == "running":
+                row.status = status
+                row.response = None
+                row.error_code = error_code
+                row.completed_at = datetime.now(UTC)
+                await session.flush()
+            result = self._model(row)
+        return result
 
     async def get(self, run_id: UUID) -> RunRecord | None:
         """Read a durable run by identifier."""

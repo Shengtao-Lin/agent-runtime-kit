@@ -7,12 +7,12 @@ from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import UUID, uuid4
 
-from sqlalchemy import delete, func, or_, select, text
+from sqlalchemy import delete, or_, select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 
-from agent_runtime.errors import ThreadNotFoundError
+from agent_runtime.memory._message_batch import append_message_batch
 from agent_runtime.memory.models import MemoryPage, MemoryRecord, StoredMessage, ThreadRecord
 from agent_runtime.memory.tables import AgentMessageTable, AgentThreadTable, MemoryRecordTable
 from agent_runtime.models import Message
@@ -124,39 +124,8 @@ class PostgresMemoryStore:
         self, thread_id: UUID, messages: Sequence[Message]
     ) -> tuple[StoredMessage, ...]:
         """Execute an append inside the active memory span."""
-        if not messages:
-            return ()
         async with self._sessions.begin() as session:
-            thread = (
-                await session.execute(
-                    select(AgentThreadTable)
-                    .where(AgentThreadTable.id == thread_id)
-                    .with_for_update()
-                )
-            ).scalar_one_or_none()
-            if thread is None:
-                raise ThreadNotFoundError(f"Thread '{thread_id}' does not exist")
-            last_sequence = (
-                await session.execute(
-                    select(func.coalesce(func.max(AgentMessageTable.sequence), 0)).where(
-                        AgentMessageTable.thread_id == thread_id
-                    )
-                )
-            ).scalar_one()
-            rows: list[AgentMessageTable] = []
-            for offset, message in enumerate(messages, start=1):
-                row = AgentMessageTable(
-                    id=message.id,
-                    thread_id=thread_id,
-                    sequence=last_sequence + offset,
-                    role=message.role,
-                    content=[part.model_dump(mode="json") for part in message.content],
-                    metadata_={},
-                )
-                session.add(row)
-                rows.append(row)
-            thread.updated_at = datetime.now(UTC)
-            await session.flush()
+            rows = await append_message_batch(session, thread_id, messages)
         return tuple(self._message_model(row) for row in rows)
 
     async def get_thread(self, thread_id: UUID) -> ThreadRecord | None:

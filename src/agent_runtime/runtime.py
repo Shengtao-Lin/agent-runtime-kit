@@ -5,10 +5,11 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import suppress
-from typing import cast
-from uuid import uuid4
+from typing import Literal, cast
+from uuid import UUID, uuid4
 
 from agent_runtime.adapters.base import StreamingAgentInvoker
 from agent_runtime.errors import (
@@ -39,6 +40,8 @@ from agent_runtime.runs.models import RunRecord
 from agent_runtime.telemetry import RuntimeTelemetry
 from agent_runtime.telemetry.attributes import AGENT_ID, REQUEST_ID
 
+LOGGER = logging.getLogger(__name__)
+
 
 class AgentRuntime:
     """Apply shared runtime policy around any registered agent invoker."""
@@ -56,6 +59,8 @@ class AgentRuntime:
     ) -> None:
         if invocation_timeout_seconds <= 0:
             raise ValueError("invocation_timeout_seconds must be positive")
+        if not all(callable(getattr(runs, name, None)) for name in ("complete", "fail_if_running")):
+            raise TypeError("RunStore must implement complete() and fail_if_running()")
         self._agents = agents
         self._memory = memory
         self._runs = runs
@@ -230,10 +235,6 @@ class AgentRuntime:
                 )
             )
             assistant = self._final_assistant(output.messages)
-            await self._memory.append_messages(
-                thread.id,
-                [*request.messages, *output.messages],
-            )
             response = RuntimeResponse(
                 run_id=run_id,
                 request_id=request.request_id,
@@ -245,18 +246,34 @@ class AgentRuntime:
                 trace_id=self._telemetry.current_trace_id(),
                 metadata=output.metadata,
             )
-            await self._runs.transition(run_id, "succeeded", response=response)
+            await self._runs.complete(
+                run_id, messages=[*request.messages, *output.messages], response=response
+            )
             return response
         except GuardrailBlockedError as exc:
-            await self._runs.transition(run_id, "blocked", error_code=exc.code)
+            await self._record_failure(run_id, error_code=exc.code, status="blocked")
             raise
         except asyncio.CancelledError:
-            await self._runs.transition(run_id, "failed", error_code="invocation_cancelled")
+            await self._record_failure(run_id, error_code="invocation_cancelled")
             raise
         except Exception as exc:
             error_code = exc.code if isinstance(exc, RuntimeKitError) else "internal_error"
-            await self._runs.transition(run_id, "failed", error_code=error_code)
+            record = await self._record_failure(run_id, error_code=error_code)
+            if record is not None and record.status == "succeeded" and record.response is not None:
+                return record.response
             raise
+
+    async def _record_failure(
+        self, run_id: UUID, *, error_code: str, status: Literal["failed", "blocked"] = "failed"
+    ) -> RunRecord | None:
+        """Reconcile uncertain commits without masking the original error or a durable success."""
+        try:
+            return await self._runs.fail_if_running(run_id, error_code=error_code, status=status)
+        except Exception:
+            LOGGER.warning(
+                "run_cleanup_unavailable", extra={"run_id": str(run_id), "error_code": error_code}
+            )
+            return None
 
     @staticmethod
     def request_hash(request: RuntimeRequest) -> str:

@@ -78,6 +78,7 @@ def main() -> None:
     environment["CONSUMER_EXPECTED_VERSION"] = args.expected_version
     environment["CONSUMER_EXPECTED_REVISION"] = args.expected_revision
     environment["CONSUMER_PACKAGED_MIGRATIONS"] = "1" if args.wheel else "0"
+    environment["CONSUMER_CANDIDATE"] = "1" if args.wheel else "0"
 
     def run(command: list[str], *, cwd: Path) -> None:
         subprocess.run(command, cwd=cwd, env=environment, check=True)

@@ -190,7 +190,7 @@ async def test_run_idempotency_state_and_append_only_feedback() -> None:
             agent=agent,
             message=assistant,
         )
-        completed = await runs.transition(run_id, "succeeded", response=response)
+        completed = await runs.complete(run_id, messages=[assistant], response=response)
         assert completed.response == response
         with pytest.raises(InvalidRunTransitionError):
             await runs.transition(run_id, "failed", error_code="too_late")

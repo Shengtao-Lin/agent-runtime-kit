@@ -56,6 +56,20 @@ recorded by the package audit and demonstrated by the source-archive migration r
 
 ## Proposed v0.2.0 Delivery Sequence
 
+### Atomic finalization implementation status (2026-10-20)
+
+Development builds address R3 through `RunStore.complete()` and conditional `fail_if_running()`
+cleanup. PostgreSQL commits the message batch and successful canonical response together.
+Commit-acknowledgment reconciliation preserves durable success; rollback and cancellation cannot
+leave a partial message batch. A cleanup outage preserves the original error and leaves durable
+state for inspection/recovery.
+
+Database fault tests exercise invoke/stream, response ownership, terminal immutability, and cleanup
+failures. Candidate-wheel tests verify rollback at the SQL-update boundary and replay after a lost
+acknowledgment. The frozen baseline still reproduces the v0.1.1 R3 failure. See
+[ADR 0007](../adr/0007-atomic-run-finalization.md) for custom-store migration requirements and limits.
+No schema migration is needed for this change.
+
 ### Migration packaging implementation status (2026-10-12)
 
 R5 is implemented in development builds: migrations ship under `agent_runtime.migrations`, with
