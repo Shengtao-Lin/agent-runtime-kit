@@ -140,7 +140,12 @@ async def test_failure_after_message_flush_rolls_back_everything(
         await invoke(harness, mode)
     assert harness.invoker.calls == 1
     await harness.runtime.invoke(
-        harness.agent_id, harness.request, idempotency_key=f"retry-{harness.key}"
+        harness.agent_id,
+        RuntimeRequest(
+            thread_id=record.thread_id,
+            messages=[Message(role="user", content=[TextContent(text="Synthetic input")])],
+        ),
+        idempotency_key=f"retry-{harness.key}",
     )
     assert [item.sequence for item in await harness.memory.get_messages(record.thread_id)] == [1, 2]
 
