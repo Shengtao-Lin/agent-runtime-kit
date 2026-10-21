@@ -12,6 +12,8 @@ The latest published version is v0.2.0; `main` prepares v0.3.0. Version metadata
 - Package metadata and `uv.lock` agree. Changelog and versioned release notes describe breaking
   changes, schema revision, rollback limits, and distribution channels.
 - [The v0.2.0 upgrade guide](../upgrading-to-v0.2.0.md) has been rehearsed with preserved evidence.
+- [The v0.3.0 upgrade guide](../upgrading-to-v0.3.0.md) covers the checksum-pinned current-release
+  path; preserved owner leases and post-upgrade framework streaming must pass.
 - Repository permissions permit GitHub Releases and GHCR. PyPI publishing is intentionally absent.
 - Publication and its target version/commit are authorized by the repository owner.
 
@@ -20,7 +22,7 @@ The latest published version is v0.2.0; `main` prepares v0.3.0. Version metadata
 Normal CI uses locked venv environments and pytest for Linux/Windows unit tests, PostgreSQL
 integration, wheel imports, independent baseline/fresh/upgrade consumers, and container smoke.
 The Release workflow repeats quality/full pytest, builds distributions once, and passes that exact
-wheel artifact to a separate independent-consumer job. Both fresh installation and v0.1.1 upgrade
+wheel artifact to a separate independent-consumer job. Fresh installation and v0.1.1/v0.2.0 upgrades
 must pass, alongside the release container smoke job, before either publishing job can run.
 Container verification includes real in-flight SIGTERM drain/cancellation and post-restart replay.
 It builds matching app/migration images and retains evidence until job cleanup.
@@ -52,8 +54,8 @@ v0.1.1 and intentionally records four historical expected failures; those are no
    target version is already published; do not overwrite/move an existing tag.
 2. Create/push the authorized version tag at that exact verified commit. For v0.3.0, the tag must
    be `v0.3.0`; the workflow verifies it matches installed package metadata.
-3. Monitor `Verify release`, `Verify release container`, and `Verify release wheel and v0.1.1
-   upgrade`. Both publishing jobs depend on all three.
+3. Monitor `Verify release`, `Verify release container`, and `Verify release wheel and published
+   upgrades`. Both publishing jobs depend on all three.
 4. Confirm the GitHub Release has the wheel and source archive, and GHCR has the versioned image.
    Versioned notes under `docs/releases/<tag>.md` override generated notes when present.
 5. Download/install the actual published wheel into a new consumer venv and repeat a synthetic

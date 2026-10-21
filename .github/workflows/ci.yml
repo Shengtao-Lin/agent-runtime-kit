@@ -169,6 +169,21 @@ jobs:
             --wheel "dist/agent_runtime_kit-$VERSION-py3-none-any.whl" \
             --expected-version "$VERSION" --upgrade-from-baseline --acceptance-only \
             --report-dir build/consumer-upgrade
+      - name: Create a v0.2.0 upgrade database
+        run: >-
+          uv run python -c
+          'import os, psycopg;
+          conn = psycopg.connect(os.environ["AGENT_RUNTIME_TEST_DATABASE_URL"].replace("postgresql+psycopg://", "postgresql://"), autocommit=True);
+          conn.execute("CREATE DATABASE agent_runtime_consumer_v020"); conn.close()'
+      - name: Preserve v0.2.0 data and ownership through the candidate upgrade
+        env:
+          AGENT_RUNTIME_TEST_DATABASE_URL: postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/agent_runtime_consumer_v020
+        run: |
+          VERSION=$(uv run python -c 'import agent_runtime; print(agent_runtime.__version__)')
+          uv run python scripts/validate_consumer.py \
+            --wheel "dist/agent_runtime_kit-$VERSION-py3-none-any.whl" \
+            --expected-version "$VERSION" --upgrade-from-release 0.2.0 --acceptance-only --frameworks \
+            --report-dir build/consumer-v020-upgrade
       - if: always()
         uses: actions/upload-artifact@v4
         with:
