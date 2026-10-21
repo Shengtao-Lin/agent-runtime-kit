@@ -69,3 +69,36 @@ platform dependent. Reports include monotonic clock resolution rather than treat
 minimum wall-clock guarantee.
 No regression threshold is enforced until repeated
 measurements on a stable runner establish normal variation.
+
+## Sustained-operation probe (v0.4 development)
+
+`scripts/validate_consumer.py --wheel PATH --expected-version 0.4.0 --acceptance-only --frameworks
+--soak-seconds 120` runs an additional native synthetic workload from the external installed-wheel
+venv. Select an empty disposable PostgreSQL database through `AGENT_RUNTIME_TEST_DATABASE_URL`.
+Duration is 5..1800 seconds (zero disables); `CONSUMER_SOAK_CONCURRENCY` is 1..16, default four.
+CI/Release and clean lower/latest profiles use 30 seconds; longer rehearsals remain explicit.
+Add `--soak-shared-engine` to reuse one application-owned engine across runtime lifetimes instead
+of constructing/disposing it each cycle. Compatibility CI uses this shared mode; normal CI/Release
+use per-cycle mode. The disposable database must have no unrelated application clients.
+
+Every cycle creates a host lifetime and bounded database pool, executes concurrent independent
+multi-turn calls, tools, a 128-delta slow consumer beyond queue capacity and exact successful replay,
+then cancels an entered invocation and abandons a backpressured stream. It requires failed runs
+with no partial messages/responses, checked-out connections returning to zero and no surviving
+async tasks after checked shutdown/resource disposal. The model call count proves replay adds no
+generation. Cycles use unique application identities and retain synthetic database evidence.
+After full teardown a separate observer checks PostgreSQL for remaining application sessions,
+excluding its own connection. Per-cycle mode also retains bounded engine weak-reference probes.
+
+`soak.json` records the installed version, duration/concurrency/scenario counts, bounded allocation
+checkpoints, thread counts and task/pool assertions. The fixture deliberately clears its call
+history after assertions so that an intentionally recording fake model is not mistaken for a
+runtime leak. Report bookkeeping is capped at 32 checkpoints; Python allocations are sampled after
+garbage collection and are informational, not RSS or an enforced memory regression threshold.
+Named threads and top allocation-location deltas after warmup help investigate growth rather than
+mistaking executor initialization, compiled-type caches or measurement overhead for a proven leak.
+Repeated SQL/driver cache warmup and measurement overhead remain part of the recorded process.
+
+This is a short synthetic stability gate, not a production throughput SLA, a multi-hour soak, a
+network-partition test or certification of framework-internal/provider buffers. Hard process kills
+and non-cooperative extensions still require the separate ownership/shutdown recovery procedures.

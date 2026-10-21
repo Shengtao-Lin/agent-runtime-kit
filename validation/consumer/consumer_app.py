@@ -119,9 +119,13 @@ async def application(
     *,
     invocation_deadline_seconds: float = 2.0,
     hooks: HookManager | None = None,
+    engine: AsyncEngine | None = None,
 ) -> AsyncIterator[ConsumerApplication]:
     """Own the model, engine, and telemetry for one application lifetime."""
-    engine = create_async_engine(database_url, pool_pre_ping=True, pool_size=2, max_overflow=2)
+    owns_engine = engine is None
+    engine = engine or create_async_engine(
+        database_url, pool_pre_ping=True, pool_size=2, max_overflow=2
+    )
     telemetry = configure_telemetry(service_name="independent-consumer", capture_content=False)
     model = ConsumerModel()
     try:
@@ -164,6 +168,7 @@ async def application(
             await model.close()
         finally:
             try:
-                await engine.dispose()
+                if owns_engine:
+                    await engine.dispose()
             finally:
                 telemetry.shutdown()

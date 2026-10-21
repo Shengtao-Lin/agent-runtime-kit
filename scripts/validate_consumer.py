@@ -98,7 +98,17 @@ def main() -> None:
     parser.add_argument(
         "--benchmark", action="store_true", help="Measure synthetic wheel scenarios"
     )
+    parser.add_argument(
+        "--soak-seconds", type=int, default=0, help="Sustained v0.4+ wheel probe (5..1800 seconds)"
+    )
+    parser.add_argument(
+        "--soak-shared-engine",
+        action="store_true",
+        help="Reuse a host engine across soak lifetimes",
+    )
     args = parser.parse_args()
+    if args.soak_seconds and not 5 <= args.soak_seconds <= 1800:
+        parser.error("--soak-seconds must be zero or 5..1800")
     args.expected_revision = args.expected_revision or ("0002" if args.wheel else "0001")
     database_url = os.environ.get("AGENT_RUNTIME_TEST_DATABASE_URL")
     if not database_url:
@@ -110,6 +120,10 @@ def main() -> None:
         parser.error("--frameworks requires a candidate or published --wheel")
     if args.benchmark and not args.wheel:
         parser.error("--benchmark requires --wheel")
+    if args.soak_seconds and not args.wheel:
+        parser.error("--soak-seconds requires --wheel with managed-lifetime support")
+    if args.soak_shared_engine and not args.soak_seconds:
+        parser.error("--soak-shared-engine requires --soak-seconds")
     if args.dependency_profile != "locked" and not (args.wheel and args.frameworks):
         parser.error("Compatibility profiles require --wheel and --frameworks")
     repository = Path(__file__).resolve().parents[1]
@@ -321,6 +335,11 @@ def main() -> None:
         if args.benchmark:
             environment["CONSUMER_BENCHMARK_REPORT"] = str(report_directory / "benchmark.json")
             run([str(python), "benchmark.py"], cwd=consumer)
+        if args.soak_seconds:
+            environment["CONSUMER_SOAK_SECONDS"] = str(args.soak_seconds)
+            environment["CONSUMER_SOAK_SHARED_ENGINE"] = "1" if args.soak_shared_engine else "0"
+            environment["CONSUMER_SOAK_REPORT"] = str(report_directory / "soak.json")
+            run([str(python), "soak.py"], cwd=consumer)
     print(f"Consumer reports: {report_directory}")
 
 

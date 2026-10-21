@@ -161,6 +161,7 @@ jobs:
           uv run python scripts/validate_consumer.py \
             --wheel "dist/agent_runtime_kit-$VERSION-py3-none-any.whl" \
             --expected-version "$VERSION" --acceptance-only --frameworks \
+            --soak-seconds 30 \
             --report-dir build/consumer-candidate
       - name: Verify migration preserves v0.1.1 records
         run: |

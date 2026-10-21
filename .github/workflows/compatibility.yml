@@ -9,6 +9,7 @@ on:
       - ".github/workflows/compatibility.yml"
       - "scripts/validate_consumer.py"
       - "validation/consumer/benchmark.py"
+      - "validation/consumer/soak.py"
       - "validation/consumer/tests/test_database_faults.py"
 
 permissions:
@@ -50,7 +51,7 @@ jobs:
           uv run python scripts/validate_consumer.py \
             --wheel "dist/agent_runtime_kit-$VERSION-py3-none-any.whl" \
             --expected-version "$VERSION" --acceptance-only --frameworks \
-            --dependency-profile "${{ matrix.profile }}" --benchmark \
+            --dependency-profile "${{ matrix.profile }}" --benchmark --soak-seconds 30 --soak-shared-engine \
             --report-dir build/compatibility
       - if: always()
         uses: actions/upload-artifact@v4
