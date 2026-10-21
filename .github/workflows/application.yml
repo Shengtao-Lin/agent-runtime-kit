@@ -1,0 +1,67 @@
+name: Standalone application
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "applications/release_desk/**"
+      - "scripts/validate_release_desk.py"
+      - ".github/workflows/application.yml"
+  pull_request:
+    paths:
+      - "applications/release_desk/**"
+      - "scripts/validate_release_desk.py"
+      - ".github/workflows/application.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  release-desk:
+    name: Release Desk (${{ matrix.source }}, Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python: "3.11"
+            source: published
+          - python: "3.12"
+            source: published
+          - python: "3.12"
+            source: candidate
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: release_desk
+          POSTGRES_USER: agent_runtime
+          POSTGRES_PASSWORD: agent_runtime
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U agent_runtime -d release_desk"
+          --health-interval 2s --health-timeout 3s --health-retries 20
+    env:
+      RELEASE_DESK_DATABASE_URL: postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/release_desk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - name: Validate the locked published-wheel application
+        if: matrix.source == 'published'
+        run: python scripts/validate_release_desk.py
+      - name: Validate the candidate wheel through the same application
+        if: matrix.source == 'candidate'
+        run: |
+          uv build --wheel --out-dir build/app-candidate
+          VERSION=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          python scripts/validate_release_desk.py \
+            --wheel "build/app-candidate/agent_runtime_kit-$VERSION-py3-none-any.whl"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-desk-${{ matrix.source }}-${{ matrix.python }}
+          path: build/release-desk-validation/
+          if-no-files-found: warn

@@ -74,7 +74,7 @@ select = ["E", "F", "I", "UP", "B", "ASYNC", "RUF"]
 known-third-party = ["alembic"]
 
 [tool.pyright]
-include = ["src", "tests"]
+include = ["src", "tests", "applications/release_desk/src"]
 pythonVersion = "3.11"
 typeCheckingMode = "strict"
 venvPath = "."

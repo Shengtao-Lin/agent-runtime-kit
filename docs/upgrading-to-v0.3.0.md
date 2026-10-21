@@ -1,5 +1,7 @@
 # Upgrading to v0.3.0
 
+Published on 2026-10-21; see [the immutable artifact and canary evidence](validation/v0.3.0-publication.md).
+
 ## Supported transition
 
 From v0.2.0, the canonical contract remains `v1` and schema head remains `0002`.
@@ -22,7 +24,7 @@ that every core/graph combination is installable.
 ## Streaming adoption
 
 Default adapters retain terminal fallback. Enable `streaming=True` deliberately, after checking
-the [framework runbook](runbooks/framework-adapters.md#v030-candidate-incremental-mode). Review
+the [framework runbook](runbooks/framework-adapters.md#incremental-mode-v030-and-later). Review
 graph node filtering and your state output mapper together: filtering deltas does not redact
 durable history or the final response. Custom event shapes need an explicit stream mapper.
 

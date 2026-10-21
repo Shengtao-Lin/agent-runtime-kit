@@ -23,7 +23,7 @@ composition; it is not included in the Python wheel and is not the product bound
 
 ## Prerequisites
 
-`main` is the v0.3.0 candidate; v0.2.0 is the published installation reference below.
+The published installation reference below is v0.3.0; `main` also contains application integration.
 Upgrades from v0.1.1 must follow the [v0.2.0 upgrade guide](upgrading-to-v0.2.0.md), drain old
 workers, and explicitly migrate to `0002` before starting new workers.
 
@@ -53,7 +53,7 @@ uv sync --locked --all-extras --dev
 To consume a tagged release from another project instead:
 
 ```bash
-uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.2.0"
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.3.0"
 ```
 
 Available extras are `postgres`, `service`, `telemetry`, `adapters`, `openai-compatible`,

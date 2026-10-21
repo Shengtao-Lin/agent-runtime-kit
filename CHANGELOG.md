@@ -2,7 +2,13 @@
 
 All notable changes to Agent Runtime Kit are documented here.
 
-## 0.3.0 - Release candidate (not yet published)
+## Unreleased
+
+- Add a separately packaged Release Desk CLI, pinned to the published v0.3.0 wheel, with its own
+  business checklist, configuration, lifecycle, locked environment and published/candidate CI.
+- Record actual v0.3.0 wheel fresh/upgrade acceptance and public read-only application canary.
+
+## 0.3.0 - 2026-10-21
 
 ### Added
 
