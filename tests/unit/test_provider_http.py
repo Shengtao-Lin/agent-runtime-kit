@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator
+from typing import cast
 from uuid import uuid4
 
 import httpx
@@ -13,6 +14,7 @@ from agent_runtime.errors import ProviderError
 from agent_runtime.models import Message, RuntimeContext, TextContent
 from agent_runtime.models_clients import _http
 from agent_runtime.models_clients.anthropic import AnthropicModelClient
+from agent_runtime.models_clients.base import ModelStreamEvent
 from agent_runtime.models_clients.gemini import GeminiModelClient
 from agent_runtime.models_clients.openai_compatible import OpenAICompatibleModelClient
 
@@ -130,9 +132,12 @@ async def test_small_text_delta_arrives_before_next_network_chunk_and_close_rele
         base_url="https://provider.invalid",
     ) as transport:
         client = OpenAICompatibleModelClient(model="test", api_key="synthetic", client=transport)
-        stream = client.stream(
-            [Message(role="user", content=[TextContent(text="Hello")])],
-            context=RuntimeContext(run_id=uuid4(), thread_id=uuid4()),
+        stream = cast(
+            AsyncGenerator[ModelStreamEvent, None],
+            client.stream(
+                [Message(role="user", content=[TextContent(text="Hello")])],
+                context=RuntimeContext(run_id=uuid4(), thread_id=uuid4()),
+            ),
         )
         try:
             event = await asyncio.wait_for(anext(stream), timeout=2)
