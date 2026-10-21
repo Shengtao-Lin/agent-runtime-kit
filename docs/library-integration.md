@@ -5,7 +5,8 @@
 Use this guide to embed the runtime in an application with its own configuration, model/tool
 logic and process lifetime. The `agent_runtime` wheel contains shared contracts and execution
 policy, not the support-agent or Release Desk business rules. No FastAPI server is required.
-`lifespan()` is an additive v0.4.0-development API; v0.3.x hosts keep using explicit `shutdown()`.
+`lifespan()` is additive in v0.4.0; v0.3.x hosts keep using explicit `shutdown()`. Check the README's
+published status before adopting a development version rather than inferring release from metadata.
 
 ## Dependency and startup checklist
 
