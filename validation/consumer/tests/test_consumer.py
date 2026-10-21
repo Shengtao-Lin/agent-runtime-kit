@@ -178,7 +178,7 @@ async def test_guardrail_and_timeout_leave_terminal_records(
 ) -> None:
     hooks = HookManager([GuardrailHook(PhraseBlockGuardrail(["blocked"]), phases={"before_model"})])
     async with application(
-        database_url, identity, invocation_deadline_seconds=0.1, hooks=hooks
+        database_url, identity, invocation_deadline_seconds=1, hooks=hooks
     ) as app:
         with pytest.raises(GuardrailBlockedError):
             await app.runtime.invoke(identity, request("blocked"), idempotency_key="blocked")
@@ -188,6 +188,7 @@ async def test_guardrail_and_timeout_leave_terminal_records(
         assert await app.memory.get_messages(blocked.thread_id) == ()
         with pytest.raises(InvocationTimeoutError):
             await app.runtime.invoke(identity, request("wait"), idempotency_key="timeout")
+        assert app.model.started.is_set()
         timed_out = await app.runs.get_by_idempotency(agent_id=identity, idempotency_key="timeout")
         assert timed_out is not None and timed_out.status == "failed"
         assert timed_out.error_code == "invocation_timeout"
