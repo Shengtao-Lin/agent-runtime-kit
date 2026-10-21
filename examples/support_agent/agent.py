@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Mapping, Sequence
+from collections.abc import AsyncIterator, Sequence
 from typing import TypedDict, cast
 
+from langchain_core.messages import AIMessage, BaseMessage, ToolMessage
 from langchain_core.runnables import RunnableLambda
 from langgraph.graph import END, START, StateGraph
 
@@ -13,12 +14,17 @@ from agent_runtime.adapters import (
     LangGraphAdapter,
     NativeAgentInvoker,
 )
+from agent_runtime.adapters.framework_messages import (
+    framework_input,
+    framework_output,
+    from_framework_message,
+    to_framework_message,
+)
 from agent_runtime.adapters.langchain import AsyncRunnable
 from agent_runtime.adapters.langgraph import AsyncGraph
-from agent_runtime.adapters.mapping import messages_output
+from agent_runtime.errors import MaxToolIterationsError
 from agent_runtime.models import (
     InvocationInput,
-    InvocationOutput,
     Message,
     RuntimeContext,
     TextContent,
@@ -119,41 +125,24 @@ class FakeSupportModel:
 class SupportState(TypedDict):
     """Minimal LangGraph state with no persistent checkpointer."""
 
-    messages: list[dict[str, object]]
+    messages: list[BaseMessage]
     metadata: dict[str, object]
     context: dict[str, object]
+    tool_iterations: int
+    tool_results: list[dict[str, object]]
+    usage: dict[str, object] | None
 
 
-def _framework_response(value: Mapping[str, object]) -> dict[str, object]:
-    raw_messages = value.get("messages", [])
-    count = len(raw_messages) if isinstance(raw_messages, list) else 0
+def _framework_input(request: InvocationInput) -> SupportState:
+    value = framework_input(request)
     return {
-        "messages": [
-            {
-                "role": "assistant",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": f"Framework adapter received {count} canonical messages.",
-                    }
-                ],
-            }
-        ]
+        "messages": cast(list[BaseMessage], value["messages"]),
+        "context": request.context.model_dump(mode="json"),
+        "metadata": request.metadata,
+        "tool_iterations": 0,
+        "tool_results": [],
+        "usage": None,
     }
-
-
-def _graph_node(state: SupportState) -> SupportState:
-    response = _framework_response(state)
-    return {
-        "messages": cast(list[dict[str, object]], response["messages"]),
-        "metadata": state.get("metadata", {}),
-        "context": state.get("context", {}),
-    }
-
-
-def _only_new_messages(value: object, request: InvocationInput) -> InvocationOutput:
-    output = messages_output(value, request)
-    return InvocationOutput(messages=[output.messages[-1]], metadata=output.metadata)
 
 
 def build_agent_registry(
@@ -177,29 +166,97 @@ def build_agent_registry(
         )
     )
 
-    runnable = RunnableLambda(_framework_response)
+    async def model_step(state: SupportState) -> SupportState:
+        context = RuntimeContext.model_validate(state["context"])
+        messages = [from_framework_message(message) for message in state["messages"]]
+        attributes: dict[str, object] = {
+            "agent.run.id": str(context.run_id),
+            "agent.message.count": len(messages),
+        }
+        attributes.update(telemetry.content_attributes(messages))
+        with telemetry.span("agent.model.generate", attributes):
+            result = await model_client.generate(
+                messages, tools=tools.definitions(), context=context
+            )
+        return {
+            **state,
+            "messages": [*state["messages"], to_framework_message(result.message)],
+            "usage": result.usage.model_dump(mode="json") if result.usage else None,
+        }
+
+    async def tool_step(state: SupportState) -> SupportState:
+        if state["tool_iterations"] >= max_tool_iterations:
+            raise MaxToolIterationsError("Example exceeded its configured tool iteration limit")
+        assistant = state["messages"][-1]
+        assert isinstance(assistant, AIMessage)
+        messages = list(state["messages"])
+        results = list(state["tool_results"])
+        for call in assistant.tool_calls:
+            result = await tools.invoke(
+                call["name"],
+                call["args"],
+                tool_call_id=call["id"] or "",
+                context=RuntimeContext.model_validate(state["context"]),
+            )
+            message = Message(
+                role="tool",
+                content=[
+                    ToolResultContent(
+                        tool_call_id=result.tool_call_id,
+                        result=result.output,
+                    )
+                ],
+            )
+            native = to_framework_message(message)
+            assert isinstance(native, ToolMessage)
+            native.name = result.tool_name
+            messages.append(native)
+            results.append(result.model_dump(mode="json"))
+        return {
+            **state,
+            "messages": messages,
+            "tool_results": results,
+            "tool_iterations": state["tool_iterations"] + 1,
+        }
+
+    def route(state: SupportState) -> str:
+        message = state["messages"][-1]
+        return "tools" if isinstance(message, AIMessage) and message.tool_calls else END
+
+    async def runnable_loop(state: SupportState) -> SupportState:
+        while True:
+            state = await model_step(state)
+            if route(state) == END:
+                return state
+            state = await tool_step(state)
+
+    runnable = RunnableLambda(runnable_loop)
     registry.register(
         LangChainRunnableAdapter(
             agent_id="support-langchain",
             version="0.1.0",
             runnable=cast(AsyncRunnable, runnable),
-            output_mapper=_only_new_messages,
-            capabilities={"multi_turn"},
+            input_mapper=_framework_input,
+            output_mapper=framework_output,
+            capabilities={"tools", "multi_turn"},
         )
     )
 
     builder = StateGraph(SupportState)
-    builder.add_node("respond", _graph_node)
-    builder.add_edge(START, "respond")
-    builder.add_edge("respond", END)
-    graph = builder.compile()
+    builder.add_node("model", model_step)
+    builder.add_node("tools", tool_step)
+    builder.add_edge(START, "model")
+    builder.add_conditional_edges("model", route, {"tools": "tools", END: END})
+    builder.add_edge("tools", "model")
+    graph = builder.compile().with_config({"recursion_limit": 2 * max_tool_iterations + 5})
     registry.register(
         LangGraphAdapter(
             agent_id="support-langgraph",
             version="0.1.0",
             graph=cast(AsyncGraph, graph),
-            state_output_mapper=_only_new_messages,
-            capabilities={"multi_turn"},
+            state_input_mapper=_framework_input,
+            state_output_mapper=framework_output,
+            capabilities={"tools", "multi_turn"},
         )
     )
     return registry

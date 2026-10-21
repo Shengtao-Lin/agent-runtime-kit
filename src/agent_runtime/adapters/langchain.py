@@ -6,7 +6,7 @@ from collections.abc import Callable
 from typing import Protocol
 
 from agent_runtime.adapters.mapping import messages_input, messages_output
-from agent_runtime.errors import AgentInvocationError
+from agent_runtime.errors import AgentInvocationError, RuntimeKitError
 from agent_runtime.models import AgentDescriptor, InvocationInput, InvocationOutput
 
 
@@ -50,6 +50,6 @@ class LangChainRunnableAdapter:
             value = await self._runnable.ainvoke(self._input_mapper(request))
             return self._output_mapper(value, request)
         except Exception as exc:
-            if isinstance(exc, AgentInvocationError):
+            if isinstance(exc, RuntimeKitError):
                 raise
             raise AgentInvocationError("LangChain agent invocation failed") from exc

@@ -6,6 +6,11 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ### Added
 
+- Native LangChain/LangGraph message helpers with tool-call/result and usage mapping, stable IDs,
+  strict unsupported-content rejection, and exact history-prefix removal.
+- Equivalent tool-capable Runnable and StateGraph examples plus HTTP/container acceptance;
+  framework streaming remains an explicit non-incremental fallback.
+
 - Database-clock leases, owner-token fenced mutations, conditional stale-run recovery, and a
   bounded skip-locked recovery sweep; recovery never automatically repeats external effects.
 - Cross-process same-thread arbitration with retryable `thread_busy` conflicts.
