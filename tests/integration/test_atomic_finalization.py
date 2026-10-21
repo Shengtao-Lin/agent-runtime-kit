@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass
@@ -11,6 +12,9 @@ from uuid import UUID, uuid4
 
 import pytest
 import pytest_asyncio
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 from sqlalchemy import Connection, event, func, select
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -38,6 +42,7 @@ from agent_runtime.models import (
     TextContent,
 )
 from agent_runtime.runs import PostgresRunStore, RunRecord
+from agent_runtime.telemetry import RuntimeTelemetry
 
 pytestmark = pytest.mark.integration
 
@@ -427,3 +432,47 @@ async def test_accepted_run_can_be_cleaned_after_lost_claim_ack(harness: Harness
         run_id, owner_token=owner_token, error_code="invocation_timeout"
     )
     assert result.status == "failed" and result.error_code == "invocation_timeout"
+
+
+@pytest.mark.asyncio
+async def test_runtime_spans_and_logs_share_safe_correlated_ids(
+    harness: Harness, caplog: pytest.LogCaptureFixture
+) -> None:
+    exporter = InMemorySpanExporter()
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(exporter))
+    agents = AgentRegistry()
+    agents.register(harness.invoker)
+    harness.runtime = AgentRuntime(
+        agents=agents,
+        memory=harness.memory,
+        runs=harness.runs,
+        namespace=harness.agent_id,
+        telemetry=RuntimeTelemetry(provider.get_tracer("test")),
+    )
+    harness.request = harness.request.model_copy(
+        update={
+            "metadata": {
+                "trace_id": "spoofed-id",
+                "secret": "private-metadata-sentinel",
+            }
+        }
+    )
+    caplog.set_level(logging.INFO, logger="agent_runtime.runtime")
+    try:
+        response = await invoke(harness, "invoke")
+        span = next(s for s in exporter.get_finished_spans() if s.name == "agent.runtime.run")
+        assert span.attributes is not None
+        assert span.attributes["agent.run.id"] == str(response.run_id)
+        assert span.attributes["agent.thread.id"] == str(response.thread_id)
+        assert span.attributes["agent.version"] == harness.invoker.descriptor.version
+        assert span.attributes["agent.framework"] == "native"
+        log = next(r for r in caplog.records if r.message == "agent_invocation_completed")
+        assert log.__dict__["request_id"] == str(harness.request.request_id)
+        assert log.__dict__["run_id"] == str(response.run_id)
+        assert span.context is not None
+        assert log.__dict__["trace_id"] == f"{span.context.trace_id:032x}"
+        assert "private-metadata-sentinel" not in str(span.attributes)
+        assert "spoofed-id" not in str(log.__dict__)
+    finally:
+        provider.shutdown()

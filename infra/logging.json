@@ -1,6 +1,7 @@
 {
   "version": 1,
   "disable_existing_loggers": false,
+  "filters": {"correlation": {"()": "agent_runtime.service.logging.CorrelationFilter"}},
   "formatters": {
     "json": {
       "()": "agent_runtime.service.logging.JsonFormatter"
@@ -10,6 +11,7 @@
     "default": {
       "class": "logging.StreamHandler",
       "formatter": "json",
+      "filters": ["correlation"],
       "stream": "ext://sys.stdout"
     }
   },

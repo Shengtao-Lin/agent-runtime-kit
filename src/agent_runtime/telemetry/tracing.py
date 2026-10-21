@@ -2,14 +2,22 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-from contextlib import AbstractContextManager
+from collections.abc import Generator, Mapping, Sequence
+from contextlib import contextmanager
+from importlib.metadata import PackageNotFoundError, version
 from typing import Any, cast
 
 from opentelemetry import trace
-from opentelemetry.trace import Span, Tracer
+from opentelemetry.trace import Span, Status, StatusCode, Tracer
 
+from agent_runtime.errors import RuntimeKitError
 from agent_runtime.models import Message
+from agent_runtime.telemetry.attributes import RUNTIME_VERSION
+
+try:
+    _package_version = version("agent-runtime-kit")
+except PackageNotFoundError:
+    _package_version = "0.0.0+uninstalled"
 
 
 class RuntimeTelemetry:
@@ -19,19 +27,46 @@ class RuntimeTelemetry:
         self.tracer = tracer or trace.get_tracer("agent-runtime-kit")
         self.capture_content = capture_content
 
+    @contextmanager
     def span(
         self, name: str, attributes: Mapping[str, object] | None = None
-    ) -> AbstractContextManager[Span]:
+    ) -> Generator[Span, None, None]:
         """Start a span after filtering unsupported or absent attributes."""
+        safe_attributes = self._safe_attributes(attributes or {})
+        safe_attributes[RUNTIME_VERSION] = _package_version
+        with self.tracer.start_as_current_span(
+            name, attributes=safe_attributes, record_exception=False, set_status_on_exception=False
+        ) as span:
+            try:
+                yield span
+            except BaseException as exc:
+                span.set_status(Status(StatusCode.ERROR))
+                span.add_event(
+                    "agent.operation.failed",
+                    {
+                        "error.type": type(exc).__name__,
+                        "error.code": exc.code
+                        if isinstance(exc, RuntimeKitError)
+                        else "operation_failed",
+                    },
+                )
+                raise
+
+    def annotate(self, attributes: Mapping[str, object]) -> None:
+        """Attach trusted scalar identifiers to the current runtime span."""
+        trace.get_current_span().set_attributes(self._safe_attributes(attributes))
+
+    @staticmethod
+    def _safe_attributes(attributes: Mapping[str, object]) -> dict[str, Any]:
         safe_attributes: dict[str, Any] = {}
-        for key, value in (attributes or {}).items():
+        for key, value in attributes.items():
             if value is not None and isinstance(value, (str, bool, int, float)):
                 safe_attributes[key] = value
             elif isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
                 items: list[object] = list(cast(Sequence[object], value))
                 if all(isinstance(item, (str, bool, int, float)) for item in items):
                     safe_attributes[key] = items
-        return self.tracer.start_as_current_span(name, attributes=safe_attributes)
+        return safe_attributes
 
     def content_attributes(self, messages: list[Message]) -> dict[str, object]:
         """Return serialized message content only when explicitly enabled."""

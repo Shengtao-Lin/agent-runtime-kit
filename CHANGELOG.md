@@ -6,6 +6,9 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ### Added
 
+- Runtime/agent version span attributes and task-local request/run/thread/trace log correlation,
+  with concurrent-context tests and categorical rather than raw exception export.
+
 - Optional namespace-scoped conversation reads/appends and expiry maintenance; the runtime checks
   namespace before continuation, history, replay, or recovery. Legacy unscoped maintenance remains
   explicit and is not an authorization/RLS boundary.

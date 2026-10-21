@@ -6,6 +6,18 @@ import json
 import logging
 from datetime import UTC, datetime
 
+from agent_runtime.telemetry.correlation import correlation_fields
+
+
+class CorrelationFilter(logging.Filter):
+    """Capture invocation identifiers before formatting or crossing a logging queue."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        for key, value in correlation_fields().items():
+            if not hasattr(record, key):
+                setattr(record, key, value)
+        return True
+
 
 class JsonFormatter(logging.Formatter):
     """Serialize safe operational fields as one JSON object per line."""
@@ -34,5 +46,6 @@ class JsonFormatter(logging.Formatter):
             if value is not None:
                 document[field_name] = value
         if record.exc_info is not None:
-            document["exception"] = self.formatException(record.exc_info)
+            exception_type = record.exc_info[0]
+            document["exception_type"] = exception_type.__name__ if exception_type else "unknown"
         return json.dumps(document, ensure_ascii=True, separators=(",", ":"))
