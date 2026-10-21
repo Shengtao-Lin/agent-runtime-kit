@@ -1,0 +1,6 @@
+# Opt-in synthetic fault injection. Never use this override for production traffic.
+services:
+  app:
+    environment:
+      DEMO_MODEL_DELAY_SECONDS: ${DEMO_MODEL_DELAY_SECONDS:-1}
+      SHUTDOWN_GRACE_SECONDS: ${SHUTDOWN_GRACE_SECONDS:-5}

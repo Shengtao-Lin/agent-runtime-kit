@@ -173,6 +173,18 @@ timeouts should fit inside the runtime deadline.
 Treat it as incomplete, close the iterator, and resolve the run using the same idempotency key.
 Do not persist displayed partial text as a successful assistant response.
 
+## Application Shutdown
+
+Stop/drain ingress first, then call `await runtime.shutdown(timeout_seconds=6)` before closing
+models, disposing shared engines, or flushing telemetry. Shutdown rejects new work with retryable
+`runtime_closing` (HTTP 503), cancels active calls, and waits for tracked bounded cleanup tasks.
+Cleanup is shielded from request/ASGI cancellation but retains its own timeout. Shutdown is
+idempotent and returns false if the host's additional budget expires; it cannot preempt a blocked
+driver or synchronous tool. A timed-out shutdown requires inspecting/recovering durable state.
+The example gives cleanup six seconds after Uvicorn's ingress grace; keep the container stop
+budget larger than both phases plus teardown overhead. Close abandoned stream iterators explicitly.
+No external tool effects are rolled back.
+
 ## Data and Security Notes
 
 Development builds for v0.2.0 commit messages and the replayable response through one

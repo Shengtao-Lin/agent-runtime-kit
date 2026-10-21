@@ -22,6 +22,7 @@ from agent_runtime.errors import (
     InvocationTimeoutError,
     ProviderError,
     RunInProgressError,
+    RuntimeClosingError,
     RuntimeKitError,
     ThreadBusyError,
     ThreadNotFoundError,
@@ -289,6 +290,8 @@ def _error_response(
 
 
 def _status_code(exc: RuntimeKitError) -> int:
+    if isinstance(exc, RuntimeClosingError):
+        return 503
     if isinstance(exc, (UnknownAgentError, ThreadNotFoundError, ToolNotFoundError)):
         return 404
     if isinstance(

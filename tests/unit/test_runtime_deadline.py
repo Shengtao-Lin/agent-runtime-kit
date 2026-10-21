@@ -44,7 +44,7 @@ class Invoker:
         yield AgentCompleted(output=await self.invoke(request))
 
 
-def harness() -> SimpleNamespace:
+def harness(timeout: float = 0.05) -> SimpleNamespace:
     now = datetime.now(UTC)
     thread = ThreadRecord(id=uuid4(), namespace="deadline", created_at=now, updated_at=now)
     record = RunRecord(
@@ -77,7 +77,7 @@ def harness() -> SimpleNamespace:
         memory=cast(MemoryStore, memory),
         runs=cast(RunStore, runs),
         hooks=hooks,
-        invocation_timeout_seconds=0.05,
+        invocation_timeout_seconds=timeout,
         cleanup_timeout_seconds=0.05,
     )
     return SimpleNamespace(
@@ -270,3 +270,59 @@ def test_timeout_configuration_is_finite_and_positive(option: str, value: float)
             invocation_timeout_seconds=value if option == "invocation_timeout_seconds" else 60,
             cleanup_timeout_seconds=value if option == "cleanup_timeout_seconds" else 5,
         )
+
+
+@pytest.mark.asyncio
+async def test_shutdown_cancels_active_work_and_rejects_new_requests(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from agent_runtime.errors import RuntimeClosingError
+
+    h = harness(5)
+    entered = asyncio.Event()
+
+    async def blocking(*args: object, **kwargs: object) -> None:
+        entered.set()
+        await asyncio.Event().wait()
+
+    monkeypatch.setattr(h.invoker, "invoke", blocking)
+    task = asyncio.create_task(call(h, "invoke"))
+    await asyncio.wait_for(entered.wait(), timeout=2)
+    assert await h.runtime.shutdown(timeout_seconds=1)
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    for mode in ("invoke", "stream"):
+        with pytest.raises(RuntimeClosingError):
+            await call(h, mode)
+    h.runs.fail_if_running.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_shutdown_waits_for_cleanup_after_caller_cancellation() -> None:
+    h = harness(5)
+    entered, release = asyncio.Event(), asyncio.Event()
+
+    async def cleanup(*args: object, **kwargs: object) -> object:
+        entered.set()
+        await release.wait()
+        return h.runs.fail_if_running.return_value
+
+    h.runs.complete.side_effect = RuntimeError("original")
+    h.runs.fail_if_running.side_effect = cleanup
+    task = asyncio.create_task(call(h, "invoke"))
+    await asyncio.wait_for(entered.wait(), timeout=2)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert not await h.runtime.shutdown(timeout_seconds=0.001)
+    release.set()
+    assert await h.runtime.shutdown(timeout_seconds=1)
+    h.runs.fail_if_running.assert_awaited_once()
+
+
+@pytest.mark.parametrize("budget", [0, -1, float("inf"), float("nan")])
+@pytest.mark.asyncio
+async def test_shutdown_requires_a_finite_positive_budget(budget: float) -> None:
+    h = harness()
+    with pytest.raises(ValueError, match="finite and positive"):
+        await h.runtime.shutdown(timeout_seconds=budget)

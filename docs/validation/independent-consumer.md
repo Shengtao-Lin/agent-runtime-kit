@@ -60,8 +60,9 @@ recorded by the package audit and demonstrated by the source-archive migration r
 
 The five measured gaps now have candidate acceptance coverage rather than candidate expected
 failures. The published baseline remains unchanged. Current local validation uses the project
-venv and PostgreSQL: 121 root pytest cases pass; independent candidate installation passes 17
-cases with one upgrade-only skip; the separate v0.1.1 upgrade passes 18. Candidate runs deselect
+venv and PostgreSQL: 153 root pytest cases pass after initial-spec closure; independent candidate
+installation passes 18 cases with one upgrade-only skip; the v0.1.1 upgrade passes 19.
+Candidate runs deselect
 the four frozen historical probes. Release-candidate version metadata is `0.2.0`, schema `0002`;
 this does not mean the version has been published. CI and the non-publishing Release workflow
 provide the exact-commit evidence required before publication.

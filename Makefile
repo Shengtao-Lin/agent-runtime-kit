@@ -1,4 +1,4 @@
-.PHONY: install postgres-up migrate example docker-build docker-up docker-smoke format lint typecheck test test-unit test-integration verify
+.PHONY: install postgres-up migrate example docker-build docker-up docker-smoke docker-shutdown-smoke format lint typecheck test test-unit test-integration verify
 
 TEST_DATABASE_URL ?= postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/agent_runtime
 
@@ -15,13 +15,16 @@ example:
 	uv run python -m examples.support_agent.main --fake-model
 
 docker-build:
-	docker compose build app
+	docker compose build app migrate
 
 docker-up:
 	docker compose up -d app postgres
 
 docker-smoke:
 	python scripts/docker_smoke.py
+
+docker-shutdown-smoke:
+	python scripts/docker_shutdown_smoke.py
 
 format:
 	uv run ruff format .
