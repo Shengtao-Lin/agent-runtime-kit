@@ -145,6 +145,12 @@ class RuntimeClosingError(RuntimeKitError):
     retryable = True
 
 
+class RuntimeShutdownTimeoutError(RuntimeKitError):
+    """A managed runtime lifetime could not finish cooperative shutdown in its budget."""
+
+    code = "runtime_shutdown_timeout"
+
+
 class RunOwnershipLostError(RuntimeKitError):
     """A run's owner token is invalid or its lease has expired."""
 

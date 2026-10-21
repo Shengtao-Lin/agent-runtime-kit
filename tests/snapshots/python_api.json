@@ -1,0 +1,220 @@
+{
+  "AgentRuntime": [
+    {
+      "name": "agents",
+      "kind": "KEYWORD_ONLY",
+      "default": "<required>"
+    },
+    {
+      "name": "memory",
+      "kind": "KEYWORD_ONLY",
+      "default": "<required>"
+    },
+    {
+      "name": "runs",
+      "kind": "KEYWORD_ONLY",
+      "default": "<required>"
+    },
+    {
+      "name": "hooks",
+      "kind": "KEYWORD_ONLY",
+      "default": null
+    },
+    {
+      "name": "namespace",
+      "kind": "KEYWORD_ONLY",
+      "default": "default"
+    },
+    {
+      "name": "invocation_timeout_seconds",
+      "kind": "KEYWORD_ONLY",
+      "default": 60.0
+    },
+    {
+      "name": "cleanup_timeout_seconds",
+      "kind": "KEYWORD_ONLY",
+      "default": 5.0
+    },
+    {
+      "name": "telemetry",
+      "kind": "KEYWORD_ONLY",
+      "default": null
+    }
+  ],
+  "AgentRuntime.invoke": [
+    {
+      "name": "self",
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "default": "<required>"
+    },
+    {
+      "name": "agent_id",
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "default": "<required>"
+    },
+    {
+      "name": "request",
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "default": "<required>"
+    },
+    {
+      "name": "idempotency_key",
+      "kind": "KEYWORD_ONLY",
+      "default": null
+    }
+  ],
+  "AgentRuntime.stream": [
+    {
+      "name": "self",
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "default": "<required>"
+    },
+    {
+      "name": "agent_id",
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "default": "<required>"
+    },
+    {
+      "name": "request",
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "default": "<required>"
+    },
+    {
+      "name": "idempotency_key",
+      "kind": "KEYWORD_ONLY",
+      "default": null
+    }
+  ],
+  "AgentRuntime.shutdown": [
+    {
+      "name": "self",
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "default": "<required>"
+    },
+    {
+      "name": "timeout_seconds",
+      "kind": "KEYWORD_ONLY",
+      "default": 5.0
+    }
+  ],
+  "AgentRuntime.lifespan": [
+    {
+      "name": "self",
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "default": "<required>"
+    },
+    {
+      "name": "shutdown_timeout_seconds",
+      "kind": "KEYWORD_ONLY",
+      "default": 5.0
+    }
+  ],
+  "ProviderError": [
+    {
+      "name": "message",
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "default": "<required>"
+    },
+    {
+      "name": "retryable",
+      "kind": "KEYWORD_ONLY",
+      "default": true
+    },
+    {
+      "name": "internal_context",
+      "kind": "KEYWORD_ONLY",
+      "default": null
+    }
+  ],
+  "OpenAICompatibleModelClient": [
+    {
+      "name": "model",
+      "kind": "KEYWORD_ONLY",
+      "default": "<required>"
+    },
+    {
+      "name": "api_key",
+      "kind": "KEYWORD_ONLY",
+      "default": "<required>"
+    },
+    {
+      "name": "base_url",
+      "kind": "KEYWORD_ONLY",
+      "default": "https://api.openai.com/v1"
+    },
+    {
+      "name": "timeout_seconds",
+      "kind": "KEYWORD_ONLY",
+      "default": 60.0
+    },
+    {
+      "name": "client",
+      "kind": "KEYWORD_ONLY",
+      "default": null
+    }
+  ],
+  "AnthropicModelClient": [
+    {
+      "name": "model",
+      "kind": "KEYWORD_ONLY",
+      "default": "<required>"
+    },
+    {
+      "name": "api_key",
+      "kind": "KEYWORD_ONLY",
+      "default": "<required>"
+    },
+    {
+      "name": "max_tokens",
+      "kind": "KEYWORD_ONLY",
+      "default": 1024
+    },
+    {
+      "name": "base_url",
+      "kind": "KEYWORD_ONLY",
+      "default": "https://api.anthropic.com"
+    },
+    {
+      "name": "api_version",
+      "kind": "KEYWORD_ONLY",
+      "default": "2023-06-01"
+    },
+    {
+      "name": "timeout_seconds",
+      "kind": "KEYWORD_ONLY",
+      "default": 60.0
+    },
+    {
+      "name": "client",
+      "kind": "KEYWORD_ONLY",
+      "default": null
+    }
+  ],
+  "GeminiModelClient": [
+    {
+      "name": "model",
+      "kind": "KEYWORD_ONLY",
+      "default": "<required>"
+    },
+    {
+      "name": "api_key",
+      "kind": "KEYWORD_ONLY",
+      "default": "<required>"
+    },
+    {
+      "name": "base_url",
+      "kind": "KEYWORD_ONLY",
+      "default": "https://generativelanguage.googleapis.com"
+    },
+    {
+      "name": "timeout_seconds",
+      "kind": "KEYWORD_ONLY",
+      "default": 60.0
+    },
+    {
+      "name": "client",
+      "kind": "KEYWORD_ONLY",
+      "default": null
+    }
+  ]
+}

@@ -14,7 +14,11 @@ import pytest
 
 from agent_runtime import AgentRegistry, AgentRuntime
 from agent_runtime.adapters.base import AgentCompleted, AgentStreamEvent, AgentTextDelta
-from agent_runtime.errors import InvocationTimeoutError
+from agent_runtime.errors import (
+    InvocationTimeoutError,
+    RuntimeClosingError,
+    RuntimeShutdownTimeoutError,
+)
 from agent_runtime.hooks import HookEvent, HookManager
 from agent_runtime.memory.base import MemoryStore
 from agent_runtime.memory.models import ThreadRecord
@@ -326,3 +330,82 @@ async def test_shutdown_requires_a_finite_positive_budget(budget: float) -> None
     h = harness()
     with pytest.raises(ValueError, match="finite and positive"):
         await h.runtime.shutdown(timeout_seconds=budget)
+
+
+async def test_lifespan_is_single_use_and_does_not_own_dependencies() -> None:
+    h = harness()
+    async with h.runtime.lifespan(shutdown_timeout_seconds=1) as entered:
+        assert entered is h.runtime
+        with pytest.raises(RuntimeError, match="already active"):
+            async with h.runtime.lifespan():
+                pytest.fail("Nested entry must fail")
+    with pytest.raises(RuntimeClosingError):
+        async with h.runtime.lifespan():
+            pytest.fail("Closed runtimes must not reopen")
+    h.memory.get_messages.assert_not_awaited()
+    h.runs.complete.assert_not_awaited()
+
+
+async def test_lifespan_preserves_body_error_and_calls_explicit_shutdown_budget(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    h = harness()
+    shutdown = AsyncMock(return_value=True)
+    monkeypatch.setattr(h.runtime, "shutdown", shutdown)
+    with pytest.raises(ValueError, match="application failure"):
+        async with h.runtime.lifespan(shutdown_timeout_seconds=2):
+            raise ValueError("application failure")
+    shutdown.assert_awaited_once_with(timeout_seconds=2)
+
+
+async def test_lifespan_surfaces_incomplete_shutdown(monkeypatch: pytest.MonkeyPatch) -> None:
+    h = harness()
+    monkeypatch.setattr(h.runtime, "shutdown", AsyncMock(return_value=False))
+    with pytest.raises(RuntimeShutdownTimeoutError, match="exceeded"):
+        async with h.runtime.lifespan(shutdown_timeout_seconds=0.01):
+            pass
+
+
+@pytest.mark.parametrize("budget", [0, -1, float("inf"), float("nan")])
+async def test_lifespan_validates_budget_before_entering(budget: float) -> None:
+    h = harness()
+    with pytest.raises(ValueError, match="finite and positive"):
+        async with h.runtime.lifespan(shutdown_timeout_seconds=budget):
+            pytest.fail("Invalid shutdown configuration must fail before serving")
+
+
+async def test_lifespan_cancels_active_work_before_host_resources_close(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    h = harness(5)
+    entered = asyncio.Event()
+
+    async def blocking(*args: object, **kwargs: object) -> None:
+        entered.set()
+        await asyncio.Event().wait()
+
+    monkeypatch.setattr(h.invoker, "invoke", blocking)
+    async with h.runtime.lifespan(shutdown_timeout_seconds=1):
+        task = asyncio.create_task(call(h, "invoke"))
+        await asyncio.wait_for(entered.wait(), timeout=2)
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    h.runs.fail_if_running.assert_awaited_once()
+
+
+async def test_lifespan_preserves_caller_cancellation() -> None:
+    h = harness()
+    entered = asyncio.Event()
+
+    async def host() -> None:
+        async with h.runtime.lifespan():
+            entered.set()
+            await asyncio.Event().wait()
+
+    task = asyncio.create_task(host())
+    await asyncio.wait_for(entered.wait(), timeout=2)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    with pytest.raises(RuntimeClosingError):
+        await call(h, "invoke")

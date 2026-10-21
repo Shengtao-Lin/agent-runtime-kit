@@ -5,8 +5,8 @@
 A framework-neutral Python runtime toolkit for building configurable, observable AI agents with
 PostgreSQL-backed memory.
 
-> **Project status:** latest published release v0.3.0; `main` includes application integration
-> and validation updates on the released library API.
+> **Project status:** latest published release v0.3.1; `main` is preparing v0.4.0 library integration
+> and sustained-operation validation. Development APIs are marked explicitly.
 > The installable library, PostgreSQL persistence,
 > provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
 > example are runnable. Authentication and production deployment controls remain application
@@ -19,6 +19,8 @@ The v0.3.0 release adds opt-in incremental framework streaming and broader indep
 dependency compatibility, fault and performance evidence. Schema remains `0002`.
 See the [v0.3.0 upgrade guide](docs/upgrading-to-v0.3.0.md) and
 [publication evidence](docs/validation/v0.3.0-publication.md).
+v0.3.1 hardens provider completion, bounded decoding and safe retry hints; see its
+[upgrade guide](docs/upgrading-to-v0.3.1.md) and [publication evidence](docs/validation/v0.3.1-publication.md).
 The [initial-spec closure report](docs/validation/initial-spec-closure.md) records implemented
 features, concrete acceptance evidence, and deliberately limited framework/security boundaries.
 
@@ -60,7 +62,7 @@ The wheel contains only `agent_runtime`; the fictional agent remains an example 
 package. Install only the extras your application needs. For the published library:
 
 ```bash
-uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.3.0"
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.3.1"
 ```
 
 For checkout development:
@@ -76,6 +78,9 @@ publishing is not enabled. The published v0.1.1 API predates the packaged migrat
 changes below; use its matching tag documentation when adopting that release.
 
 ## Library quickstart
+
+See the [library integration guide](docs/library-integration.md) for resource ownership, startup,
+stream abandonment, retry boundaries and the opt-in v0.4.0-development lifespan API.
 
 For a separately packaged operator application that consumes the published wheel, see
 [Release Desk](applications/release_desk/README.md). It owns a read-only release checklist, CLI,

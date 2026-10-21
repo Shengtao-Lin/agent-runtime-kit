@@ -7,7 +7,7 @@ import hashlib
 import json
 import logging
 from collections.abc import AsyncGenerator, Awaitable, Callable
-from contextlib import suppress
+from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass, field
 from math import isfinite
 from typing import Literal, cast
@@ -23,6 +23,7 @@ from agent_runtime.errors import (
     RunNotFoundError,
     RuntimeClosingError,
     RuntimeKitError,
+    RuntimeShutdownTimeoutError,
     ThreadNotFoundError,
 )
 from agent_runtime.hooks import GuardrailBlockedError, HookEvent, HookManager
@@ -93,8 +94,35 @@ class AgentRuntime:
         self._cleanup_timeout = cleanup_timeout_seconds
         self._telemetry = telemetry or RuntimeTelemetry()
         self._closing = False
+        self._lifespan_active = False
         self._active_invocations: set[asyncio.Task[object]] = set()
         self._cleanup_tasks: set[asyncio.Task[RunRecord | None]] = set()
+
+    @asynccontextmanager
+    async def lifespan(
+        self, *, shutdown_timeout_seconds: float = 5.0
+    ) -> AsyncGenerator[AgentRuntime, None]:
+        """Manage one runtime lifetime, without owning injected stores/models/telemetry.
+
+        Enter after constructing host resources; exit after draining ingress and before closing
+        those resources. A failed cooperative shutdown raises RuntimeShutdownTimeoutError.
+        The runtime is single-lifetime: nested/concurrent entry and entry after shutdown fail.
+        """
+        if not isfinite(shutdown_timeout_seconds) or shutdown_timeout_seconds <= 0:
+            raise ValueError("shutdown_timeout_seconds must be finite and positive")
+        if self._lifespan_active:
+            raise RuntimeError("Runtime lifespan is already active")
+        if self._closing:
+            raise RuntimeClosingError("Runtime is closing")
+        self._lifespan_active = True
+        try:
+            yield self
+        finally:
+            try:
+                if not await self.shutdown(timeout_seconds=shutdown_timeout_seconds):
+                    raise RuntimeShutdownTimeoutError("Runtime shutdown exceeded its budget")
+            finally:
+                self._lifespan_active = False
 
     async def shutdown(self, *, timeout_seconds: float = 5.0) -> bool:
         """Reject new work, cancel active calls, and await bounded cleanup before closing stores.

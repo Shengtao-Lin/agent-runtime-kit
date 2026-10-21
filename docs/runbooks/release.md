@@ -4,7 +4,7 @@
 
 Use this runbook to prepare and verify an importable library release, publish existing approved
 artifacts through GitHub Actions, and handle failures without silently changing published history.
-The latest published version is v0.3.0. Version metadata is not publication; never move an existing tag.
+The latest published version is v0.3.1. Version metadata is not publication; never move an existing tag.
 
 ## Preconditions
 
@@ -22,8 +22,9 @@ The latest published version is v0.3.0. Version metadata is not publication; nev
 Normal CI uses locked venv environments and pytest for Linux/Windows unit tests, PostgreSQL
 integration, wheel imports, independent baseline/fresh/upgrade consumers, and container smoke.
 The Release workflow repeats quality/full pytest, builds distributions once, and passes that exact
-wheel artifact to a separate independent-consumer job. Fresh installation and v0.1.1/v0.2.0 upgrades
+wheel artifact to a separate independent-consumer job. Fresh installation and v0.1.1/v0.2.0/v0.3.0 upgrades
 must pass, alongside the release container smoke job, before either publishing job can run.
+Provider acceptance installs that wheel with only provider extras into another external venv.
 Container verification includes real in-flight SIGTERM drain/cancellation and post-restart replay.
 It builds matching app/migration images and retains evidence until job cleanup.
 
