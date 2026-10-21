@@ -119,21 +119,25 @@ def build_application(settings: RuntimeSettings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         del application
-        await memory.put(
-            namespace="fictional-support-preferences",
-            user_key="synthetic-demo-user",
-            memory_key="language",
-            value={"language": "en"},
-            tags={"kind": "preference"},
-        )
         try:
-            yield
+            async with runtime.lifespan(shutdown_timeout_seconds=6):
+                await memory.put(
+                    namespace="fictional-support-preferences",
+                    user_key="synthetic-demo-user",
+                    memory_key="language",
+                    value={"language": "en"},
+                    tags={"kind": "preference"},
+                )
+                yield
         finally:
-            await runtime.shutdown(timeout_seconds=6)
-            if close_model is not None:
-                await close_model()
-            await memory.close()
-            telemetry_handle.shutdown()
+            try:
+                if close_model is not None:
+                    await close_model()
+            finally:
+                try:
+                    await memory.close()
+                finally:
+                    telemetry_handle.shutdown()
 
     return create_app(
         runtime=runtime,

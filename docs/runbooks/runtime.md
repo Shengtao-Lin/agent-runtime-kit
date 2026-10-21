@@ -185,6 +185,13 @@ The example gives cleanup six seconds after Uvicorn's ingress grace; keep the co
 budget larger than both phases plus teardown overhead. Close abandoned stream iterators explicitly.
 No external tool effects are rolled back.
 
+For v0.4.0 development, optional `async with runtime.lifespan(shutdown_timeout_seconds=6)` wraps
+this checked shutdown sequence without owning injected dependencies. It raises
+`RuntimeShutdownTimeoutError` when shutdown returns false, rejects nested/reopened lifetimes and
+does not suppress application exceptions or cancellation. Existing manual `shutdown()` remains
+supported. Drain ingress before context exit; close models/engine/telemetry afterwards using
+application-owned `finally` blocks. See the [library integration guide](../library-integration.md).
+
 ## Data and Security Notes
 
 Development builds for v0.2.0 commit messages and the replayable response through one
