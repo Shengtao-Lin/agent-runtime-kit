@@ -22,8 +22,11 @@ and `stream()` and uses direct HTTP so the core package does not impose a vendor
 Install only the adapter required by the application:
 
 ```bash
-uv add "agent-runtime-kit[openai-compatible] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.1"
+uv add "agent-runtime-kit[openai-compatible] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@COMMIT_SHA"
 ```
+
+For the v0.2.0 runtime used by these runbooks, replace `COMMIT_SHA` with a reviewed full commit
+from `main`. Provider extras remain optional and no real credentials are needed for fake tests.
 
 Replace the extra with `anthropic` or `gemini` as needed. Provision a provider credential through a
 secret manager and confirm outbound HTTPS access to the selected endpoint.
