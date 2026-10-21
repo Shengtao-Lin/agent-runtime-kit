@@ -70,7 +70,7 @@ async def test_anthropic_stream_translation() -> None:
             {"type": "message_delta", "usage": {"output_tokens": 2}},
             {"type": "message_stop"},
         ]
-        content = "\n".join(f"data: {json.dumps(event)}" for event in events)
+        content = "".join(f"data: {json.dumps(event)}\n\n" for event in events)
         return httpx.Response(200, text=content)
 
     http_client = httpx.AsyncClient(

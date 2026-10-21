@@ -4,6 +4,9 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ## Unreleased
 
+- Bound decoded provider JSON/streams and SSE events, support multiline/split-UTF-8 SSE framing,
+  close responses deterministically and classify safe HTTP/transport retry hints without retries.
+
 - Reject provider streams that end without protocol completion, report stream errors, or stop
   with truncated/filtered finish reasons, preventing provisional output from becoming durable success.
 
