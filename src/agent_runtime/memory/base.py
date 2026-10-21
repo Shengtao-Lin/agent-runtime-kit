@@ -23,13 +23,17 @@ class MemoryStore(Protocol):
         metadata: dict[str, Any] | None = None,
     ) -> ThreadRecord: ...
 
-    async def get_thread(self, thread_id: UUID) -> ThreadRecord | None: ...
+    async def get_thread(
+        self, thread_id: UUID, *, namespace: str | None = None
+    ) -> ThreadRecord | None: ...
 
     async def append_messages(
-        self, thread_id: UUID, messages: Sequence[Message]
+        self, thread_id: UUID, messages: Sequence[Message], *, namespace: str | None = None
     ) -> tuple[StoredMessage, ...]: ...
 
-    async def get_messages(self, thread_id: UUID) -> tuple[StoredMessage, ...]: ...
+    async def get_messages(
+        self, thread_id: UUID, *, namespace: str | None = None
+    ) -> tuple[StoredMessage, ...]: ...
 
     async def put(
         self,

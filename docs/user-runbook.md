@@ -310,9 +310,10 @@ application became ready.
 
 - PostgreSQL is the only durable backend in v0.1.0. Backups, restore drills, encryption, high
   availability, retention, and cleanup scheduling belong to the deployment.
-- Namespace every runtime and memory domain deliberately. Runtime namespaces label newly created
-  threads but do not validate access to caller-supplied thread IDs. Idempotency keys are scoped by
-  agent ID, not namespace. Enforce access and tenant isolation in the hosting application.
+- Namespace every runtime and memory domain deliberately. The v0.2.0 candidate checks namespace
+  on continuation/history/replay; explicit memory `namespace=` keywords enable scoped access.
+  Legacy omitted keywords remain unscoped. Idempotency keys are agent-scoped, not namespace-scoped.
+  These checks are not user authorization/RLS; enforce tenant isolation in the hosting application.
 - The optional HTTP package does not provide authentication, authorization, TLS, public ingress,
   CORS policy, or rate limiting. Add them in the hosting application or platform.
 - Default telemetry records identifiers, counts, status, and timing. Enabling content capture may

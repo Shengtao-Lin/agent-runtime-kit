@@ -12,6 +12,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 
+from agent_runtime.errors import ThreadNotFoundError
 from agent_runtime.memory._message_batch import append_message_batch
 from agent_runtime.memory.models import MemoryPage, MemoryRecord, StoredMessage, ThreadRecord
 from agent_runtime.memory.tables import AgentMessageTable, AgentThreadTable, MemoryRecordTable
@@ -107,7 +108,7 @@ class PostgresMemoryStore:
         return self._thread_model(row)
 
     async def append_messages(
-        self, thread_id: UUID, messages: Sequence[Message]
+        self, thread_id: UUID, messages: Sequence[Message], *, namespace: str | None = None
     ) -> tuple[StoredMessage, ...]:
         """Append messages atomically while holding a per-thread row lock."""
         with self._telemetry.span(
@@ -118,27 +119,30 @@ class PostgresMemoryStore:
                 "agent.message.count": len(messages),
             },
         ):
-            return await self._append_messages(thread_id, messages)
+            return await self._append_messages(thread_id, messages, namespace=namespace)
 
     async def _append_messages(
-        self, thread_id: UUID, messages: Sequence[Message]
+        self, thread_id: UUID, messages: Sequence[Message], *, namespace: str | None = None
     ) -> tuple[StoredMessage, ...]:
         """Execute an append inside the active memory span."""
         async with self._sessions.begin() as session:
-            rows = await append_message_batch(session, thread_id, messages)
+            rows = await append_message_batch(session, thread_id, messages, namespace=namespace)
         return tuple(self._message_model(row) for row in rows)
 
-    async def get_thread(self, thread_id: UUID) -> ThreadRecord | None:
+    async def get_thread(
+        self, thread_id: UUID, *, namespace: str | None = None
+    ) -> ThreadRecord | None:
         """Read one thread by identifier."""
         async with self._sessions() as session:
-            row = (
-                await session.execute(
-                    select(AgentThreadTable).where(AgentThreadTable.id == thread_id)
-                )
-            ).scalar_one_or_none()
+            query = select(AgentThreadTable).where(AgentThreadTable.id == thread_id)
+            if namespace is not None:
+                query = query.where(AgentThreadTable.namespace == namespace)
+            row = (await session.execute(query)).scalar_one_or_none()
         return None if row is None else self._thread_model(row)
 
-    async def get_messages(self, thread_id: UUID) -> tuple[StoredMessage, ...]:
+    async def get_messages(
+        self, thread_id: UUID, *, namespace: str | None = None
+    ) -> tuple[StoredMessage, ...]:
         """Read a thread's messages in deterministic sequence order."""
         with self._telemetry.span(
             "agent.memory.read",
@@ -147,11 +151,22 @@ class PostgresMemoryStore:
                 "agent.thread.id": str(thread_id),
             },
         ):
-            return await self._get_messages(thread_id)
+            return await self._get_messages(thread_id, namespace=namespace)
 
-    async def _get_messages(self, thread_id: UUID) -> tuple[StoredMessage, ...]:
+    async def _get_messages(
+        self, thread_id: UUID, *, namespace: str | None = None
+    ) -> tuple[StoredMessage, ...]:
         """Execute a history read inside the active memory span."""
         async with self._sessions() as session:
+            if namespace is not None:
+                thread = await session.scalar(
+                    select(AgentThreadTable.id).where(
+                        AgentThreadTable.id == thread_id,
+                        AgentThreadTable.namespace == namespace,
+                    )
+                )
+                if thread is None:
+                    raise ThreadNotFoundError(f"Thread '{thread_id}' does not exist")
             rows = (
                 await session.execute(
                     select(AgentMessageTable)
@@ -303,15 +318,18 @@ class PostgresMemoryStore:
             )
         return bool(result.rowcount)
 
-    async def cleanup_expired(self, *, before: datetime | None = None) -> int:
+    async def cleanup_expired(
+        self, *, before: datetime | None = None, namespace: str | None = None
+    ) -> int:
         """Explicitly delete expired records; no background scheduler is created."""
         cutoff = before or datetime.now(UTC)
+        statement = delete(MemoryRecordTable).where(MemoryRecordTable.expires_at <= cutoff)
+        if namespace is not None:
+            statement = statement.where(MemoryRecordTable.namespace == namespace)
         async with self._sessions.begin() as session:
             result = cast(
                 CursorResult[Any],
-                await session.execute(
-                    delete(MemoryRecordTable).where(MemoryRecordTable.expires_at <= cutoff)
-                ),
+                await session.execute(statement),
             )
         return int(result.rowcount or 0)
 

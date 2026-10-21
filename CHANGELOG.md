@@ -6,6 +6,10 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ### Added
 
+- Optional namespace-scoped conversation reads/appends and expiry maintenance; the runtime checks
+  namespace before continuation, history, replay, or recovery. Legacy unscoped maintenance remains
+  explicit and is not an authorization/RLS boundary.
+
 - Native LangChain/LangGraph message helpers with tool-call/result and usage mapping, stable IDs,
   strict unsupported-content rejection, and exact history-prefix removal.
 - Equivalent tool-capable Runnable and StateGraph examples plus HTTP/container acceptance;
