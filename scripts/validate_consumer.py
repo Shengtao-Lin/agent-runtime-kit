@@ -61,6 +61,9 @@ def main() -> None:
         help="Seed published v0.1.1 records before installing and migrating a candidate wheel",
     )
     parser.add_argument("--acceptance-only", action="store_true", help="Exclude v0.2.0 gap probes")
+    parser.add_argument(
+        "--frameworks", action="store_true", help="Also validate application-owned real frameworks"
+    )
     parser.add_argument("--report-dir", type=Path, default=Path("build/consumer-validation"))
     args = parser.parse_args()
     args.expected_revision = args.expected_revision or ("0002" if args.wheel else "0001")
@@ -69,6 +72,8 @@ def main() -> None:
         parser.error("Set AGENT_RUNTIME_TEST_DATABASE_URL to a disposable PostgreSQL database")
     if args.upgrade_from_baseline and not args.wheel:
         parser.error("--upgrade-from-baseline requires --wheel")
+    if args.frameworks and not args.wheel:
+        parser.error("--frameworks requires a candidate or published --wheel")
     repository = Path(__file__).resolve().parents[1]
     report_directory = args.report_dir.resolve()
     report_directory.mkdir(parents=True, exist_ok=True)
@@ -80,6 +85,7 @@ def main() -> None:
     environment["CONSUMER_EXPECTED_REVISION"] = args.expected_revision
     environment["CONSUMER_PACKAGED_MIGRATIONS"] = "1" if args.wheel else "0"
     environment["CONSUMER_CANDIDATE"] = "1" if args.wheel else "0"
+    environment["CONSUMER_FRAMEWORKS"] = "1" if args.frameworks else "0"
 
     def run(command: list[str], *, cwd: Path) -> None:
         subprocess.run(command, cwd=cwd, env=environment, check=True)
@@ -92,7 +98,14 @@ def main() -> None:
             consumer,
             ignore=shutil.ignore_patterns(".venv", "__pycache__", ".pytest_cache"),
         )
-        run(["uv", "sync", "--locked"], cwd=consumer)
+        if args.frameworks:
+            framework_source = repository / "validation" / "frameworks"
+            shutil.copy2(framework_source / "framework_app.py", consumer)
+            shutil.copy2(framework_source / "test_frameworks.py", consumer / "tests")
+        sync_command = ["uv", "sync", "--locked"]
+        if args.frameworks:
+            sync_command.extend(["--group", "frameworks"])
+        run(sync_command, cwd=consumer)
         python = (
             consumer / ".venv" / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
         )

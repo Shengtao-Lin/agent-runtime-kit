@@ -158,6 +158,18 @@ crash probe to wait for or invoke the supported policy.
 
 ## Validation Limits
 
+### Independent framework extension
+
+The optional `--frameworks` runner path adds application-owned real Runnable and StateGraph
+consumers with custom state, shared typed tools and public message mappers. Neither imports the
+repository example. It verifies tool/history equivalence, restart replay, feedback, safe errors,
+and cancellation through host shutdown. The fresh installed-wheel result is 24 passed, one
+upgrade-only skip and four historical probes deselected. See
+[the framework consumer](../../validation/frameworks/README.md) for locked versions and execution.
+The default frozen baseline still installs no framework dependencies.
+
+### Remaining limits
+
 This baseline verifies the Python library with `postgres` and `telemetry`, not live provider
 accounts, framework versions, HTTP ingress, performance, or a multi-replica production deployment.
 The synthetic model makes contracts deterministic but does not assess model quality. Telemetry

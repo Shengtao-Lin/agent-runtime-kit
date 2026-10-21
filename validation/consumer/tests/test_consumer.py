@@ -38,7 +38,10 @@ def test_package_is_installed_from_a_wheel() -> None:
     assert not direct_url.get("dir_info", {}).get("editable", False)
     assert importlib.util.find_spec("examples") is None
     assert importlib.util.find_spec("fastapi") is None
-    assert importlib.util.find_spec("langchain_core") is None
+    if os.environ.get("CONSUMER_FRAMEWORKS") == "1":
+        assert importlib.util.find_spec("langchain_core") is not None
+    else:
+        assert importlib.util.find_spec("langchain_core") is None
 
 
 @pytest.mark.asyncio

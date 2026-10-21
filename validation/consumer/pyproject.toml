@@ -11,6 +11,9 @@ dependencies = [
 [tool.uv]
 package = false
 
+[dependency-groups]
+frameworks = ["langchain-core==1.6.2", "langgraph==1.2.11"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]

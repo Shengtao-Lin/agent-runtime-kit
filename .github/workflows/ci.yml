@@ -160,7 +160,7 @@ jobs:
           VERSION=$(uv run python -c 'import agent_runtime; print(agent_runtime.__version__)')
           uv run python scripts/validate_consumer.py \
             --wheel "dist/agent_runtime_kit-$VERSION-py3-none-any.whl" \
-            --expected-version "$VERSION" --acceptance-only \
+            --expected-version "$VERSION" --acceptance-only --frameworks \
             --report-dir build/consumer-candidate
       - name: Verify migration preserves v0.1.1 records
         run: |
