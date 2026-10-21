@@ -13,11 +13,11 @@ runtime supplies prior messages before invoking an adapter.
 ## Prerequisites and Installation
 
 ```bash
-uv add "agent-runtime-kit[adapters,postgres] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@COMMIT_SHA"
+uv add "agent-runtime-kit[adapters,postgres] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.3.0"
 ```
 
-Replace `COMMIT_SHA` with a reviewed full commit from `main` for v0.3.0 candidate streaming.
-For the published non-streaming adapters and native-message helpers, use tag `v0.2.0`.
+The published v0.3.0 adapters include opt-in incremental streaming and require LangGraph >=1.2.11.
+The historical v0.2.0 wrappers/native-message helpers retain their terminal fallback.
 
 Before registration, decide:
 
@@ -134,7 +134,7 @@ a non-streaming adapter is supported, but it yields `started` followed by `compl
 deltas. Implement the optional streaming protocol only when the underlying framework provides a
 stable incremental API and the adapter can still produce one terminal `InvocationOutput`.
 
-### v0.3.0 candidate incremental mode
+### Incremental mode (v0.3.0 and later)
 
 Pass `streaming=True` to either adapter to use its underlying `astream()` exactly once. Invocation
 through `invoke()` still calls `ainvoke()`. Incremental delivery is opt-in; existing constructors
@@ -208,7 +208,7 @@ the messages present in `InvocationInput`.
 
 ### Streaming has no text deltas
 
-This is expected with default adapter settings. On the v0.3.0 candidate, enable `streaming=True`
+This is expected with default adapter settings. On v0.3.0 or later, enable `streaming=True`
 and confirm the underlying model actually emits chunks. A state-only Runnable produces no fake
 text deltas. For custom framework events, supply and test an explicit `stream_mapper`.
 

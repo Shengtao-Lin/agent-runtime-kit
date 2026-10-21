@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "runtime-release-desk"
+version = "0.1.0"
+description = "A read-only public Python release review CLI using Agent Runtime Kit."
+requires-python = ">=3.11"
+dependencies = [
+  "agent-runtime-kit[postgres] @ https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.3.0/agent_runtime_kit-0.3.0-py3-none-any.whl",
+]
+
+[project.scripts]
+release-desk = "release_desk.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.3,<9", "pytest-asyncio>=0.24,<1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/release_desk"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

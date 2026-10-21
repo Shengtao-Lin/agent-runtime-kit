@@ -4,7 +4,7 @@
 
 Use this runbook to prepare and verify an importable library release, publish existing approved
 artifacts through GitHub Actions, and handle failures without silently changing published history.
-The latest published version is v0.2.0; `main` prepares v0.3.0. Version metadata is not publication.
+The latest published version is v0.3.0. Version metadata is not publication; never move an existing tag.
 
 ## Preconditions
 
@@ -32,6 +32,10 @@ Manual `workflow_dispatch` runs verify without publishing, including when dispat
 Publishing requires the event to be a tag **push**, not merely a tag-shaped ref. No manual job
 starts a release or pushes an image. Preserve the candidate's exact SHA and result links.
 
+Use absolute tag-pinned links in versioned notes, because GitHub renders relative release-body
+paths differently from repository Markdown. Repository note edits do not automatically change
+an already published release body; verify any separately authorized metadata correction on GitHub.
+
 Local rehearsal in the project venv:
 
 ```bash
@@ -52,8 +56,8 @@ v0.1.1 and intentionally records four historical expected failures; those are no
 
 1. Verify the final main SHA and non-publishing Release run are green. Stop if checks fail or the
    target version is already published; do not overwrite/move an existing tag.
-2. Create/push the authorized version tag at that exact verified commit. For v0.3.0, the tag must
-   be `v0.3.0`; the workflow verifies it matches installed package metadata.
+2. Create/push the authorized version tag at that exact verified commit. It must match installed
+   package metadata and must not already exist; the workflow verifies that match.
 3. Monitor `Verify release`, `Verify release container`, and `Verify release wheel and published
    upgrades`. Both publishing jobs depend on all three.
 4. Confirm the GitHub Release has the wheel and source archive, and GHCR has the versioned image.

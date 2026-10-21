@@ -5,7 +5,8 @@
 A framework-neutral Python runtime toolkit for building configurable, observable AI agents with
 PostgreSQL-backed memory.
 
-> **Project status:** latest published release v0.2.0; `main` is the v0.3.0 release candidate.
+> **Project status:** latest published release v0.3.0; `main` includes application integration
+> and validation updates on the released library API.
 > The installable library, PostgreSQL persistence,
 > provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
 > example are runnable. Authentication and production deployment controls remain application
@@ -14,8 +15,10 @@ PostgreSQL-backed memory.
 The v0.2.0 release adds wheel-only migrations, atomic finalization, full cooperative deadlines,
 and fenced thread ownership/recovery. It requires a drained-worker database upgrade to `0002`.
 Read the [upgrade guide](docs/upgrading-to-v0.2.0.md) before upgrading from v0.1.1.
-The v0.3.0 candidate adds opt-in incremental framework streaming and broader independent-consumer,
+The v0.3.0 release adds opt-in incremental framework streaming and broader independent-consumer,
 dependency compatibility, fault and performance evidence. Schema remains `0002`.
+See the [v0.3.0 upgrade guide](docs/upgrading-to-v0.3.0.md) and
+[publication evidence](docs/validation/v0.3.0-publication.md).
 The [initial-spec closure report](docs/validation/initial-spec-closure.md) records implemented
 features, concrete acceptance evidence, and deliberately limited framework/security boundaries.
 
@@ -57,7 +60,7 @@ The wheel contains only `agent_runtime`; the fictional agent remains an example 
 package. Install only the extras your application needs. For the published library:
 
 ```bash
-uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.2.0"
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.3.0"
 ```
 
 For checkout development:
@@ -73,6 +76,11 @@ publishing is not enabled. The published v0.1.1 API predates the packaged migrat
 changes below; use its matching tag documentation when adopting that release.
 
 ## Library quickstart
+
+For a separately packaged operator application that consumes the published wheel, see
+[Release Desk](applications/release_desk/README.md). It owns a read-only release checklist, CLI,
+configuration and lifecycle, with restart replay, streaming, history and local feedback. The
+application does not ship inside `agent_runtime` and needs no model account.
 
 Since v0.2.0, schema migration resources and commands are included in the wheel. In an
 application with the `postgres` extra installed, explicitly set `DATABASE_URL` and run:

@@ -1,6 +1,6 @@
 # Initial Specification Closure
 
-Status: Initial-spec closure shipped in v0.2.0; subsequent main changes prepare v0.3.0.
+Status: Initial-spec closure shipped in v0.2.0; v0.3.0 adds opt-in framework streaming and validation.
 This report reconciles the initial feature goals and the concrete gaps found in the pre-release
 audit. It does not treat green unit tests as proof of arbitrary production readiness.
 
