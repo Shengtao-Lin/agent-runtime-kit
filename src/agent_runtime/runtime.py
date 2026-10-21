@@ -20,6 +20,7 @@ from agent_runtime.errors import (
     InvocationTimeoutError,
     RunInProgressError,
     RunNotFoundError,
+    RuntimeClosingError,
     RuntimeKitError,
     ThreadNotFoundError,
 )
@@ -90,6 +91,37 @@ class AgentRuntime:
         self._timeout = invocation_timeout_seconds
         self._cleanup_timeout = cleanup_timeout_seconds
         self._telemetry = telemetry or RuntimeTelemetry()
+        self._closing = False
+        self._active_invocations: set[asyncio.Task[object]] = set()
+        self._cleanup_tasks: set[asyncio.Task[RunRecord | None]] = set()
+
+    async def shutdown(self, *, timeout_seconds: float = 5.0) -> bool:
+        """Reject new work, cancel active calls, and await bounded cleanup before closing stores.
+
+        Hosts call this after their ingress drain, before disposing shared resources.
+        Returns false if cooperative teardown exceeds the host's additional budget.
+        """
+        if not isfinite(timeout_seconds) or timeout_seconds <= 0:
+            raise ValueError("timeout_seconds must be finite and positive")
+        current = asyncio.current_task()
+        if current in self._active_invocations:
+            raise RuntimeError("Cannot shut down from inside an active invocation")
+        self._closing = True
+        for task in tuple(self._active_invocations):
+            if not task.cancelling():
+                task.cancel()
+        deadline = asyncio.get_running_loop().time() + timeout_seconds
+        while pending := {
+            task for task in [*self._active_invocations, *self._cleanup_tasks] if not task.done()
+        }:
+            remaining = deadline - asyncio.get_running_loop().time()
+            if remaining <= 0:
+                LOGGER.warning(
+                    "runtime_shutdown_incomplete", extra={"error_code": "shutdown_timeout"}
+                )
+                return False
+            await asyncio.wait(pending, timeout=remaining)
+        return True
 
     async def invoke(
         self,
@@ -165,6 +197,28 @@ class AgentRuntime:
         emit: Callable[[RuntimeStreamEvent], Awaitable[None]] | None = None,
     ) -> RuntimeResponse:
         """Execute the internal runtime flow within the active runtime span."""
+        if self._closing:
+            raise RuntimeClosingError("Runtime is shutting down")
+        task = asyncio.current_task()
+        assert task is not None
+        owns_registration = task not in self._active_invocations
+        self._active_invocations.add(task)
+        try:
+            return await self._invoke_tracked(
+                agent_id, request, idempotency_key=idempotency_key, emit=emit
+            )
+        finally:
+            if owns_registration:
+                self._active_invocations.discard(task)
+
+    async def _invoke_tracked(
+        self,
+        agent_id: str,
+        request: RuntimeRequest,
+        *,
+        idempotency_key: str | None,
+        emit: Callable[[RuntimeStreamEvent], Awaitable[None]] | None,
+    ) -> RuntimeResponse:
         with bind_correlation(request_id=str(request.request_id), agent_id=agent_id):
             try:
                 response = await self._invoke_with_deadline(
@@ -382,6 +436,26 @@ class AgentRuntime:
         status: Literal["failed", "blocked"] = "failed",
     ) -> RunRecord | None:
         """Reconcile uncertain commits without masking the original error or a durable success."""
+        task = asyncio.create_task(
+            self._settle_failure(
+                run_id,
+                owner_token=owner_token,
+                error_code=error_code,
+                status=status,
+            )
+        )
+        self._cleanup_tasks.add(task)
+        task.add_done_callback(self._cleanup_tasks.discard)
+        return await asyncio.shield(task)
+
+    async def _settle_failure(
+        self,
+        run_id: UUID,
+        *,
+        owner_token: UUID,
+        error_code: str,
+        status: Literal["failed", "blocked"],
+    ) -> RunRecord | None:
         try:
             async with asyncio.timeout(self._cleanup_timeout):
                 return await self._runs.fail_if_running(

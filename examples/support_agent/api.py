@@ -50,7 +50,7 @@ def build_application(settings: RuntimeSettings | None = None) -> FastAPI:
     model_client: ModelClient
     close_model = None
     if settings.fake_model:
-        model_client = FakeSupportModel()
+        model_client = FakeSupportModel(delay_seconds=settings.demo_model_delay_seconds)
     else:
         if settings.model_api_key is None:
             raise ValueError("MODEL_API_KEY is required when FAKE_MODEL=false")
@@ -129,6 +129,7 @@ def build_application(settings: RuntimeSettings | None = None) -> FastAPI:
         try:
             yield
         finally:
+            await runtime.shutdown(timeout_seconds=6)
             if close_model is not None:
                 await close_model()
             await memory.close()

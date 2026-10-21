@@ -11,7 +11,12 @@ from fastapi.testclient import TestClient
 
 from agent_runtime import AgentRegistry, __version__
 from agent_runtime.adapters import NativeAgentInvoker
-from agent_runtime.errors import RunInProgressError, ThreadBusyError, UnknownAgentError
+from agent_runtime.errors import (
+    RunInProgressError,
+    RuntimeClosingError,
+    ThreadBusyError,
+    UnknownAgentError,
+)
 from agent_runtime.feedback.base import FeedbackStore
 from agent_runtime.feedback.models import FeedbackRecord, FeedbackSubmission
 from agent_runtime.models import (
@@ -49,6 +54,8 @@ class FakeRuntime:
             raise RunInProgressError("The idempotent request is still running")
         if idempotency_key == "busy-thread":
             raise ThreadBusyError("Another request owns this conversation thread")
+        if idempotency_key == "closing":
+            raise RuntimeClosingError("Runtime is shutting down")
         return RuntimeResponse(
             run_id=uuid4(),
             request_id=request.request_id,
@@ -182,6 +189,18 @@ def test_thread_overlap_returns_retryable_conflict() -> None:
     )
     assert response.status_code == 409
     assert response.json()["error"]["code"] == "thread_busy"
+    assert response.json()["error"]["retryable"] is True
+
+
+def test_closing_runtime_returns_retryable_unavailable() -> None:
+    client, _ = build_client()
+    response = client.post(
+        "/v1/agents/test-agent/invoke",
+        headers={"Idempotency-Key": "closing"},
+        json=invocation_body(),
+    )
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "runtime_closing"
     assert response.json()["error"]["retryable"] is True
 
 

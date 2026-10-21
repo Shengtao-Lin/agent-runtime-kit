@@ -42,7 +42,7 @@ Expected discovery IDs are `support-native`, `support-langchain`, and `support-l
 ## Container Quick Start
 
 ```bash
-docker compose build app
+docker compose build app migrate
 docker compose run --rm migrate
 docker compose up -d --wait app postgres
 python scripts/docker_smoke.py
@@ -163,6 +163,28 @@ The API binds to `127.0.0.1` by default and has no production authentication or 
 Use synthetic data only. Do not add real credentials to `.env`, commit them, or bake them into the
 image. The example's tools, policies, and operational defaults illustrate integration patterns; they
 are not production controls.
+
+## In-Flight SIGTERM Acceptance
+
+Run only on a disposable local/CI stack: this script recreates and stops the app service. It does
+not remove PostgreSQL, records, or volumes, and uses `--no-deps` to avoid restarting the database.
+Build **both** `app` and `migrate` so an old migration image cannot lag the app/schema revision.
+
+```bash
+docker compose build app migrate
+docker compose up -d --wait app postgres
+python scripts/docker_smoke.py
+python scripts/docker_shutdown_smoke.py
+```
+
+The opt-in `infra/compose.shutdown-test.yml` override enables a synthetic model delay (default
+normal setting is zero). The script waits for a specific durable running request to enter its
+delayed model, then sends Docker's real SIGTERM. It asserts clean/non-OOM container exit, bounded
+drain, committed success with four messages, or cancellation failure with zero partial messages.
+After restart it verifies success replay and failed-key rejection. Normal CI and Release
+verification run this acceptance, not just a post-request `docker compose down`.
+`DEMO_MODEL_DELAY_SECONDS` is configuration-owned fault injection for fake mode only; never
+enable the override on production traffic.
 
 ## Related Documentation
 

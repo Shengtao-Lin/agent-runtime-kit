@@ -19,6 +19,7 @@ class RuntimeSettings(BaseSettings):
     model_max_tokens: int = Field(default=1_024, ge=1, le=65_536)
     anthropic_api_version: str = "2023-06-01"
     fake_model: bool = True
+    demo_model_delay_seconds: float = Field(default=0, ge=0, le=30, allow_inf_nan=False)
     otel_exporter_otlp_endpoint: str | None = None
     otel_service_name: str = "agent-runtime-kit"
     otel_capture_content: bool = False

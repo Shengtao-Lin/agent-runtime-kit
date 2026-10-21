@@ -238,7 +238,7 @@ requires content capture.
 | Run lint checks | `uv run ruff check .` |
 | Run type checks | `uv run pyright` |
 | Build distributions | `uv build` |
-| Build the example image | `docker compose build app` |
+| Build app and matching migration image | `docker compose build app migrate` |
 | Run the container smoke test | `python scripts/docker_smoke.py` |
 | Stop local services | `docker compose down` |
 

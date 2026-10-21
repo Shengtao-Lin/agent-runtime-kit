@@ -128,6 +128,13 @@ class ThreadBusyError(RuntimeKitError):
     retryable = True
 
 
+class RuntimeClosingError(RuntimeKitError):
+    """The runtime has stopped accepting new work during shutdown."""
+
+    code = "runtime_closing"
+    retryable = True
+
+
 class RunOwnershipLostError(RuntimeKitError):
     """A run's owner token is invalid or its lease has expired."""
 

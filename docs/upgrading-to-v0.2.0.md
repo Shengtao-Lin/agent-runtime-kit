@@ -92,6 +92,13 @@ Partial stream output is not proof of successful persistence. Close abandoned it
 the same semantic request/key to resolve an uncertain commit. Already committed success replays
 without model or tool calls, even if the original caller was canceled.
 
+## Host Shutdown
+
+Before disposing model clients, engines or telemetry, hosts should finish ingress drain and call
+`await runtime.shutdown(timeout_seconds=6)` (adjust above their configured cleanup budget).
+The method rejects new work and waits for shielded bounded failure cleanup. A false result means
+teardown exceeded the host budget; inspect/recover state rather than claiming graceful completion.
+
 ## Rollback
 
 Keep old artifacts and a verified database backup. Stop traffic/new workers before rollback.

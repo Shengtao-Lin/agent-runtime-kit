@@ -22,6 +22,8 @@ integration, wheel imports, independent baseline/fresh/upgrade consumers, and co
 The Release workflow repeats quality/full pytest, builds distributions once, and passes that exact
 wheel artifact to a separate independent-consumer job. Both fresh installation and v0.1.1 upgrade
 must pass, alongside the release container smoke job, before either publishing job can run.
+Container verification includes real in-flight SIGTERM drain/cancellation and post-restart replay.
+It builds matching app/migration images and retains evidence until job cleanup.
 
 Changes to release metadata/workflow/notes also run this verification path on pull requests.
 Manual `workflow_dispatch` runs verify without publishing, including when dispatched at a tag.

@@ -14,6 +14,8 @@ PostgreSQL-backed memory.
 The v0.2.0 candidate adds wheel-only migrations, atomic finalization, full cooperative deadlines,
 and fenced thread ownership/recovery. It requires a drained-worker database upgrade to `0002`.
 Read the [upgrade guide](docs/upgrading-to-v0.2.0.md) before adopting `main`.
+The [initial-spec closure report](docs/validation/initial-spec-closure.md) records implemented
+features, concrete acceptance evidence, and deliberately limited framework/security boundaries.
 
 ## Why this project
 
@@ -119,7 +121,7 @@ from agent_runtime.models_clients.openai_compatible import OpenAICompatibleModel
 Prerequisites are Docker Desktop using Linux containers.
 
 ```bash
-docker compose build app
+docker compose build app migrate
 docker compose run --rm migrate
 docker compose up -d app postgres
 python scripts/docker_smoke.py

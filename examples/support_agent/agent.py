@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from collections.abc import AsyncIterator, Sequence
+from math import isfinite
 from typing import TypedDict, cast
 
 from langchain_core.messages import AIMessage, BaseMessage, ToolMessage
@@ -53,6 +56,11 @@ from examples.support_agent.tools import (
 class FakeSupportModel:
     """Deterministic credential-free model for local execution and smoke tests."""
 
+    def __init__(self, *, delay_seconds: float = 0) -> None:
+        if not isfinite(delay_seconds) or delay_seconds < 0:
+            raise ValueError("delay_seconds must be finite and nonnegative")
+        self._delay_seconds = delay_seconds
+
     async def generate(
         self,
         messages: Sequence[Message],
@@ -61,6 +69,11 @@ class FakeSupportModel:
         context: RuntimeContext,
     ) -> ModelResult:
         del tools
+        if self._delay_seconds:
+            logging.getLogger(__name__).info(
+                "demo_model_delay_started", extra={"run_id": str(context.run_id)}
+            )
+            await asyncio.sleep(self._delay_seconds)
         last = messages[-1]
         if last.role == "tool":
             result = next(

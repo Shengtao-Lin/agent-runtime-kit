@@ -6,6 +6,10 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ### Added
 
+- Bounded runtime shutdown that tracks cancellation-shielded cleanup before resource disposal,
+  plus real container in-flight SIGTERM drain/cancellation/restart acceptance in CI and Release.
+- Matching app/migration image builds to avoid stale local migration artifacts during upgrades.
+
 - Runtime/agent version span attributes and task-local request/run/thread/trace log correlation,
   with concurrent-context tests and categorical rather than raw exception export.
 
