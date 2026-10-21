@@ -1,5 +1,24 @@
 # Telemetry Runbook
 
+## Runtime Correlation and Error Privacy
+
+Kit spans include `agent.runtime.version`; the runtime span also records configured agent version,
+framework, and safe request/run/thread identifiers. Runtime lifecycle logs capture those identifiers
+and the active trace at emission time. Task-local context is restored on success, failure, and
+cancellation; arbitrary caller metadata is never promoted into correlation fields.
+
+The example JSON handler installs `agent_runtime.service.logging.CorrelationFilter`. Hosts with
+queued logging should attach this filter to the emitting QueueHandler, before the context crosses
+threads, rather than only to the listener's handler. Core lifecycle events already capture extras
+at emission. HTTP success logs include the incoming request ID and canonical response trace ID;
+replayed responses retain their original canonical trace, while a new runtime attempt has its own
+active span.
+
+Default kit spans suppress SDK raw exception recording and emit a categorical
+`agent.operation.failed` event instead. Default JSON formatting emits only `exception_type`, not
+exception messages or chained stack traces. Host logging messages and third-party instrumentation
+still need their own privacy policy; the formatter cannot sanitize arbitrary free-form messages.
+
 ## Purpose and Ownership
 
 The library emits OpenTelemetry spans for runtime, model, memory, tool, guardrail, and feedback

@@ -42,6 +42,11 @@ from agent_runtime.runs.base import RunStore
 from agent_runtime.runs.models import RunRecord
 from agent_runtime.telemetry import RuntimeTelemetry
 from agent_runtime.telemetry.attributes import AGENT_ID, REQUEST_ID
+from agent_runtime.telemetry.correlation import (
+    bind_correlation,
+    correlation_fields,
+    set_correlation,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -160,6 +165,43 @@ class AgentRuntime:
         emit: Callable[[RuntimeStreamEvent], Awaitable[None]] | None = None,
     ) -> RuntimeResponse:
         """Execute the internal runtime flow within the active runtime span."""
+        with bind_correlation(request_id=str(request.request_id), agent_id=agent_id):
+            try:
+                response = await self._invoke_with_deadline(
+                    agent_id, request, idempotency_key=idempotency_key, emit=emit
+                )
+            except asyncio.CancelledError:
+                LOGGER.info(
+                    "agent_invocation_cancelled",
+                    extra={
+                        **correlation_fields(),
+                        "error_code": "invocation_cancelled",
+                    },
+                )
+                raise
+            except Exception as exc:
+                LOGGER.info(
+                    "agent_invocation_failed",
+                    extra={
+                        **correlation_fields(),
+                        "error_code": exc.code
+                        if isinstance(exc, RuntimeKitError)
+                        else "internal_error",
+                    },
+                )
+                raise
+            self._annotate_run(response.run_id, response.thread_id)
+            LOGGER.info("agent_invocation_completed", extra=correlation_fields())
+            return response
+
+    async def _invoke_with_deadline(
+        self,
+        agent_id: str,
+        request: RuntimeRequest,
+        *,
+        idempotency_key: str | None,
+        emit: Callable[[RuntimeStreamEvent], Awaitable[None]] | None,
+    ) -> RuntimeResponse:
         state = _InvocationState()
         budget = asyncio.timeout(self._timeout)
         try:
@@ -205,6 +247,13 @@ class AgentRuntime:
     ) -> RuntimeResponse:
         """Run all asynchronous phases under a single monotonic timeout budget."""
         invoker = self._agents.get(agent_id)
+        self._telemetry.annotate(
+            {
+                "agent.id": agent_id,
+                "agent.version": invoker.descriptor.version,
+                "agent.framework": invoker.descriptor.framework,
+            }
+        )
         request_hash = self.request_hash(request)
         if idempotency_key is not None:
             previous = await self._runs.get_by_idempotency(
@@ -212,6 +261,7 @@ class AgentRuntime:
             )
             if previous is not None:
                 await self._require_scoped_thread(previous.thread_id)
+                self._annotate_run(previous.id, previous.thread_id)
                 if previous.request_hash == request_hash and previous.status in {
                     "accepted",
                     "running",
@@ -239,6 +289,7 @@ class AgentRuntime:
             user_id=request.user_id,
         )
         state.run_id = run_id
+        self._annotate_run(run_id, thread.id)
         claim = await self._runs.claim(
             run_id=run_id,
             request_id=request.request_id,
@@ -252,6 +303,7 @@ class AgentRuntime:
         if not claim.created:
             state.run_id = None
             await self._require_scoped_thread(claim.run.thread_id)
+            self._annotate_run(claim.run.id, claim.run.thread_id)
             if claim.run.status in {"accepted", "running"}:
                 claim = claim.model_copy(update={"run": await self._runs.recover(claim.run.id)})
             replay = self._replay(claim.run, request_hash)
@@ -313,6 +365,10 @@ class AgentRuntime:
         )
         return response
 
+    def _annotate_run(self, run_id: UUID, thread_id: UUID) -> None:
+        set_correlation(run_id=str(run_id), thread_id=str(thread_id))
+        self._telemetry.annotate({"agent.run.id": str(run_id), "agent.thread.id": str(thread_id)})
+
     async def _require_scoped_thread(self, thread_id: UUID) -> None:
         if await self._memory.get_thread(thread_id, namespace=self._namespace) is None:
             raise ThreadNotFoundError(f"Thread '{thread_id}' does not exist")
@@ -336,7 +392,8 @@ class AgentRuntime:
             return None
         except Exception:
             LOGGER.warning(
-                "run_cleanup_unavailable", extra={"run_id": str(run_id), "error_code": error_code}
+                "run_cleanup_unavailable",
+                extra={**correlation_fields(), "run_id": str(run_id), "error_code": error_code},
             )
             return None
 

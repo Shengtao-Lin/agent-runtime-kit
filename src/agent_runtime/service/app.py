@@ -187,10 +187,11 @@ def create_app(
         LOGGER.info(
             "agent_invocation_succeeded",
             extra={
-                "request_id": str(response.request_id),
+                "request_id": str(body.request_id),
                 "run_id": str(response.run_id),
                 "thread_id": str(response.thread_id),
                 "agent_id": response.agent.agent_id,
+                "trace_id": response.trace_id,
             },
         )
         return response
