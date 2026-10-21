@@ -20,7 +20,12 @@ async def main() -> None:
     concurrency = int(os.environ.get("CONSUMER_BENCHMARK_CONCURRENCY", "4"))
     if not 1 <= count <= 1000 or not 1 <= concurrency <= 32:
         raise ValueError("Samples must be 1..1000 and concurrency 1..32")
-    report = {"samples": count, "concurrency": concurrency, "python": platform.python_version()}
+    report = {
+        "samples": count,
+        "concurrency": concurrency,
+        "python": platform.python_version(),
+        "monotonic_resolution_seconds": time.get_clock_info("monotonic").resolution,
+    }
     async with application(
         os.environ["AGENT_RUNTIME_TEST_DATABASE_URL"],
         f"benchmark-{uuid4()}",
@@ -30,7 +35,7 @@ async def main() -> None:
         await app.runtime.invoke(app.agent_id, request("warmup"))
         replay_request = request("replay")
         replay = await app.runtime.invoke(app.agent_id, replay_request, idempotency_key="replay")
-        for scenario in ("invoke", "tool", "stream", "replay"):
+        for scenario in ("invoke", "tool", "stream", "slow_stream", "replay"):
             latencies: list[float] = []
             first_deltas: list[float] = []
             gate = asyncio.Semaphore(concurrency)
@@ -44,12 +49,21 @@ async def main() -> None:
             ) -> None:
                 async with gate:
                     started = time.perf_counter()
-                    if scenario == "stream":
+                    if scenario in {"stream", "slow_stream"}:
                         delta_seen = False
-                        async for event in app.runtime.stream(app.agent_id, request("stream")):
+                        text_parts: list[str] = []
+                        async for event in app.runtime.stream(
+                            app.agent_id,
+                            request("slow stream" if scenario == "slow_stream" else "stream"),
+                        ):
                             if event.type == "text_delta" and not delta_seen:
                                 first_deltas.append(time.perf_counter() - started)
                                 delta_seen = True
+                            if event.type == "text_delta" and scenario == "slow_stream":
+                                text_parts.append(event.delta)
+                                await asyncio.sleep(0.020)
+                        if scenario == "slow_stream":
+                            assert len(text_parts) == 128 and "".join(text_parts) == "x" * 1024
                     elif scenario == "replay":
                         assert (
                             await app.runtime.invoke(
@@ -79,6 +93,10 @@ async def main() -> None:
             }
             if first_deltas:
                 measured["first_delta_p50_ms"] = statistics.median(first_deltas) * 1000
+            if scenario == "slow_stream":
+                measured["delta_events_per_request"] = 128
+                measured["consumer_delay_requested_ms"] = 20
+                assert app.engine.pool.checkedout() == 0
             if scenario == "replay":
                 assert measured["model_calls"] == 0
             report[scenario] = measured

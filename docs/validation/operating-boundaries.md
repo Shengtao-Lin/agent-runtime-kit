@@ -55,10 +55,17 @@ size two plus two overflow connections, warmup before measurement, no remote col
 Set `CONSUMER_BENCHMARK_SAMPLES` (1..1000) and `CONSUMER_BENCHMARK_CONCURRENCY` (1..32) explicitly
 for comparisons. Use a disposable database; generated synthetic rows are retained for inspection.
 
-Scenarios: fresh invoke, typed tool invoke, native text stream, durable replay. Reports contain p50,
+Scenarios: fresh invoke, typed tool invoke, native text stream, slow native consumer, durable replay.
+The slow consumer receives 128 eight-character deltas with a requested 20-millisecond async delay per delta,
+exceeding the runtime's 64-event queue capacity. It asserts complete text delivery and zero checked-out
+database connections after the scenario. Reports contain p50,
 p95, requests/second, peak traced Python allocations and model call counts; streams add first-text
 delta latency. Replay asserts zero model calls. These timings include PostgreSQL and Python tracing
 overhead, exclude caller queue time before the concurrency gate and do not measure process RSS.
-First text delta differs from the initial `started` event. This benchmark does not yet measure slow
-consumers or sustained-load memory growth. No regression threshold is enforced until repeated
+First text delta differs from the initial `started` event. The slow-consumer peak is a bounded
+synthetic baseline, not sustained-load memory growth or a framework-internal queue certification.
+The requested delay exceeds common Windows timer resolution; actual timer precision remains
+platform dependent. Reports include monotonic clock resolution rather than treating sleep as a
+minimum wall-clock guarantee.
+No regression threshold is enforced until repeated
 measurements on a stable runner establish normal variation.
