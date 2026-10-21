@@ -4,7 +4,10 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ## Unreleased
 
-## 0.4.0 - Unreleased
+- Update Release Desk's independent lock to the actual v0.4.0 wheel and adopt checked runtime
+  lifetime management, including application-body failure coverage and a public v0.4 metadata canary.
+
+## 0.4.0 - 2026-10-21
 
 - Add bounded installed-wheel sustained-operation probes with concurrent turns/tools, slow streams,
   replay, cancellation, backpressure abandonment and repeated managed lifetimes; CI/Release and

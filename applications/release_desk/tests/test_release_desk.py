@@ -64,10 +64,10 @@ def test_consumes_installed_release_not_source_checkout():
     assert provenance["url"].endswith(".whl")
     assert not provenance.get("dir_info", {}).get("editable", False)
     if os.environ.get("RELEASE_DESK_LIBRARY_SOURCE") == "published":
-        assert distribution.version == "0.3.0"
+        assert distribution.version == "0.4.0"
         assert provenance["url"] == (
-            "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.3.0/"
-            "agent_runtime_kit-0.3.0-py3-none-any.whl"
+            "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.4.0/"
+            "agent_runtime_kit-0.4.0-py3-none-any.whl"
         )
     assert importlib.util.find_spec("examples") is None
     assert importlib.util.find_spec("langchain_core") is None
@@ -147,3 +147,23 @@ async def test_review_restart_stream_feedback_and_scoped_history():
 
     submitted = await asyncio.to_thread(submit)
     assert await asyncio.to_thread(submit) == submitted
+
+
+@pytest.mark.asyncio
+async def test_application_body_failure_closes_runtime() -> None:
+    from agent_runtime.errors import RuntimeClosingError
+
+    url = os.environ.get("RELEASE_DESK_DATABASE_URL")
+    if not url:
+        pytest.fail("RELEASE_DESK_DATABASE_URL must identify a migrated disposable database")
+    settings = Settings(database_url=SecretStr(url), namespace=f"release-desk-failure-{uuid4()}")
+    source = Snapshot()
+    with pytest.raises(ValueError, match="application failure"):
+        async with application(settings, source=source) as app:
+            raise ValueError("application failure")
+    with pytest.raises(RuntimeClosingError):
+        await app.runtime.invoke(
+            app.agent_id,
+            app.request(ReviewInput(repository="synthetic/project", tag="v0.4.0")),
+        )
+    assert source.calls == 0
