@@ -92,6 +92,7 @@ class GeminiModelClient:
         text_chunks: list[str] = []
         tool_calls: list[ToolCall] = []
         usage: Usage | None = None
+        completed = False
         try:
             async with self._client.stream(
                 "POST",
@@ -108,7 +109,26 @@ class GeminiModelClient:
                     if not data:
                         continue
                     body = self._mapping(cast(object, json.loads(data)), "stream event")
-                    parts = self._parts(body)
+                    if "error" in body:
+                        raise ProviderError("Gemini model stream returned an error")
+                    candidates = self._sequence(body.get("candidates"), "candidates")
+                    candidate = self._mapping(candidates[0], "candidate")
+                    reason = candidate.get("finishReason")
+                    if reason is not None and reason != "STOP":
+                        raise ProviderError("Gemini model stream did not finish successfully")
+                    if completed:
+                        raise ProviderError("Gemini model stream continued after completion")
+                    completed = reason == "STOP"
+                    parts = (
+                        [
+                            self._mapping(part, "part")
+                            for part in self._sequence(
+                                self._mapping(candidate["content"], "content").get("parts"), "parts"
+                            )
+                        ]
+                        if "content" in candidate
+                        else []
+                    )
                     for part in parts:
                         text = part.get("text")
                         if isinstance(text, str) and text:
@@ -120,6 +140,8 @@ class GeminiModelClient:
                     usage = self._usage(body) or usage
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
             raise ProviderError("Gemini model stream failed") from exc
+        if not completed:
+            raise ProviderError("Gemini model stream ended before completion")
         yield ModelCompleted(result=self._assembled_result(text_chunks, tool_calls, usage))
 
     def _path(self, *, stream: bool) -> str:

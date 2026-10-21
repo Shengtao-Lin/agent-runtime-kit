@@ -95,6 +95,7 @@ class AnthropicModelClient:
         tool_chunks: dict[int, dict[str, str]] = {}
         input_tokens = 0
         output_tokens = 0
+        completed = False
         try:
             async with self._client.stream(
                 "POST",
@@ -111,6 +112,11 @@ class AnthropicModelClient:
                         continue
                     event = self._mapping(cast(object, json.loads(data)), "stream event")
                     event_type = event.get("type")
+                    if event_type == "error":
+                        raise ProviderError("Anthropic model stream returned an error")
+                    if event_type == "message_stop":
+                        completed = True
+                        break
                     if event_type == "message_start":
                         message = self._mapping(event.get("message"), "stream message")
                         usage = self._mapping(message.get("usage", {}), "stream usage")
@@ -142,10 +148,23 @@ class AnthropicModelClient:
                             if isinstance(partial, str):
                                 tool_chunks[index]["arguments"] += partial
                     elif event_type == "message_delta":
+                        delta = self._mapping(event.get("delta", {}), "message delta")
+                        if delta.get("stop_reason") not in (
+                            None,
+                            "end_turn",
+                            "stop_sequence",
+                            "tool_use",
+                        ):
+                            raise ProviderError(
+                                "Anthropic model stream did not finish successfully"
+                            )
                         usage = self._mapping(event.get("usage", {}), "stream usage")
                         output_tokens = int(str(usage.get("output_tokens", output_tokens)))
         except (httpx.HTTPError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             raise ProviderError("Anthropic model stream failed") from exc
+
+        if not completed:
+            raise ProviderError("Anthropic model stream ended before completion")
 
         result = self._assembled_result(
             text_chunks,

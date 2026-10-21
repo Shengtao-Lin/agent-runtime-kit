@@ -167,6 +167,7 @@ class OpenAICompatibleModelClient:
         text_chunks: list[str] = []
         tool_chunks: dict[int, dict[str, str]] = {}
         usage: Usage | None = None
+        completed = False
         try:
             async with self._client.stream(
                 "POST",
@@ -179,9 +180,14 @@ class OpenAICompatibleModelClient:
                     if not line.startswith("data:"):
                         continue
                     data = line.removeprefix("data:").strip()
-                    if not data or data == "[DONE]":
+                    if not data:
                         continue
+                    if data == "[DONE]":
+                        completed = True
+                        break
                     body = self._mapping(cast(object, json.loads(data)), "stream event")
+                    if "error" in body:
+                        raise ProviderError("OpenAI-compatible model stream returned an error")
                     raw_usage = body.get("usage")
                     if isinstance(raw_usage, Mapping):
                         usage_mapping = cast(Mapping[str, object], raw_usage)
@@ -194,6 +200,8 @@ class OpenAICompatibleModelClient:
                         continue
                     for raw_choice in cast(Sequence[object], choices):
                         choice = self._mapping(raw_choice, "stream choice")
+                        if choice.get("finish_reason") not in (None, "stop", "tool_calls"):
+                            raise ProviderError("Model stream did not finish successfully")
                         delta = self._mapping(choice.get("delta"), "stream delta")
                         content = delta.get("content")
                         if isinstance(content, str) and content:
@@ -222,6 +230,9 @@ class OpenAICompatibleModelClient:
                                         chunk["arguments"] += arguments
         except (httpx.HTTPError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             raise ProviderError("OpenAI-compatible model stream failed") from exc
+
+        if not completed:
+            raise ProviderError("OpenAI-compatible model stream ended before completion")
 
         content_parts: list[ContentPart] = []
         if text_chunks:
