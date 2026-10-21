@@ -78,7 +78,7 @@ async def test_openai_compatible_stream_translation() -> None:
     async def handler(request: httpx.Request) -> httpx.Response:
         payload = json.loads(request.content)
         assert payload["stream"] is True
-        content = "\n".join(
+        content = "\n\n".join(
             [
                 'data: {"choices":[{"delta":{"content":"Hel"}}]}',
                 'data: {"choices":[{"delta":{"content":"lo"}}]}',
@@ -87,7 +87,9 @@ async def test_openai_compatible_stream_translation() -> None:
                 "",
             ]
         )
-        return httpx.Response(200, text=content, headers={"content-type": "text/event-stream"})
+        return httpx.Response(
+            200, text=content + "\n", headers={"content-type": "text/event-stream"}
+        )
 
     http_client = httpx.AsyncClient(
         transport=httpx.MockTransport(handler), base_url="https://provider.invalid/v1"

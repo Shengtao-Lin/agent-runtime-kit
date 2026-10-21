@@ -58,6 +58,16 @@ class ProviderError(RuntimeKitError):
     code = "provider_failure"
     retryable = True
 
+    def __init__(
+        self,
+        message: str,
+        *,
+        retryable: bool = True,
+        internal_context: dict[str, object] | None = None,
+    ) -> None:
+        super().__init__(message, internal_context=internal_context)
+        self.retryable = retryable
+
 
 class AgentInvocationError(RuntimeKitError):
     """Raised when a framework adapter cannot invoke or map an agent."""

@@ -18,6 +18,7 @@ from agent_runtime.models import (
     ToolCallContent,
     Usage,
 )
+from agent_runtime.models_clients._http import request_failure, response_json, sse_data
 from agent_runtime.models_clients.base import (
     ModelCompleted,
     ModelResult,
@@ -70,17 +71,17 @@ class AnthropicModelClient:
         """Generate and translate one Anthropic message."""
         del context
         try:
-            response = await self._client.post(
+            body = await response_json(
+                self._client,
                 "/v1/messages",
-                json=self._payload(messages, tools=tools, stream=False),
+                payload=self._payload(messages, tools=tools, stream=False),
                 headers=self._headers,
             )
-            response.raise_for_status()
-            return self._result(self._mapping(cast(object, response.json()), "response"))
+            return self._result(self._mapping(body, "response"))
         except (httpx.HTTPError, KeyError, TypeError, ValueError) as exc:
             if isinstance(exc, ProviderError):
                 raise
-            raise ProviderError("Anthropic model request failed") from exc
+            raise request_failure("Anthropic model request failed", exc) from exc
 
     async def stream(
         self,
@@ -104,10 +105,7 @@ class AnthropicModelClient:
                 headers=self._headers,
             ) as response:
                 response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if not line.startswith("data:"):
-                        continue
-                    data = line.removeprefix("data:").strip()
+                async for data in sse_data(response):
                     if not data:
                         continue
                     event = self._mapping(cast(object, json.loads(data)), "stream event")
@@ -156,12 +154,13 @@ class AnthropicModelClient:
                             "tool_use",
                         ):
                             raise ProviderError(
-                                "Anthropic model stream did not finish successfully"
+                                "Anthropic model stream did not finish successfully",
+                                retryable=False,
                             )
                         usage = self._mapping(event.get("usage", {}), "stream usage")
                         output_tokens = int(str(usage.get("output_tokens", output_tokens)))
         except (httpx.HTTPError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
-            raise ProviderError("Anthropic model stream failed") from exc
+            raise request_failure("Anthropic model stream failed", exc) from exc
 
         if not completed:
             raise ProviderError("Anthropic model stream ended before completion")
@@ -232,6 +231,8 @@ class AnthropicModelClient:
         return payload
 
     def _result(self, body: Mapping[str, object]) -> ModelResult:
+        if body.get("stop_reason") not in (None, "end_turn", "stop_sequence", "tool_use"):
+            raise ProviderError("Anthropic response did not finish successfully", retryable=False)
         raw_content = self._sequence(body.get("content"), "content")
         text_chunks: list[str] = []
         tool_chunks: dict[int, dict[str, str]] = {}
@@ -277,9 +278,9 @@ class AnthropicModelClient:
                 tool_calls.append(call)
                 content_parts.append(ToolCallContent(tool_call=call))
         except (TypeError, ValueError, json.JSONDecodeError) as exc:
-            raise ProviderError("Anthropic returned an invalid tool call") from exc
+            raise ProviderError("Anthropic returned an invalid tool call", retryable=False) from exc
         if not content_parts:
-            raise ProviderError("Anthropic returned an empty assistant message")
+            raise ProviderError("Anthropic returned an empty assistant message", retryable=False)
         return ModelResult(
             message=Message(role="assistant", content=content_parts),
             tool_calls=tool_calls,

@@ -107,6 +107,22 @@ The runtime persists no messages or successful replay response for these failed 
 failed idempotency key does not issue another provider request; inspect the durable failure before
 deliberately starting new work. This policy is not an automatic continuation or retry mechanism.
 
+### Transport limits and retry hints
+
+Decoded JSON responses and complete streams are limited to 8 MiB; an SSE event (including a line
+without a terminator) is limited to 256 KiB. The shared SSE decoder supports UTF-8 split across
+network chunks, LF/CRLF framing, comments and multiline `data` fields. Events need a blank-line
+terminator; a trailing incomplete event is not dispatched. Limits are fixed adapter safety bounds,
+not model-token budgets or a promise about an HTTP transport's internal allocation. Responses
+close on success, exceptions and cancellation. An injected HTTP client remains application-owned.
+
+The stable public error code remains `provider_failure`. HTTP 408/409/429 and 5xx responses and
+transport errors carry `retryable=true`; other HTTP failures, malformed JSON/schema/usage, explicit
+unsuccessful finish reasons and size-limit failures carry `retryable=false`. These are hints for
+the host, never automatic retries. Missing stream completion is retryable at the provider level,
+but the runtime still refuses to reexecute a failed idempotency key. A new invocation may repeat
+external effects, so the host must inspect evidence before deciding whether retry is safe.
+
 Protocol references: [OpenAI streaming chunks](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events),
 [Anthropic streaming lifecycle/errors](https://platform.claude.com/docs/en/build-with-claude/streaming),
 and [Gemini finish reasons](https://ai.google.dev/api/generate-content#FinishReason).

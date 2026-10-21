@@ -18,6 +18,7 @@ from agent_runtime.models import (
     ToolCallContent,
     Usage,
 )
+from agent_runtime.models_clients._http import request_failure, response_json, sse_data
 from agent_runtime.models_clients.base import (
     ModelCompleted,
     ModelResult,
@@ -82,18 +83,20 @@ class OpenAICompatibleModelClient:
                 for tool in tools
             ]
         try:
-            response = await self._client.post(
+            raw_body = await response_json(
+                self._client,
                 "/chat/completions",
-                json=payload,
+                payload=payload,
                 headers={"Authorization": self._authorization},
             )
-            response.raise_for_status()
-            body = self._mapping(cast(object, response.json()), "response")
+            body = self._mapping(raw_body, "response")
             choices = self._sequence(body.get("choices"), "choices")
             choice = self._mapping(choices[0], "choice")
+            if choice.get("finish_reason") not in (None, "stop", "tool_calls"):
+                raise ProviderError("Model response did not finish successfully", retryable=False)
             provider_message = self._mapping(choice.get("message"), "message")
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
-            raise ProviderError("OpenAI-compatible model request failed") from exc
+            raise request_failure("OpenAI-compatible model request failed", exc) from exc
 
         content_parts: list[ContentPart] = []
         content = provider_message.get("content")
@@ -116,20 +119,25 @@ class OpenAICompatibleModelClient:
                         arguments=argument_mapping,
                     )
                 except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
-                    raise ProviderError("Model returned an invalid tool call") from exc
+                    raise ProviderError(
+                        "Model returned an invalid tool call", retryable=False
+                    ) from exc
                 tool_calls.append(call)
                 content_parts.append(ToolCallContent(tool_call=call))
         if not content_parts:
-            raise ProviderError("Model returned an empty assistant message")
+            raise ProviderError("Model returned an empty assistant message", retryable=False)
 
         usage = None
         raw_usage = body.get("usage")
         if isinstance(raw_usage, Mapping):
             usage_mapping = cast(Mapping[str, object], raw_usage)
-            usage = Usage(
-                input_tokens=int(str(usage_mapping.get("prompt_tokens", 0))),
-                output_tokens=int(str(usage_mapping.get("completion_tokens", 0))),
-            )
+            try:
+                usage = Usage(
+                    input_tokens=int(str(usage_mapping.get("prompt_tokens", 0))),
+                    output_tokens=int(str(usage_mapping.get("completion_tokens", 0))),
+                )
+            except (TypeError, ValueError) as exc:
+                raise ProviderError("Model returned invalid usage", retryable=False) from exc
         return ModelResult(
             message=Message(role="assistant", content=content_parts),
             tool_calls=tool_calls,
@@ -176,10 +184,7 @@ class OpenAICompatibleModelClient:
                 headers={"Authorization": self._authorization},
             ) as response:
                 response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if not line.startswith("data:"):
-                        continue
-                    data = line.removeprefix("data:").strip()
+                async for data in sse_data(response):
                     if not data:
                         continue
                     if data == "[DONE]":
@@ -201,7 +206,9 @@ class OpenAICompatibleModelClient:
                     for raw_choice in cast(Sequence[object], choices):
                         choice = self._mapping(raw_choice, "stream choice")
                         if choice.get("finish_reason") not in (None, "stop", "tool_calls"):
-                            raise ProviderError("Model stream did not finish successfully")
+                            raise ProviderError(
+                                "Model stream did not finish successfully", retryable=False
+                            )
                         delta = self._mapping(choice.get("delta"), "stream delta")
                         content = delta.get("content")
                         if isinstance(content, str) and content:
@@ -229,7 +236,7 @@ class OpenAICompatibleModelClient:
                                     if isinstance(arguments, str):
                                         chunk["arguments"] += arguments
         except (httpx.HTTPError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
-            raise ProviderError("OpenAI-compatible model stream failed") from exc
+            raise request_failure("OpenAI-compatible model stream failed", exc) from exc
 
         if not completed:
             raise ProviderError("OpenAI-compatible model stream ended before completion")
@@ -251,9 +258,13 @@ class OpenAICompatibleModelClient:
                 tool_calls.append(call)
                 content_parts.append(ToolCallContent(tool_call=call))
         except (TypeError, ValueError, json.JSONDecodeError) as exc:
-            raise ProviderError("Model returned an invalid streamed tool call") from exc
+            raise ProviderError(
+                "Model returned an invalid streamed tool call", retryable=False
+            ) from exc
         if not content_parts:
-            raise ProviderError("Model returned an empty streamed assistant message")
+            raise ProviderError(
+                "Model returned an empty streamed assistant message", retryable=False
+            )
         yield ModelCompleted(
             result=ModelResult(
                 message=Message(role="assistant", content=content_parts),

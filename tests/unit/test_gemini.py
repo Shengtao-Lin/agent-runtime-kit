@@ -60,7 +60,7 @@ async def test_gemini_stream_translation() -> None:
                 "usageMetadata": {"promptTokenCount": 2, "candidatesTokenCount": 1},
             },
         ]
-        content = "\n".join(f"data: {json.dumps(chunk)}" for chunk in chunks)
+        content = "".join(f"data: {json.dumps(chunk)}\n\n" for chunk in chunks)
         return httpx.Response(200, text=content)
 
     http_client = httpx.AsyncClient(

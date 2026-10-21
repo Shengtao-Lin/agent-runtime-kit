@@ -20,6 +20,7 @@ from agent_runtime.models import (
     ToolCallContent,
     Usage,
 )
+from agent_runtime.models_clients._http import request_failure, response_json, sse_data
 from agent_runtime.models_clients.base import (
     ModelCompleted,
     ModelResult,
@@ -67,18 +68,18 @@ class GeminiModelClient:
         """Generate and translate one Gemini response."""
         del context
         try:
-            response = await self._client.post(
+            raw_body = await response_json(
+                self._client,
                 self._path(stream=False),
                 headers={"x-goog-api-key": self._api_key},
-                json=self._payload(messages, tools=tools),
+                payload=self._payload(messages, tools=tools),
             )
-            response.raise_for_status()
-            body = self._mapping(cast(object, response.json()), "response")
+            body = self._mapping(raw_body, "response")
             return self._result(body)
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
             if isinstance(exc, ProviderError):
                 raise
-            raise ProviderError("Gemini model request failed") from exc
+            raise request_failure("Gemini model request failed", exc) from exc
 
     async def stream(
         self,
@@ -102,10 +103,7 @@ class GeminiModelClient:
                 json=self._payload(messages, tools=tools),
             ) as response:
                 response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if not line.startswith("data:"):
-                        continue
-                    data = line.removeprefix("data:").strip()
+                async for data in sse_data(response):
                     if not data:
                         continue
                     body = self._mapping(cast(object, json.loads(data)), "stream event")
@@ -115,9 +113,13 @@ class GeminiModelClient:
                     candidate = self._mapping(candidates[0], "candidate")
                     reason = candidate.get("finishReason")
                     if reason is not None and reason != "STOP":
-                        raise ProviderError("Gemini model stream did not finish successfully")
+                        raise ProviderError(
+                            "Gemini model stream did not finish successfully", retryable=False
+                        )
                     if completed:
-                        raise ProviderError("Gemini model stream continued after completion")
+                        raise ProviderError(
+                            "Gemini model stream continued after completion", retryable=False
+                        )
                     completed = reason == "STOP"
                     parts = (
                         [
@@ -139,7 +141,7 @@ class GeminiModelClient:
                             tool_calls.append(self._tool_call(cast(Mapping[str, object], function)))
                     usage = self._usage(body) or usage
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
-            raise ProviderError("Gemini model stream failed") from exc
+            raise request_failure("Gemini model stream failed", exc) from exc
         if not completed:
             raise ProviderError("Gemini model stream ended before completion")
         yield ModelCompleted(result=self._assembled_result(text_chunks, tool_calls, usage))
@@ -212,6 +214,10 @@ class GeminiModelClient:
         return payload
 
     def _result(self, body: Mapping[str, object]) -> ModelResult:
+        candidates = self._sequence(body.get("candidates"), "candidates")
+        candidate = self._mapping(candidates[0], "candidate")
+        if candidate.get("finishReason") not in (None, "STOP"):
+            raise ProviderError("Gemini response did not finish successfully", retryable=False)
         text_chunks: list[str] = []
         tool_calls: list[ToolCall] = []
         for part in self._parts(body):
@@ -235,7 +241,7 @@ class GeminiModelClient:
     def _tool_call(function: Mapping[str, object]) -> ToolCall:
         arguments = function.get("args", {})
         if not isinstance(arguments, dict):
-            raise ProviderError("Gemini returned invalid tool arguments")
+            raise ProviderError("Gemini returned invalid tool arguments", retryable=False)
         return ToolCall(
             id=f"gemini-{uuid4()}",
             name=str(function["name"]),
@@ -262,7 +268,7 @@ class GeminiModelClient:
             parts.append(TextContent(text="".join(text_chunks)))
         parts.extend(ToolCallContent(tool_call=call) for call in tool_calls)
         if not parts:
-            raise ProviderError("Gemini returned an empty assistant message")
+            raise ProviderError("Gemini returned an empty assistant message", retryable=False)
         return ModelResult(
             message=Message(role="assistant", content=parts),
             tool_calls=tool_calls,
