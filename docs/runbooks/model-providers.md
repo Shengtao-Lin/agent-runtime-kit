@@ -93,6 +93,24 @@ uv run pytest tests/unit/test_openai_compatible.py tests/unit/test_anthropic.py 
 - Provider response details are translated to safe runtime exceptions at the boundary.
 - Usage is populated when supplied by the provider; absent usage does not invent values.
 
+### Streaming completion boundary
+
+Text deltas are provisional. EOF alone is never successful completion: OpenAI-compatible streams
+require `[DONE]`, Anthropic streams require `message_stop`, and Gemini streams require a candidate
+with `finishReason: STOP`. Gemini accepts a finish-only frame after earlier text. Explicit stream
+errors fail safely rather than contributing output. Reported OpenAI finish reasons other than
+`stop`/`tool_calls`, Anthropic stop reasons other than `end_turn`/`stop_sequence`/`tool_use`, and
+Gemini non-STOP reasons are rejected because the canonical result cannot represent partial or
+filtered output. OpenAI-compatible endpoints may omit finish reasons but must emit `[DONE]`.
+
+The runtime persists no messages or successful replay response for these failed runs. Retrying a
+failed idempotency key does not issue another provider request; inspect the durable failure before
+deliberately starting new work. This policy is not an automatic continuation or retry mechanism.
+
+Protocol references: [OpenAI streaming chunks](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events),
+[Anthropic streaming lifecycle/errors](https://platform.claude.com/docs/en/build-with-claude/streaming),
+and [Gemini finish reasons](https://ai.google.dev/api/generate-content#FinishReason).
+
 ## Troubleshooting
 
 ### Authentication or permission failure

@@ -56,7 +56,7 @@ async def test_gemini_stream_translation() -> None:
         chunks = [
             {"candidates": [{"content": {"parts": [{"text": "Hel"}]}}]},
             {
-                "candidates": [{"content": {"parts": [{"text": "lo"}]}}],
+                "candidates": [{"content": {"parts": [{"text": "lo"}]}, "finishReason": "STOP"}],
                 "usageMetadata": {"promptTokenCount": 2, "candidatesTokenCount": 1},
             },
         ]
