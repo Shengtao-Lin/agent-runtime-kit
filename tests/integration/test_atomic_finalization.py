@@ -376,6 +376,7 @@ async def test_deadline_at_commit_boundary(
         runs=harness.runs,
         invocation_timeout_seconds=0.5,
         cleanup_timeout_seconds=0.5,
+        namespace=harness.invoker.descriptor.agent_id,
     )
     reached = False
     complete = harness.runs.complete

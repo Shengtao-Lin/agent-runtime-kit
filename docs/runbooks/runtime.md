@@ -189,9 +189,12 @@ durable state before retrying side effects. Tool actions are not rolled back by 
 and expired owners require a retry, new claim, or application-owned recovery sweep. Recovery
 records terminal failure rather than re-executing uncertain work.
 
-The runtime namespace labels newly created threads; it does not enforce ownership when a caller
-supplies a thread ID. Idempotency keys are scoped by agent ID, not namespace. Validate thread access
-in the hosting application and use distinct agent IDs or separate stores for isolated deployments.
+The runtime checks its configured namespace on continuation, history reads, and idempotent replay
+(including before stale-run recovery). Foreign thread IDs are reported as not found. Memory APIs
+accept `namespace=` for scoped reads/appends/expiry cleanup; omitting it retains trusted legacy
+unscoped maintenance behavior. This is not user authorization or database RLS. Idempotency keys
+remain scoped by agent ID, not namespace; use distinct agent IDs or separate stores for isolated
+key domains. Validate user access in the hosting application.
 Keep public errors categorical, keep internal exception chains in protected logs, and do
 not edit durable run rows by hand. The hosting application owns authentication, resource limits,
 shutdown ordering, and retention policy.

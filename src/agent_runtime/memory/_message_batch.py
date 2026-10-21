@@ -13,18 +13,21 @@ from agent_runtime.models import Message
 
 
 async def append_message_batch(
-    session: AsyncSession, thread_id: UUID, messages: Sequence[Message]
+    session: AsyncSession,
+    thread_id: UUID,
+    messages: Sequence[Message],
+    *,
+    namespace: str | None = None,
 ) -> tuple[AgentMessageTable, ...]:
     """Lock the thread, allocate contiguous ordinals, and flush without committing."""
-    if not messages:
-        return ()
-    thread = (
-        await session.execute(
-            select(AgentThreadTable).where(AgentThreadTable.id == thread_id).with_for_update()
-        )
-    ).scalar_one_or_none()
+    query = select(AgentThreadTable).where(AgentThreadTable.id == thread_id)
+    if namespace is not None:
+        query = query.where(AgentThreadTable.namespace == namespace)
+    thread = (await session.execute(query.with_for_update())).scalar_one_or_none()
     if thread is None:
         raise ThreadNotFoundError(f"Thread '{thread_id}' does not exist")
+    if not messages:
+        return ()
     last_sequence = (
         await session.execute(
             select(func.coalesce(func.max(AgentMessageTable.sequence), 0)).where(

@@ -211,6 +211,7 @@ class AgentRuntime:
                 agent_id=agent_id, idempotency_key=idempotency_key
             )
             if previous is not None:
+                await self._require_scoped_thread(previous.thread_id)
                 if previous.request_hash == request_hash and previous.status in {
                     "accepted",
                     "running",
@@ -227,7 +228,7 @@ class AgentRuntime:
                 user_key=request.user_id,
             )
         else:
-            thread = await self._memory.get_thread(request.thread_id)
+            thread = await self._memory.get_thread(request.thread_id, namespace=self._namespace)
             if thread is None:
                 raise ThreadNotFoundError(f"Thread '{request.thread_id}' does not exist")
 
@@ -250,6 +251,7 @@ class AgentRuntime:
         )
         if not claim.created:
             state.run_id = None
+            await self._require_scoped_thread(claim.run.thread_id)
             if claim.run.status in {"accepted", "running"}:
                 claim = claim.model_copy(update={"run": await self._runs.recover(claim.run.id)})
             replay = self._replay(claim.run, request_hash)
@@ -267,7 +269,7 @@ class AgentRuntime:
                     agent=invoker.descriptor,
                 )
             )
-        history = await self._memory.get_messages(thread.id)
+        history = await self._memory.get_messages(thread.id, namespace=self._namespace)
         input_messages = [item.message for item in history] + list(request.messages)
         await self._hooks.run(
             HookEvent(phase="before_model", context=context, messages=input_messages)
@@ -310,6 +312,10 @@ class AgentRuntime:
             response=response,
         )
         return response
+
+    async def _require_scoped_thread(self, thread_id: UUID) -> None:
+        if await self._memory.get_thread(thread_id, namespace=self._namespace) is None:
+            raise ThreadNotFoundError(f"Thread '{thread_id}' does not exist")
 
     async def _record_failure(
         self,

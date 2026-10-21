@@ -256,7 +256,7 @@ async def test_runtime_retries_recover_stale_key_without_invoking_tools(h: Harne
 
     agents = AgentRegistry()
     agents.register(Invoker())
-    runtime = AgentRuntime(agents=agents, memory=h.memory, runs=h.runs)
+    runtime = AgentRuntime(agents=agents, memory=h.memory, runs=h.runs, namespace=h.agent.agent_id)
     await asyncio.sleep(0.15)
     with pytest.raises(IdempotentRunUnavailableError):
         await runtime.invoke(h.agent.agent_id, request, idempotency_key="stale")

@@ -19,6 +19,12 @@ This guide applies to the candidate wheel and the eventual v0.2.0 release.
 Provider adapters, streaming event shapes, immutable feedback, and content-safe telemetry
 retain their existing boundaries. This release does not add authentication or tenant isolation.
 
+Runtime continuation, history, and replay now enforce its configured namespace. Use a stable
+namespace matching existing threads. Conversation store methods accept `namespace=`; custom
+memory implementations must implement scoped lookup/read/append. The optional omitted value
+preserves trusted legacy maintenance access. Keys remain agent-scoped, not namespace-scoped;
+reuse of one agent/key domain across namespaces is not a separate tenancy mechanism.
+
 ## Safe Deployment Sequence
 
 1. Verify backups and identify the exact target database. Inspect unfinished runs and reconcile

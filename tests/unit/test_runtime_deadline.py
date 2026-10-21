@@ -178,10 +178,10 @@ async def test_budget_is_shared_across_phases(mode: str) -> None:
         await asyncio.sleep(0.035)
         return value
 
-    async def get_thread(*args: object) -> object:
+    async def get_thread(*args: object, **kwargs: object) -> object:
         return await delayed(h.memory.get_thread.return_value)
 
-    async def history(*args: object) -> object:
+    async def history(*args: object, **kwargs: object) -> object:
         return await delayed(())
 
     h.memory.get_thread.side_effect = get_thread

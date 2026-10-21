@@ -119,6 +119,13 @@ await store.close()
 Prefer passing one application-owned async engine to memory, run, and feedback stores. Close the
 engine once during shutdown after in-flight work completes.
 
+Conversation operations `get_thread`, `get_messages`, and `append_messages` accept an optional
+`namespace=` argument. Scoped thread lookup returns `None` for missing/foreign IDs; scoped history
+and append raise `ThreadNotFoundError`, including empty appends. `cleanup_expired(namespace=...)`
+restricts maintenance to that namespace. Omitting the argument preserves trusted unscoped access,
+not a security guarantee. Runtime calls always supply their configured namespace. No schema change
+is needed; custom memory implementations must accept these keywords and apply equivalent checks.
+
 ## Operational Checks
 
 Successful finalization uses `PostgresRunStore.complete()` to atomically append messages and store
