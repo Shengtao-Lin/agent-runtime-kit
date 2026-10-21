@@ -4,6 +4,7 @@ import asyncio
 import json
 import os
 import sys
+from importlib.metadata import version
 from pathlib import Path
 from uuid import uuid4
 
@@ -13,6 +14,8 @@ from agent_runtime.feedback import FeedbackSubmission
 
 
 async def main() -> None:
+    source_version = os.environ.get("CONSUMER_UPGRADE_FROM_VERSION", "0.1.1")
+    assert version("agent-runtime-kit") == source_version
     identity = f"upgrade-{uuid4()}"
     async with application(os.environ["AGENT_RUNTIME_TEST_DATABASE_URL"], identity) as app:
         response = await app.runtime.invoke(
@@ -40,19 +43,47 @@ async def main() -> None:
             "identity": identity,
             "response": response.model_dump(mode="json"),
             "feedback_id": str(feedback.feedback_id),
+            "source_version": source_version,
+            "messages": [
+                item.model_dump(mode="json")
+                for item in await app.memory.get_messages(response.thread_id)
+            ],
         }
         # Seed an old unowned run, exercising the documented drained-worker upgrade policy.
         legacy_id = uuid4()
-        await app.runs.claim(
-            run_id=legacy_id,
-            request_id=uuid4(),
-            agent=response.agent,
-            thread_id=response.thread_id,
-            idempotency_key="legacy-pending",
-            request_hash="legacy-hash",
-        )
-        await app.runs.transition(legacy_id, "running")
-        state["legacy_pending_id"] = str(legacy_id)
+        if source_version == "0.1.1":
+            await app.runs.claim(
+                run_id=legacy_id,
+                request_id=uuid4(),
+                agent=response.agent,
+                thread_id=response.thread_id,
+                idempotency_key="legacy-pending",
+                request_hash="legacy-hash",
+            )
+            await app.runs.transition(legacy_id, "running")
+            state["legacy_pending_id"] = str(legacy_id)
+        else:
+            # Repeating the same-schema upgrade must not reset an existing fenced owner.
+            thread = await app.memory.create_thread(namespace=identity)
+            owner = uuid4()
+            await app.runs.claim(
+                run_id=legacy_id,
+                request_id=uuid4(),
+                agent=response.agent,
+                thread_id=thread.id,
+                idempotency_key="owned-pending",
+                request_hash="owned-hash",
+                owner_token=owner,
+                lease_seconds=300,
+            )
+            record = await app.runs.transition(legacy_id, "running", owner_token=owner)
+            state.update(
+                {
+                    "owned_pending_id": str(legacy_id),
+                    "owner_token": str(owner),
+                    "lease_expires_at": record.lease_expires_at.isoformat(),
+                }
+            )
         await asyncio.to_thread(
             Path(os.environ["CONSUMER_UPGRADE_STATE"]).write_text,
             json.dumps(state),

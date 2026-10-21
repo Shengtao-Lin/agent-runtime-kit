@@ -20,6 +20,23 @@ BASELINE_SOURCE_URL = (
     "agent_runtime_kit-0.1.1.tar.gz"
 )
 BASELINE_SOURCE_SHA256 = "648fba0b0da98bf075a98d41f9366a2422e533544af73b727ebe0705cefceeef"
+RELEASE_WHEELS = {
+    "0.2.0": "dfecde8127296913c7386057a2ff4d1b3505e54dad3c07a691f98b2d27eea8de",
+}
+
+
+def release_wheel(version: str, destination: Path) -> Path:
+    """Download a known immutable release and verify its pinned digest before installing."""
+    name = f"agent_runtime_kit-{version}-py3-none-any.whl"
+    url = f"https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v{version}/{name}"
+    with urllib.request.urlopen(url, timeout=30) as response:
+        data = response.read(10_000_001)
+    digest = hashlib.sha256(data).hexdigest()
+    if len(data) > 10_000_000 or digest != RELEASE_WHEELS[version]:
+        raise ValueError("Published upgrade wheel failed size or checksum verification")
+    target = destination / name
+    target.write_bytes(data)
+    return target
 
 
 def published_migrations(destination: Path) -> None:
@@ -55,10 +72,16 @@ def main() -> None:
     )
     parser.add_argument("--expected-version", default="0.1.1")
     parser.add_argument("--expected-revision")
-    parser.add_argument(
+    upgrade = parser.add_mutually_exclusive_group()
+    upgrade.add_argument(
         "--upgrade-from-baseline",
         action="store_true",
         help="Seed published v0.1.1 records before installing and migrating a candidate wheel",
+    )
+    upgrade.add_argument(
+        "--upgrade-from-release",
+        choices=tuple(RELEASE_WHEELS),
+        help="Seed a checksum-pinned published wheel before upgrading to the target wheel",
     )
     parser.add_argument("--acceptance-only", action="store_true", help="Exclude v0.2.0 gap probes")
     parser.add_argument(
@@ -79,8 +102,9 @@ def main() -> None:
     database_url = os.environ.get("AGENT_RUNTIME_TEST_DATABASE_URL")
     if not database_url:
         parser.error("Set AGENT_RUNTIME_TEST_DATABASE_URL to a disposable PostgreSQL database")
-    if args.upgrade_from_baseline and not args.wheel:
-        parser.error("--upgrade-from-baseline requires --wheel")
+    upgrade_version = "0.1.1" if args.upgrade_from_baseline else args.upgrade_from_release
+    if upgrade_version and not args.wheel:
+        parser.error("Upgrade validation requires --wheel")
     if args.frameworks and not args.wheel:
         parser.error("--frameworks requires a candidate or published --wheel")
     if args.benchmark and not args.wheel:
@@ -128,9 +152,39 @@ def main() -> None:
         if not args.wheel or args.upgrade_from_baseline:
             published_migrations(migration)
             run([str(python), "-m", "alembic", "upgrade", "head"], cwd=migration)
-        if args.upgrade_from_baseline:
+        if args.upgrade_from_release:
+            published = release_wheel(args.upgrade_from_release, root)
+            run(
+                [
+                    "uv",
+                    "pip",
+                    "install",
+                    "--python",
+                    str(python),
+                    "--no-deps",
+                    "--reinstall-package",
+                    "agent-runtime-kit",
+                    str(published),
+                ],
+                cwd=consumer,
+            )
+            run([str(python), "-m", "agent_runtime.migrations", "upgrade"], cwd=root)
+            (report_directory / "upgrade-source.json").write_text(
+                json.dumps(
+                    {
+                        "version": args.upgrade_from_release,
+                        "sha256": RELEASE_WHEELS[args.upgrade_from_release],
+                        "migration_revision": "0002",
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        if upgrade_version:
             upgrade_state = root / "upgrade-state.json"
             environment["CONSUMER_UPGRADE_STATE"] = str(upgrade_state)
+            environment["CONSUMER_UPGRADE_FROM_VERSION"] = upgrade_version
             run([str(python), "seed_upgrade.py"], cwd=consumer)
         if args.wheel:
             wheel = args.wheel.resolve(strict=True)

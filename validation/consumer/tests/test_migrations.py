@@ -44,7 +44,7 @@ def test_installed_cli_and_resources(tmp_path: Path) -> None:
 async def test_upgrade_preserves_published_records(database_url: str) -> None:
     state_path = os.environ.get("CONSUMER_UPGRADE_STATE")
     if not state_path:
-        pytest.skip("Only --upgrade-from-baseline seeds v0.1.1 records")
+        pytest.skip("Only upgrade validation seeds published records")
     state = json.loads(await asyncio.to_thread(Path(state_path).read_text, encoding="utf-8"))
     first = RuntimeResponse.model_validate(state["response"])
     async with application(database_url, state["identity"]) as app:
@@ -54,6 +54,9 @@ async def test_upgrade_preserves_published_records(database_url: str) -> None:
         assert replay.model_dump(mode="json") == first.model_dump(mode="json")
         assert app.model.calls == []
         assert len(await app.memory.get_messages(first.thread_id)) == 4
+        assert [
+            item.model_dump(mode="json") for item in await app.memory.get_messages(first.thread_id)
+        ] == state["messages"]
         feedback = await app.feedback.search(run_id=first.run_id)
         assert len(feedback.items) == 1
         assert str(feedback.items[0].feedback_id) == state["feedback_id"]
@@ -63,6 +66,23 @@ async def test_upgrade_preserves_published_records(database_url: str) -> None:
         assert memory is not None and memory.value == {"language": "en"}
         from uuid import UUID
 
-        legacy = await app.runs.get(UUID(state["legacy_pending_id"]))
-        assert legacy is not None and legacy.status == "failed"
-        assert legacy.error_code == "legacy_owner_unavailable" and legacy.response is None
+        if "legacy_pending_id" in state:
+            legacy = await app.runs.get(UUID(state["legacy_pending_id"]))
+            assert legacy is not None and legacy.status == "failed"
+            assert legacy.error_code == "legacy_owner_unavailable" and legacy.response is None
+        else:
+            owned = await app.runs.get(UUID(state["owned_pending_id"]))
+            assert owned is not None and owned.status == "running"
+            assert str(owned.owner_token) == state["owner_token"]
+            assert owned.lease_expires_at.isoformat() == state["lease_expires_at"]
+            await app.runs.fail_if_running(
+                owned.id,
+                owner_token=UUID(state["owner_token"]),
+                error_code="upgrade_probe_finished",
+            )
+        continued = await app.runtime.invoke(
+            app.agent_id, request("continue", thread_id=first.thread_id)
+        )
+        assert continued.thread_id == first.thread_id
+        assert len(app.model.calls[-1]) == 5
+        assert len(await app.memory.get_messages(first.thread_id)) == 6
