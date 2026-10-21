@@ -9,8 +9,12 @@ on:
       - "uv.lock"
       - "docs/releases/**"
   push:
+    branches: [main]
     tags:
       - "v*.*.*"
+    paths:
+      - "docs/releases/**"
+      - ".github/workflows/release.yml"
 
 permissions:
   contents: read
@@ -147,6 +151,31 @@ jobs:
           name: release-consumer-results
           path: build/release-consumer-*/
           if-no-files-found: warn
+
+  sync-release-notes:
+    name: Synchronize existing release notes
+    needs: [verify, verify-container, verify-consumer]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update only the existing current-version release body
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          NOTES="docs/releases/v$VERSION.md"
+          if [ ! -f "$NOTES" ]; then
+            echo "No versioned notes for the current package; nothing to synchronize."
+            exit 0
+          fi
+          if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "v$VERSION" --repo "$GITHUB_REPOSITORY" --notes-file "$NOTES"
+          else
+            echo "No readable current-version release; no metadata is changed."
+          fi
 
   publish-release:
     name: Publish GitHub release artifacts

@@ -33,8 +33,13 @@ Publishing requires the event to be a tag **push**, not merely a tag-shaped ref.
 starts a release or pushes an image. Preserve the candidate's exact SHA and result links.
 
 Use absolute tag-pinned links in versioned notes, because GitHub renders relative release-body
-paths differently from repository Markdown. Repository note edits do not automatically change
-an already published release body; verify any separately authorized metadata correction on GitHub.
+paths differently from repository Markdown. Owner-authorized synchronization runs after all three
+verification jobs on main pushes affecting versioned notes or the release workflow. It updates only
+the existing release body's notes for the current package version; it does not create a release,
+move tags, replace assets or publish images. Missing notes or an unreadable/unpublished release
+produce a documented no-op. Pull requests and manual runs cannot synchronize metadata. After a
+correction, verify the actual GitHub release body and rendered links rather than inferring success
+from the repository file or a skipped/no-op job.
 
 Local rehearsal in the project venv:
 
