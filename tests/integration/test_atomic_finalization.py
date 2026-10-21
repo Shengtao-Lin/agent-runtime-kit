@@ -223,6 +223,42 @@ async def test_cancellation_during_commit_rolls_back_messages(
 
 
 @pytest.mark.asyncio
+async def test_cancellation_after_commit_preserves_replay(
+    harness: Harness, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    committed = asyncio.Event()
+    complete = harness.runs.complete
+
+    async def wait_after_commit(
+        run_id: UUID, *, messages: Sequence[Message], response: RuntimeResponse
+    ) -> RunRecord:
+        result = await complete(run_id, messages=messages, response=response)
+        committed.set()
+        await asyncio.Event().wait()
+        return result
+
+    monkeypatch.setattr(harness.runs, "complete", wait_after_commit)
+    task = asyncio.create_task(invoke(harness, "invoke"))
+    try:
+        await asyncio.wait_for(committed.wait(), timeout=5)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        record = await harness.runs.get_by_idempotency(
+            agent_id=harness.agent_id, idempotency_key=harness.key
+        )
+        assert record is not None and record.status == "succeeded"
+        assert record.response is not None and record.error_code is None
+        replay = await invoke(harness, "invoke")
+        assert replay == record.response and harness.invoker.calls == 1
+        assert len(await harness.memory.get_messages(record.thread_id)) == 2
+    finally:
+        if not task.done():
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+
+
+@pytest.mark.asyncio
 async def test_cleanup_outage_does_not_replace_original_error(
     harness: Harness, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
