@@ -64,7 +64,16 @@ def main() -> None:
     parser.add_argument(
         "--frameworks", action="store_true", help="Also validate application-owned real frameworks"
     )
+    parser.add_argument(
+        "--dependency-profile",
+        choices=("locked", "lower", "latest"),
+        default="locked",
+        help="Resolve a compatibility probe; inventory records exact versions",
+    )
     parser.add_argument("--report-dir", type=Path, default=Path("build/consumer-validation"))
+    parser.add_argument(
+        "--benchmark", action="store_true", help="Measure synthetic wheel scenarios"
+    )
     args = parser.parse_args()
     args.expected_revision = args.expected_revision or ("0002" if args.wheel else "0001")
     database_url = os.environ.get("AGENT_RUNTIME_TEST_DATABASE_URL")
@@ -74,6 +83,10 @@ def main() -> None:
         parser.error("--upgrade-from-baseline requires --wheel")
     if args.frameworks and not args.wheel:
         parser.error("--frameworks requires a candidate or published --wheel")
+    if args.benchmark and not args.wheel:
+        parser.error("--benchmark requires --wheel")
+    if args.dependency_profile != "locked" and not (args.wheel and args.frameworks):
+        parser.error("Compatibility profiles require --wheel and --frameworks")
     repository = Path(__file__).resolve().parents[1]
     report_directory = args.report_dir.resolve()
     report_directory.mkdir(parents=True, exist_ok=True)
@@ -134,6 +147,50 @@ def main() -> None:
                 ],
                 cwd=consumer,
             )
+        if args.dependency_profile != "locked":
+            requirements = [
+                f"{wheel}[postgres,telemetry,adapters]",
+                "pytest==8.4.2",
+                "pytest-asyncio==0.26.0",
+            ]
+            if args.dependency_profile == "lower":
+                requirements.extend(
+                    [
+                        "langchain-core>=0.3,<0.4",
+                        "langgraph>=0.2.28,<0.3",
+                        "pydantic>=2.9,<3",
+                        "pydantic-settings>=2.5,<3",
+                        "sqlalchemy[asyncio]>=2.0,<3",
+                        "psycopg[binary]>=3.2,<4",
+                        "alembic>=1.13,<2",
+                        "opentelemetry-api>=1.27,<2",
+                        "opentelemetry-sdk>=1.27,<2",
+                        "opentelemetry-exporter-otlp-proto-http>=1.27,<2",
+                    ]
+                )
+            else:
+                requirements.extend(["langchain-core>=0.3,<2", "langgraph>=0.2,<2"])
+            profile_input = root / "profile.in"
+            profile_lock = root / "profile.txt"
+            profile_input.write_text("\n".join(requirements) + "\n", encoding="utf-8")
+            run(
+                [
+                    "uv",
+                    "pip",
+                    "compile",
+                    "--python",
+                    str(python),
+                    "--resolution",
+                    "lowest-direct" if args.dependency_profile == "lower" else "highest",
+                    str(profile_input),
+                    "--output-file",
+                    str(profile_lock),
+                    "--quiet",
+                ],
+                cwd=consumer,
+            )
+            run(["uv", "pip", "sync", "--python", str(python), str(profile_lock)], cwd=consumer)
+            shutil.copy2(profile_lock, report_directory / "resolved-requirements.txt")
         run(["uv", "pip", "check", "--python", str(python)], cwd=consumer)
 
         if args.wheel:
@@ -177,6 +234,7 @@ def main() -> None:
             text=True,
         )
         package_audit = json.loads(audit.stdout)
+        package_audit["dependency_profile"] = args.dependency_profile
         package_audit["migration_source"] = (
             "installed-wheel"
             if args.wheel
@@ -199,6 +257,9 @@ def main() -> None:
         if args.acceptance_only:
             command.extend(["-m", "not readiness"])
         run(command, cwd=consumer)
+        if args.benchmark:
+            environment["CONSUMER_BENCHMARK_REPORT"] = str(report_directory / "benchmark.json")
+            run([str(python), "benchmark.py"], cwd=consumer)
     print(f"Consumer reports: {report_directory}")
 
 

@@ -1,0 +1,60 @@
+name: Dependency compatibility
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * 1"
+  pull_request:
+    paths:
+      - ".github/workflows/compatibility.yml"
+      - "scripts/validate_consumer.py"
+      - "validation/consumer/benchmark.py"
+      - "validation/consumer/tests/test_database_faults.py"
+
+permissions:
+  contents: read
+
+jobs:
+  consumer:
+    name: ${{ matrix.profile }} dependencies (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+        profile: [lower, latest]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: compatibility
+          POSTGRES_USER: agent_runtime
+          POSTGRES_PASSWORD: agent_runtime
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U agent_runtime -d compatibility"
+          --health-interval 2s --health-timeout 3s --health-retries 20
+    env:
+      AGENT_RUNTIME_TEST_DATABASE_URL: postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/compatibility
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - run: uv sync --locked --all-extras --dev
+      - run: uv build
+      - name: Validate resolved dependencies, faults and synthetic baseline
+        run: |
+          VERSION=$(uv run python -c 'import agent_runtime; print(agent_runtime.__version__)')
+          uv run python scripts/validate_consumer.py \
+            --wheel "dist/agent_runtime_kit-$VERSION-py3-none-any.whl" \
+            --expected-version "$VERSION" --acceptance-only --frameworks \
+            --dependency-profile "${{ matrix.profile }}" --benchmark \
+            --report-dir build/compatibility
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compatibility-${{ matrix.profile }}-${{ matrix.python }}
+          path: build/compatibility/
+          if-no-files-found: warn
