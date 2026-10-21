@@ -6,6 +6,11 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ### Added
 
+- A shared deadline covering all invocation phases, plus configurable bounded failure cleanup.
+- Per-phase deadline tests and installed-wheel hook acceptance checks.
+- Cancellation-safe stream shutdown with full buffers, and accepted-run cleanup after uncertain
+  claim or running-transition acknowledgments.
+
 - Atomic `RunStore.complete()` and conditional `fail_if_running()` contracts, with PostgreSQL
   message/response finalization in one transaction and commit-acknowledgment reconciliation.
 - Database fault injection for rollback, cancellation, uncertain commits, ownership validation,

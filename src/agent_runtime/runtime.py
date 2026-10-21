@@ -8,6 +8,8 @@ import json
 import logging
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import suppress
+from dataclasses import dataclass
+from math import isfinite
 from typing import Literal, cast
 from uuid import UUID, uuid4
 
@@ -43,6 +45,12 @@ from agent_runtime.telemetry.attributes import AGENT_ID, REQUEST_ID
 LOGGER = logging.getLogger(__name__)
 
 
+@dataclass
+class _InvocationState:
+    # Set before claim: cancellation can arrive after the database committed it.
+    run_id: UUID | None = None
+
+
 class AgentRuntime:
     """Apply shared runtime policy around any registered agent invoker."""
 
@@ -55,10 +63,13 @@ class AgentRuntime:
         hooks: HookManager | None = None,
         namespace: str = "default",
         invocation_timeout_seconds: float = 60.0,
+        cleanup_timeout_seconds: float = 5.0,
         telemetry: RuntimeTelemetry | None = None,
     ) -> None:
-        if invocation_timeout_seconds <= 0:
-            raise ValueError("invocation_timeout_seconds must be positive")
+        if not isfinite(invocation_timeout_seconds) or invocation_timeout_seconds <= 0:
+            raise ValueError("invocation_timeout_seconds must be finite and positive")
+        if not isfinite(cleanup_timeout_seconds) or cleanup_timeout_seconds <= 0:
+            raise ValueError("cleanup_timeout_seconds must be finite and positive")
         if not all(callable(getattr(runs, name, None)) for name in ("complete", "fail_if_running")):
             raise TypeError("RunStore must implement complete() and fail_if_running()")
         self._agents = agents
@@ -67,6 +78,7 @@ class AgentRuntime:
         self._hooks = hooks or HookManager()
         self._namespace = namespace
         self._timeout = invocation_timeout_seconds
+        self._cleanup_timeout = cleanup_timeout_seconds
         self._telemetry = telemetry or RuntimeTelemetry()
 
     async def invoke(
@@ -116,8 +128,8 @@ class AgentRuntime:
                 await queue.put(StreamCompleted(response=response))
             except Exception as exc:
                 await queue.put(exc)
-            finally:
-                await queue.put(sentinel)
+            # Cancellation must not wait for space in an abandoned consumer's queue.
+            await queue.put(sentinel)
 
         task = asyncio.create_task(produce())
         try:
@@ -143,6 +155,45 @@ class AgentRuntime:
         emit: Callable[[RuntimeStreamEvent], Awaitable[None]] | None = None,
     ) -> RuntimeResponse:
         """Execute the internal runtime flow within the active runtime span."""
+        state = _InvocationState()
+        budget = asyncio.timeout(self._timeout)
+        try:
+            async with budget:
+                return await self._execute(agent_id, request, idempotency_key, emit, state)
+        except asyncio.CancelledError:
+            if state.run_id is not None:
+                await self._record_failure(state.run_id, error_code="invocation_cancelled")
+            raise
+        except Exception as exc:
+            if isinstance(exc, TimeoutError) and budget.expired():
+                error: Exception = InvocationTimeoutError("Runtime invocation deadline exceeded")
+            else:
+                error = exc
+            error_code = error.code if isinstance(error, RuntimeKitError) else "internal_error"
+            status = "blocked" if isinstance(error, GuardrailBlockedError) else "failed"
+            if state.run_id is not None:
+                record = await self._record_failure(
+                    state.run_id, error_code=error_code, status=status
+                )
+                if (
+                    record is not None
+                    and record.status == "succeeded"
+                    and record.response is not None
+                ):
+                    return record.response
+            if error is not exc:
+                raise error from exc
+            raise
+
+    async def _execute(
+        self,
+        agent_id: str,
+        request: RuntimeRequest,
+        idempotency_key: str | None,
+        emit: Callable[[RuntimeStreamEvent], Awaitable[None]] | None,
+        state: _InvocationState,
+    ) -> RuntimeResponse:
+        """Run all asynchronous phases under a single monotonic timeout budget."""
         invoker = self._agents.get(agent_id)
         request_hash = self.request_hash(request)
         if idempotency_key is not None:
@@ -171,6 +222,7 @@ class AgentRuntime:
             thread_id=thread.id,
             user_id=request.user_id,
         )
+        state.run_id = run_id
         claim = await self._runs.claim(
             run_id=run_id,
             request_id=request.request_id,
@@ -180,6 +232,7 @@ class AgentRuntime:
             request_hash=request_hash,
         )
         if not claim.created:
+            state.run_id = None
             replay = self._replay(claim.run, request_hash)
             if emit is not None:
                 await emit(self._started(replay))
@@ -195,80 +248,56 @@ class AgentRuntime:
                     agent=invoker.descriptor,
                 )
             )
-        try:
-            history = await self._memory.get_messages(thread.id)
-            input_messages = [item.message for item in history] + list(request.messages)
-            await self._hooks.run(
-                HookEvent(
-                    phase="before_model",
-                    context=context,
-                    messages=input_messages,
-                )
-            )
-            try:
-                async with asyncio.timeout(self._timeout):
-                    invocation = InvocationInput(
-                        context=context,
-                        messages=input_messages,
-                        metadata=request.metadata,
-                    )
-                    if emit is not None and isinstance(invoker, StreamingAgentInvoker):
-                        output = None
-                        async for event in invoker.stream(invocation):
-                            if event.type == "text_delta":
-                                await emit(StreamTextDelta(delta=event.delta))
-                            elif event.type == "tool_result":
-                                await emit(StreamToolResult(result=event.result))
-                            else:
-                                output = event.output
-                        if output is None:
-                            raise ValueError("Agent stream ended without a completed output")
-                    else:
-                        output = await invoker.invoke(invocation)
-            except TimeoutError as exc:
-                raise InvocationTimeoutError("Agent invocation timed out") from exc
-            await self._hooks.run(
-                HookEvent(
-                    phase="after_model",
-                    context=context,
-                    messages=output.messages,
-                )
-            )
-            assistant = self._final_assistant(output.messages)
-            response = RuntimeResponse(
-                run_id=run_id,
-                request_id=request.request_id,
-                thread_id=thread.id,
-                agent=invoker.descriptor,
-                message=assistant,
-                tool_results=output.tool_results,
-                usage=output.usage,
-                trace_id=self._telemetry.current_trace_id(),
-                metadata=output.metadata,
-            )
-            await self._runs.complete(
-                run_id, messages=[*request.messages, *output.messages], response=response
-            )
-            return response
-        except GuardrailBlockedError as exc:
-            await self._record_failure(run_id, error_code=exc.code, status="blocked")
-            raise
-        except asyncio.CancelledError:
-            await self._record_failure(run_id, error_code="invocation_cancelled")
-            raise
-        except Exception as exc:
-            error_code = exc.code if isinstance(exc, RuntimeKitError) else "internal_error"
-            record = await self._record_failure(run_id, error_code=error_code)
-            if record is not None and record.status == "succeeded" and record.response is not None:
-                return record.response
-            raise
+        history = await self._memory.get_messages(thread.id)
+        input_messages = [item.message for item in history] + list(request.messages)
+        await self._hooks.run(
+            HookEvent(phase="before_model", context=context, messages=input_messages)
+        )
+        invocation = InvocationInput(
+            context=context, messages=input_messages, metadata=request.metadata
+        )
+        if emit is not None and isinstance(invoker, StreamingAgentInvoker):
+            output = None
+            async for event in invoker.stream(invocation):
+                if event.type == "text_delta":
+                    await emit(StreamTextDelta(delta=event.delta))
+                elif event.type == "tool_result":
+                    await emit(StreamToolResult(result=event.result))
+                else:
+                    output = event.output
+            if output is None:
+                raise ValueError("Agent stream ended without a completed output")
+        else:
+            output = await invoker.invoke(invocation)
+        await self._hooks.run(
+            HookEvent(phase="after_model", context=context, messages=output.messages)
+        )
+        assistant = self._final_assistant(output.messages)
+        response = RuntimeResponse(
+            run_id=run_id,
+            request_id=request.request_id,
+            thread_id=thread.id,
+            agent=invoker.descriptor,
+            message=assistant,
+            tool_results=output.tool_results,
+            usage=output.usage,
+            trace_id=self._telemetry.current_trace_id(),
+            metadata=output.metadata,
+        )
+        await self._runs.complete(
+            run_id, messages=[*request.messages, *output.messages], response=response
+        )
+        return response
 
     async def _record_failure(
         self, run_id: UUID, *, error_code: str, status: Literal["failed", "blocked"] = "failed"
     ) -> RunRecord | None:
         """Reconcile uncertain commits without masking the original error or a durable success."""
         try:
-            return await self._runs.fail_if_running(run_id, error_code=error_code, status=status)
+            async with asyncio.timeout(self._cleanup_timeout):
+                return await self._runs.fail_if_running(
+                    run_id, error_code=error_code, status=status
+                )
         except Exception:
             LOGGER.warning(
                 "run_cleanup_unavailable", extra={"run_id": str(run_id), "error_code": error_code}

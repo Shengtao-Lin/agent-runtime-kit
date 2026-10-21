@@ -56,6 +56,14 @@ recorded by the package audit and demonstrated by the source-archive migration r
 
 ## Proposed v0.2.0 Delivery Sequence
 
+### Full deadline implementation status (2026-10-20)
+
+Development builds address R4 with one cooperative budget for all invocation phases, including
+hooks and persistence. Separate bounded cleanup preserves the original error or reconciles
+committed success. Candidate-wheel tests cover before/after-model hooks in invoke and stream;
+the published baseline retains its R4 expected failure. See
+[ADR 0008](../adr/0008-full-invocation-deadline.md) for cancellation and wall-clock limits.
+
 ### Atomic finalization implementation status (2026-10-20)
 
 Development builds address R3 through `RunStore.complete()` and conditional `fail_if_running()`
