@@ -2,7 +2,23 @@
 
 All notable changes to Agent Runtime Kit are documented here.
 
-## 0.2.0 - Release candidate (not yet published)
+## 0.3.0 - Release candidate (not yet published)
+
+### Added
+
+- Opt-in LangChain message-chunk and LangGraph messages/values incremental streaming with explicit
+  custom stream mappers, node filtering, one terminal output and deterministic iterator teardown.
+- Independent real framework applications, clean lower/latest dependency matrices, PostgreSQL
+  pool/lock/backend fault probes and synthetic installed-library performance reports.
+
+### Changed
+
+- The `adapters` extra requires LangGraph >=1.2.11,<2 after an older cancellation probe revealed
+  an internal pending queue task; compatibility profiles exercise the supported range.
+- Runtime closes invoker streams when cancelled during downstream backpressure.
+- Default framework adapters retain terminal fallback; schema `0002` and contract `v1` are unchanged.
+
+## 0.2.0 - 2026-10-21
 
 ### Added
 

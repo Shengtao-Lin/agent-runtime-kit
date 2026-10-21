@@ -17,8 +17,8 @@ Install the `service` extra plus the persistence and other component extras used
 uv add "agent-runtime-kit[service,postgres] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@COMMIT_SHA"
 ```
 
-This runbook describes the v0.2.0 candidate. Replace `COMMIT_SHA` with a reviewed full commit
-from `main`, and migrate explicitly to schema `0002` before starting workers.
+Replace `COMMIT_SHA` with tag `v0.2.0` for the published APIs, or a reviewed full commit from
+`main`, and migrate explicitly to schema `0002` before starting workers.
 
 Construct the runtime, registry, feedback store, and readiness store, then pass them to
 `create_app()`:

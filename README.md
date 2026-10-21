@@ -5,15 +5,17 @@
 A framework-neutral Python runtime toolkit for building configurable, observable AI agents with
 PostgreSQL-backed memory.
 
-> **Project status:** latest published release v0.1.1; `main` is the v0.2.0 release candidate.
+> **Project status:** latest published release v0.2.0; `main` is the v0.3.0 release candidate.
 > The installable library, PostgreSQL persistence,
 > provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
 > example are runnable. Authentication and production deployment controls remain application
 > concerns.
 
-The v0.2.0 candidate adds wheel-only migrations, atomic finalization, full cooperative deadlines,
+The v0.2.0 release adds wheel-only migrations, atomic finalization, full cooperative deadlines,
 and fenced thread ownership/recovery. It requires a drained-worker database upgrade to `0002`.
-Read the [upgrade guide](docs/upgrading-to-v0.2.0.md) before adopting `main`.
+Read the [upgrade guide](docs/upgrading-to-v0.2.0.md) before upgrading from v0.1.1.
+The v0.3.0 candidate adds opt-in incremental framework streaming and broader independent-consumer,
+dependency compatibility, fault and performance evidence. Schema remains `0002`.
 The [initial-spec closure report](docs/validation/initial-spec-closure.md) records implemented
 features, concrete acceptance evidence, and deliberately limited framework/security boundaries.
 
@@ -52,11 +54,10 @@ flowchart TD
 ## Install as a library
 
 The wheel contains only `agent_runtime`; the fictional agent remains an example outside the
-package. Install only the extras your application needs. For the documented v0.2.0 candidate API,
-use a reviewed commit from `main` (replace `COMMIT_SHA` with its full SHA):
+package. Install only the extras your application needs. For the published library:
 
 ```bash
-uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@COMMIT_SHA"
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.2.0"
 ```
 
 For checkout development:
@@ -73,7 +74,7 @@ changes below; use its matching tag documentation when adopting that release.
 
 ## Library quickstart
 
-For the upcoming v0.2.0, schema migration resources and commands are included in the wheel. In an
+Since v0.2.0, schema migration resources and commands are included in the wheel. In an
 application with the `postgres` extra installed, explicitly set `DATABASE_URL` and run:
 
 ```bash
@@ -82,7 +83,7 @@ agent-runtime-migrate current
 agent-runtime-migrate heads
 ```
 
-These commands are available in development builds on `main`; the published v0.1.1 wheel still
+These commands are available in the published v0.2.0 wheel; the historical v0.1.1 wheel still
 requires the migration files from its source archive. See the
 [PostgreSQL runbook](docs/runbooks/postgres.md) for setup and compatibility details.
 

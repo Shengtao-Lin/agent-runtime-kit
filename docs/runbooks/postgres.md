@@ -29,7 +29,7 @@ and leaks.
 
 ## Start, Migrate, and Verify
 
-### Installed wheel (development builds for v0.2.0)
+### Installed wheel (v0.2.0 and later)
 
 The wheel ships the complete Alembic script directory under `agent_runtime.migrations`. Install
 the `postgres` extra, set an explicit database URL, and run from any working directory:
@@ -58,14 +58,14 @@ Run this function outside an active asyncio event loop, preferably in a separate
 It closes its non-pooled engine in a `finally` block and selects a Windows-compatible event loop.
 URLs are passed directly rather than through ConfigParser, preserving percent-encoded credentials.
 
-Revision `0001` remains unchanged. Development head `0002` adds fenced thread ownership.
+Revision `0001` remains unchanged. Schema head `0002` adds fenced thread ownership.
 Stop/drain all old workers before upgrading; mixed-version rollout is unsupported. The migration
 preserves history, successful responses, feedback, and memory, but settles legacy accepted/running
 rows as failed with `legacy_owner_unavailable` because they have no ownership proof. Back up and
 inspect unfinished work first. No restamp or rebuild is needed; repeating `upgrade` is a no-op.
 
 The published v0.1.1 wheel does not have this command. Use its matching release source archive or
-checkout to run its migration job until v0.2.0 is published.
+checkout to run its migration job, or follow the v0.2.0 upgrade guide.
 
 ### Repository checkout (compatible existing commands)
 

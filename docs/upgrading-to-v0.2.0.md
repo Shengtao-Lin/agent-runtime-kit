@@ -1,7 +1,6 @@
 # Upgrading to v0.2.0
 
-Status: Release candidate on `main`; the latest published release is v0.1.1.
-This guide applies to the candidate wheel and the eventual v0.2.0 release.
+Status: Published as v0.2.0 on 2026-10-21. This guide applies to the release wheel.
 
 ## Compatibility Summary
 

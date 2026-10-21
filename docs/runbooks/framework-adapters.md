@@ -16,8 +16,8 @@ runtime supplies prior messages before invoking an adapter.
 uv add "agent-runtime-kit[adapters,postgres] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@COMMIT_SHA"
 ```
 
-This runbook describes the v0.2.0 candidate. Replace `COMMIT_SHA` with a reviewed full commit
-from `main`; native-message helpers below are not part of the published v0.1.1 API.
+Replace `COMMIT_SHA` with a reviewed full commit from `main` for v0.3.0 candidate streaming.
+For the published non-streaming adapters and native-message helpers, use tag `v0.2.0`.
 
 Before registration, decide:
 
@@ -134,6 +134,61 @@ a non-streaming adapter is supported, but it yields `started` followed by `compl
 deltas. Implement the optional streaming protocol only when the underlying framework provides a
 stable incremental API and the adapter can still produce one terminal `InvocationOutput`.
 
+### v0.3.0 candidate incremental mode
+
+Pass `streaming=True` to either adapter to use its underlying `astream()` exactly once. Invocation
+through `invoke()` still calls `ainvoke()`. Incremental delivery is opt-in; existing constructors
+retain their terminal fallback and no framework import is added to core-only installations.
+
+```python
+adapter = LangChainRunnableAdapter(
+    agent_id="chat",
+    version="1",
+    runnable=chat_runnable,
+    input_mapper=framework_input,
+    streaming=True,
+)
+graph_adapter = LangGraphAdapter(
+    agent_id="graph",
+    version="1",
+    graph=compiled_graph,
+    state_input_mapper=framework_input,
+    streaming=True,
+    stream_message_filter=lambda metadata: metadata.get("langgraph_node") == "answer",
+)
+```
+
+The Runnable default supports one `AIMessageChunk` stream, accumulating text, tool arguments and
+usage into a complete native message before output mapping. A single terminal state value is also
+accepted, without fabricated deltas. Multiple message IDs, mixed snapshots/chunks, unsupported
+content and invalid final tool calls need an explicit mapper and otherwise fail safely.
+Assign a fresh message ID per generated message/invocation and keep that ID stable across its
+chunks. Framework IDs are preserved/deterministically mapped; a constant ID reused across runs
+would collide with the global message primary key, just as a reused canonical UUID would.
+
+The graph default requests legacy/v1 `messages` and `values` modes for compatibility with older
+supported versions. Text chunks arrive incrementally; only the final state goes through the existing
+state output mapper. It does not configure a checkpointer. Use `stream_message_filter` to select
+the intended public node/model using framework metadata; without a filter every assistant chunk
+in the selected graph stream is eligible, including intermediate model calls. Filtering deltas does
+not redact persisted history or the final response; the output mapper owns that decision.
+
+Tool results in the default translators are emitted from the normalized final output, just before
+completion. Earlier tool completion events, custom state deltas, multi-message Runnable streams,
+subgraphs or alternative event APIs require `stream_mapper`. This callable receives the raw async
+iterator and `InvocationInput`, and yields canonical `AgentTextDelta`, `AgentToolResult`, and
+exactly one `AgentCompleted`. A custom mapper enables streaming automatically and owns final
+mapping; the graph still supplies the two configured v1 stream modes. Events after completion or
+missing completion fail. Raw framework metadata/state is never forwarded to SSE or logs.
+
+Runtime completion still follows output hooks and atomic persistence. A received text delta is
+provisional; failed/cancelled streams commit no partial history. Close abandoned Python iterators;
+the runtime closes the framework iterator even when cancellation occurs during queue backpressure.
+Total invocation/cleanup budgets and idempotent terminal replay remain unchanged. The kit adds no
+extra unbounded event queue; an underlying framework may have its own buffers and cancellation limits.
+
+See [ADR 0010](../adr/0010-framework-incremental-streaming.md) and the independent wheel consumer.
+
 ## Troubleshooting
 
 ### Mapping fails after a framework upgrade
@@ -153,9 +208,9 @@ the messages present in `InvocationInput`.
 
 ### Streaming has no text deltas
 
-This is expected for the built-in LangChain and LangGraph adapters. The terminal response remains
-valid. If incremental delivery is required, implement and test `StreamingAgentInvoker` around the
-framework's public streaming interface.
+This is expected with default adapter settings. On the v0.3.0 candidate, enable `streaming=True`
+and confirm the underlying model actually emits chunks. A state-only Runnable produces no fake
+text deltas. For custom framework events, supply and test an explicit `stream_mapper`.
 
 ### Cancellation leaves work running
 

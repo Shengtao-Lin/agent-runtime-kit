@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agent-runtime-kit"
-version = "0.2.0"
+version = "0.3.0"
 description = "A framework-neutral runtime toolkit for observable AI agents with PostgreSQL-backed memory."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -35,7 +35,7 @@ telemetry = [
   "opentelemetry-exporter-otlp-proto-http>=1.27,<2",
   "opentelemetry-sdk>=1.27,<2",
 ]
-adapters = ["langchain-core>=0.3,<2", "langgraph>=0.2,<2"]
+adapters = ["langchain-core>=0.3,<2", "langgraph>=1.2.11,<2"]
 dev = [
   "pyright>=1.1.380",
   "pytest>=8.3,<9",

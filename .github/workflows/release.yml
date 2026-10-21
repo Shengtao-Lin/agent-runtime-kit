@@ -109,7 +109,7 @@ jobs:
           VERSION=$(uv run python -c 'import importlib.metadata; print(importlib.metadata.version("agent-runtime-kit"))')
           uv run python scripts/validate_consumer.py \
             --wheel "dist/agent_runtime_kit-$VERSION-py3-none-any.whl" \
-            --expected-version "$VERSION" --acceptance-only \
+            --expected-version "$VERSION" --acceptance-only --frameworks \
             --report-dir build/release-consumer-fresh
       - name: Create a separate upgrade database
         run: >-
