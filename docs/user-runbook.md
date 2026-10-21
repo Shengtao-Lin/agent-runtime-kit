@@ -23,8 +23,8 @@ composition; it is not included in the Python wheel and is not the product bound
 
 ## Prerequisites
 
-`main` is the v0.2.0 candidate; v0.1.1 remains the published installation reference below.
-Candidate adopters must follow the [v0.2.0 upgrade guide](upgrading-to-v0.2.0.md), drain old
+`main` is the v0.3.0 candidate; v0.2.0 is the published installation reference below.
+Upgrades from v0.1.1 must follow the [v0.2.0 upgrade guide](upgrading-to-v0.2.0.md), drain old
 workers, and explicitly migrate to `0002` before starting new workers.
 
 Choose the prerequisites that match how you plan to use the project:
@@ -53,7 +53,7 @@ uv sync --locked --all-extras --dev
 To consume a tagged release from another project instead:
 
 ```bash
-uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.1.1"
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.2.0"
 ```
 
 Available extras are `postgres`, `service`, `telemetry`, `adapters`, `openai-compatible`,
@@ -310,7 +310,7 @@ application became ready.
 
 - PostgreSQL is the only durable backend in v0.1.0. Backups, restore drills, encryption, high
   availability, retention, and cleanup scheduling belong to the deployment.
-- Namespace every runtime and memory domain deliberately. The v0.2.0 candidate checks namespace
+- Namespace every runtime and memory domain deliberately. Since v0.2.0 the runtime checks namespace
   on continuation/history/replay; explicit memory `namespace=` keywords enable scoped access.
   Legacy omitted keywords remain unscoped. Idempotency keys are agent-scoped, not namespace-scoped.
   These checks are not user authorization/RLS; enforce tenant isolation in the hosting application.

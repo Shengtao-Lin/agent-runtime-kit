@@ -1,6 +1,6 @@
 # Initial Specification Closure
 
-Status: v0.2.0 candidate implementation; publication remains a separate authorized tag operation.
+Status: Initial-spec closure shipped in v0.2.0; subsequent main changes prepare v0.3.0.
 This report reconciles the initial feature goals and the concrete gaps found in the pre-release
 audit. It does not treat green unit tests as proof of arbitrary production readiness.
 
@@ -56,9 +56,10 @@ engine/model/telemetry disposal. CI and Release both execute the acceptance path
 
 ## Explicit Boundaries and Implementation Choices
 
-- Built-in LangChain/LangGraph wrappers use terminal streaming fallback (`started`, `completed`),
+- By default LangChain/LangGraph wrappers use terminal streaming fallback (`started`, `completed`),
   not vendor/framework-specific incremental events. True incremental native/provider streaming
-  remains supported; custom streaming invokers are the extension point.
+  remains supported. The v0.3.0 candidate adds opt-in framework incremental translation; see the
+  framework runbook for supported shapes and explicit stream mappers.
 - The original recommendation of Testcontainers is implemented with real PostgreSQL 16 services
   in CI and Compose locally. Repository behavior is not tested with mocked SQLAlchemy or SQLite.
 - Canonical schema/resource layouts refine the original sketch; revisions `0001` and `0002` and

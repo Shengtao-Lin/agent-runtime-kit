@@ -25,7 +25,7 @@ Install only the adapter required by the application:
 uv add "agent-runtime-kit[openai-compatible] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@COMMIT_SHA"
 ```
 
-For the v0.2.0 runtime used by these runbooks, replace `COMMIT_SHA` with a reviewed full commit
+For the published runtime, replace `COMMIT_SHA` with tag `v0.2.0`, or use a reviewed full commit
 from `main`. Provider extras remain optional and no real credentials are needed for fake tests.
 
 Replace the extra with `anthropic` or `gemini` as needed. Provision a provider credential through a

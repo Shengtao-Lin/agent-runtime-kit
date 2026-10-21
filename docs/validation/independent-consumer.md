@@ -109,7 +109,7 @@ The candidate validation path no longer copies migration code from the checkout.
 a database through the installed wheel and repeats the upgrade. A separate upgrade check seeds
 messages, a canonical response, feedback, and long-term memory with the released v0.1.1 wheel,
 then verifies the candidate migration preserves them. The baseline remains pinned to v0.1.1 and
-still records R1-R4 as expected failures. v0.2.0 has not been released.
+still records R1-R4 as expected failures. See the later publication evidence below.
 
 ### 1. Make wheel-only setup complete
 
@@ -177,4 +177,5 @@ shutdown is exercised; remote OTLP delivery and collector outage behavior remain
 tests. Application identity/authorization and tenant isolation remain application responsibilities.
 
 The proposed work is a readiness plan. The v0.1.1 runtime behavior has not been changed by this
-validation project, and v0.2.0 has not been released.
+validation project. v0.2.0 subsequently passed publication acceptance; see
+[the immutable release evidence](v0.2.0-publication.md). Main now prepares v0.3.0.

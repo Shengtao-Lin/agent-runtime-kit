@@ -115,6 +115,7 @@ def main() -> None:
             framework_source = repository / "validation" / "frameworks"
             shutil.copy2(framework_source / "framework_app.py", consumer)
             shutil.copy2(framework_source / "test_frameworks.py", consumer / "tests")
+            shutil.copy2(framework_source / "test_streaming.py", consumer / "tests")
         sync_command = ["uv", "sync", "--locked"]
         if args.frameworks:
             sync_command.extend(["--group", "frameworks"])
@@ -156,8 +157,6 @@ def main() -> None:
             if args.dependency_profile == "lower":
                 requirements.extend(
                     [
-                        "langchain-core>=0.3,<0.4",
-                        "langgraph>=0.2.28,<0.3",
                         "pydantic>=2.9,<3",
                         "pydantic-settings>=2.5,<3",
                         "sqlalchemy[asyncio]>=2.0,<3",
@@ -167,6 +166,11 @@ def main() -> None:
                         "opentelemetry-sdk>=1.27,<2",
                         "opentelemetry-exporter-otlp-proto-http>=1.27,<2",
                     ]
+                )
+                requirements.extend(
+                    ["langchain-core>=0.3,<0.4", "langgraph>=0.2.28,<0.3"]
+                    if args.expected_version.startswith("0.2.")
+                    else ["langchain-core>=0.3,<2", "langgraph>=1.2.11,<2"]
                 )
             else:
                 requirements.extend(["langchain-core>=0.3,<2", "langgraph>=0.2,<2"])
@@ -251,6 +255,8 @@ def main() -> None:
             "-rxX",
             "-p",
             "no:cacheprovider",
+            "-W",
+            "error::pytest.PytestUnraisableExceptionWarning",
             f"--junitxml={report_directory / 'results.xml'}",
             f"--basetemp={root / 'pytest-temp'}",
         ]

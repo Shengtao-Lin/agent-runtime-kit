@@ -14,6 +14,7 @@ from typing import Literal, cast
 from uuid import UUID, uuid4
 
 from agent_runtime.adapters.base import StreamingAgentInvoker
+from agent_runtime.adapters.framework_streaming import close_source
 from agent_runtime.errors import (
     IdempotencyConflictError,
     IdempotentRunUnavailableError,
@@ -385,13 +386,17 @@ class AgentRuntime:
         )
         if emit is not None and isinstance(invoker, StreamingAgentInvoker):
             output = None
-            async for event in invoker.stream(invocation):
-                if event.type == "text_delta":
-                    await emit(StreamTextDelta(delta=event.delta))
-                elif event.type == "tool_result":
-                    await emit(StreamToolResult(result=event.result))
-                else:
-                    output = event.output
+            stream = invoker.stream(invocation)
+            try:
+                async for event in stream:
+                    if event.type == "text_delta":
+                        await emit(StreamTextDelta(delta=event.delta))
+                    elif event.type == "tool_result":
+                        await emit(StreamToolResult(result=event.result))
+                    else:
+                        output = event.output
+            finally:
+                await close_source(stream)
             if output is None:
                 raise ValueError("Agent stream ended without a completed output")
         else:

@@ -7,7 +7,9 @@ The independent consumer optionally resolves a clean complete dependency set aft
 
 - `locked`: the consumer lock, with optional pinned framework group.
 - `lower`: lowest mutually resolvable direct dependencies, with LangChain Core 0.3.x and LangGraph
-  0.2.28..0.2.x. This is one representative older compatible combination, not every possible
+  0.2.28..0.2.x for the historical v0.2.0 wheel. For the v0.3.0 candidate the graph lower bound is
+  1.2.11, with the lowest mutually compatible core version. This is one compatible combination,
+  not every possible
   combination or the claim that LangGraph 0.2.0 supports LangChain Core 0.3.
 - `latest`: highest mutually resolvable versions allowed by wheel metadata.
 
@@ -24,6 +26,11 @@ Local Python 3.12 acceptance: both lower and latest passed 27 tests, with one up
 four frozen historical probes deselected. Lower resolved Pydantic 2.9.0, SQLAlchemy 2.0.0,
 Psycopg 3.2.1 and OpenTelemetry 1.27.0. SQLAlchemy 2.0.0 emits a Python datetime deprecation warning.
 These results do not establish support for untested Python majors or every dependency permutation.
+
+The v0.3.0 incremental probe on historical graph 0.2.28 exposed an internal queue waiter surviving
+cancellation despite passing ordinary assertions. The adapter extra was narrowed to >=1.2.11,
+and consumer runs treat pytest unraisable-exception warnings as errors. Historical non-streaming
+v0.2.0 evidence remains separate from v0.3.0 support claims.
 
 ## Database fault evidence
 
