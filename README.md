@@ -6,7 +6,7 @@ A framework-neutral Python runtime toolkit for building configurable, observable
 PostgreSQL-backed memory.
 
 > **Project status:** latest published release v0.4.1; `main` includes independent application
-> adoption plus unreleased native usage accounting and provider tool-validation fixes.
+> adoption plus v0.4.2 candidate fixes for native usage accounting and provider tool validation.
 > The installable library, PostgreSQL persistence,
 > provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
 > example are runnable. Authentication and production deployment controls remain application
@@ -27,6 +27,8 @@ gates. See its [upgrade guide](docs/upgrading-to-v0.4.0.md) and
 v0.4.1 hardens direct-library provider validation, unknown usage and single-candidate mapping;
 see its [upgrade guide](docs/upgrading-to-v0.4.1.md) and
 [publication evidence](docs/validation/v0.4.1-publication.md).
+The v0.4.2 candidate sums native multi-call usage and rejects malformed tool calls before execution;
+see the [upgrade guide](docs/upgrading-to-v0.4.2.md). It is not published until its tag workflow succeeds.
 The [initial-spec closure report](docs/validation/initial-spec-closure.md) records implemented
 features, concrete acceptance evidence, and deliberately limited framework/security boundaries.
 
