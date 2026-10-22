@@ -239,14 +239,20 @@ async def test_dependency_timeout_is_not_reclassified_as_runtime_deadline() -> N
 
 
 @pytest.mark.asyncio
-async def test_close_full_stream_queue_does_not_deadlock(monkeypatch: pytest.MonkeyPatch) -> None:
-    h = harness()
+@pytest.mark.parametrize("startup_delay", [0, 0.08])
+async def test_close_full_stream_queue_does_not_deadlock(
+    monkeypatch: pytest.MonkeyPatch, startup_delay: float
+) -> None:
+    # This tests backpressure cancellation, not the harness's 50 ms deadline.
+    # Keep the invocation budget outside the explicit two-second deadlock guards.
+    h = harness(timeout=10)
     full = asyncio.Event()
     closed = asyncio.Event()
 
     async def flood(request: InvocationInput) -> AsyncIterator[AgentStreamEvent]:
         del request
         try:
+            await asyncio.sleep(startup_delay)
             for index in range(100):
                 if index == 64:
                     full.set()
@@ -256,11 +262,16 @@ async def test_close_full_stream_queue_does_not_deadlock(monkeypatch: pytest.Mon
 
     monkeypatch.setattr(h.invoker, "stream", flood)
     stream = h.runtime.stream("deadline", h.request)
-    assert (await anext(stream)).type == "started"
-    await asyncio.wait_for(full.wait(), timeout=2)
-    await asyncio.wait_for(stream.aclose(), timeout=2)
-    await asyncio.wait_for(closed.wait(), timeout=2)
-    h.runs.complete.assert_not_awaited()
+    try:
+        assert (await anext(stream)).type == "started"
+        await asyncio.wait_for(full.wait(), timeout=2)
+        await asyncio.wait_for(stream.aclose(), timeout=2)
+        await asyncio.wait_for(closed.wait(), timeout=2)
+        h.runs.complete.assert_not_awaited()
+        assert h.runs.fail_if_running.await_args.kwargs["error_code"] == "invocation_cancelled"
+    finally:
+        await asyncio.wait_for(stream.aclose(), timeout=2)
+        assert await h.runtime.shutdown(timeout_seconds=2)
 
 
 @pytest.mark.parametrize("value", [0, -1, float("inf"), float("nan")])

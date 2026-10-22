@@ -6,6 +6,8 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ## 0.4.1 - Release candidate
 
+- Stabilize the full-queue cancellation regression setup without relaxing its deadlock guards,
+  preserving cancellation failure assertions and guaranteed test resource teardown.
 - Translate canonical text/message validation into safe provider failures for direct-library callers.
 - Preserve unknown usage instead of inventing zeros, validate supplied non-negative integer counts,
   and merge Anthropic cumulative streaming counts without double counting.
