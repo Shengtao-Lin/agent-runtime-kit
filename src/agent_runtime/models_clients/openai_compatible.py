@@ -16,7 +16,13 @@ from agent_runtime.models import (
     ToolCall,
     Usage,
 )
-from agent_runtime.models_clients._canonical import assembled_result, candidate_index, token_usage
+from agent_runtime.models_clients._canonical import (
+    assembled_result,
+    candidate_index,
+    token_usage,
+    tool_index,
+    tool_string,
+)
 from agent_runtime.models_clients._http import request_failure, response_json, sse_data
 from agent_runtime.models_clients.base import (
     ModelCompleted,
@@ -106,18 +112,22 @@ class OpenAICompatibleModelClient:
             text_chunks.append(content)
         tool_calls: list[ToolCall] = []
         raw_tool_calls = provider_message.get("tool_calls", [])
+        if raw_tool_calls is not None and (
+            not isinstance(raw_tool_calls, Sequence) or isinstance(raw_tool_calls, (str, bytes))
+        ):
+            raise ProviderError("Model returned invalid tool calls", retryable=False)
         if isinstance(raw_tool_calls, Sequence) and not isinstance(raw_tool_calls, (str, bytes)):
             for raw_value in cast(Sequence[object], raw_tool_calls):
                 try:
                     raw = self._mapping(raw_value, "tool call")
                     function = self._mapping(raw.get("function"), "tool function")
-                    arguments = json.loads(str(function.get("arguments", "{}")))
+                    arguments = json.loads(tool_string(function.get("arguments", "{}")))
                     if not isinstance(arguments, dict):
                         raise ValueError("Tool arguments must be an object")
                     argument_mapping = cast(dict[str, Any], arguments)
                     call = ToolCall(
-                        id=str(raw["id"]),
-                        name=str(function["name"]),
+                        id=tool_string(raw["id"]),
+                        name=tool_string(function["name"]),
                         arguments=argument_mapping,
                     )
                 except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
@@ -207,26 +217,37 @@ class OpenAICompatibleModelClient:
                             text_chunks.append(content)
                             yield ModelTextDelta(delta=content)
                         raw_calls = delta.get("tool_calls", [])
+                        if raw_calls is not None and (
+                            not isinstance(raw_calls, Sequence)
+                            or isinstance(raw_calls, (str, bytes))
+                        ):
+                            raise ProviderError(
+                                "Model returned invalid tool calls", retryable=False
+                            )
                         if isinstance(raw_calls, Sequence) and not isinstance(
                             raw_calls, (str, bytes)
                         ):
                             for raw_call in cast(Sequence[object], raw_calls):
                                 call = self._mapping(raw_call, "stream tool call")
-                                index = int(str(call.get("index", 0)))
+                                index = tool_index(call.get("index", 0))
                                 chunk = tool_chunks.setdefault(
                                     index, {"id": "", "name": "", "arguments": ""}
                                 )
-                                if isinstance(call.get("id"), str):
-                                    chunk["id"] += cast(str, call["id"])
+                                if call.get("id") is not None:
+                                    chunk["id"] += tool_string(call["id"])
                                 function = call.get("function")
+                                if function is not None and not isinstance(function, Mapping):
+                                    raise ProviderError(
+                                        "Model returned an invalid tool function", retryable=False
+                                    )
                                 if isinstance(function, Mapping):
                                     function_mapping = cast(Mapping[str, object], function)
                                     name = function_mapping.get("name")
                                     arguments = function_mapping.get("arguments")
-                                    if isinstance(name, str):
-                                        chunk["name"] += name
-                                    if isinstance(arguments, str):
-                                        chunk["arguments"] += arguments
+                                    if name is not None:
+                                        chunk["name"] += tool_string(name)
+                                    if arguments is not None:
+                                        chunk["arguments"] += tool_string(arguments)
         except (httpx.HTTPError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             raise request_failure("OpenAI-compatible model stream failed", exc) from exc
 

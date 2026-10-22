@@ -18,10 +18,21 @@ from agent_runtime.models import (
     Message,
     ToolResult,
     ToolResultContent,
+    Usage,
 )
 from agent_runtime.models_clients.base import ModelClient, ModelResult, StreamingModelClient
 from agent_runtime.telemetry import RuntimeTelemetry
 from agent_runtime.tools.registry import ToolRegistry
+
+
+def _combined_usage(total: Usage | None, usage: Usage | None) -> Usage | None:
+    """Keep invocation totals unknown if any model call omits usage."""
+    if total is None or usage is None:
+        return None
+    return Usage(
+        input_tokens=total.input_tokens + usage.input_tokens,
+        output_tokens=total.output_tokens + usage.output_tokens,
+    )
 
 
 class NativeAgentInvoker:
@@ -61,6 +72,7 @@ class NativeAgentInvoker:
         working_messages = list(request.messages)
         generated_messages: list[Message] = []
         tool_results: list[ToolResult] = []
+        usage: Usage | None = Usage(input_tokens=0, output_tokens=0)
 
         for iteration in range(self._max_tool_iterations + 1):
             try:
@@ -80,13 +92,14 @@ class NativeAgentInvoker:
             except Exception as exc:
                 raise ProviderError("Model generation failed") from exc
 
+            usage = _combined_usage(usage, result.usage)
             generated_messages.append(result.message)
             working_messages.append(result.message)
             if not result.tool_calls:
                 return InvocationOutput(
                     messages=generated_messages,
                     tool_results=tool_results,
-                    usage=result.usage,
+                    usage=usage,
                 )
             if iteration == self._max_tool_iterations:
                 break
@@ -120,6 +133,7 @@ class NativeAgentInvoker:
         working_messages = list(request.messages)
         generated_messages: list[Message] = []
         tool_results: list[ToolResult] = []
+        usage: Usage | None = Usage(input_tokens=0, output_tokens=0)
 
         for iteration in range(self._max_tool_iterations + 1):
             result: ModelResult | None = None
@@ -153,6 +167,7 @@ class NativeAgentInvoker:
 
             if result is None:
                 raise ProviderError("Model stream ended without a completed result")
+            usage = _combined_usage(usage, result.usage)
             generated_messages.append(result.message)
             working_messages.append(result.message)
             if not result.tool_calls:
@@ -160,7 +175,7 @@ class NativeAgentInvoker:
                     output=InvocationOutput(
                         messages=generated_messages,
                         tool_results=tool_results,
-                        usage=result.usage,
+                        usage=usage,
                     )
                 )
                 return

@@ -56,3 +56,29 @@ the Windows regression-fixture correction and the limits of these claims.
 The next integration phase requires a concrete host workload or approved provider/model,
 non-sensitive fixture, credential provisioning and spend cap. These choices are not inferred from
 offline tests, and no credentials should be committed or pasted into repository documentation.
+
+## Follow-up: bounded library correctness sprint
+
+On 2026-10-22 the owner authorized a 30-minute continuation without the earlier weekly-usage
+stop line. The scope remains implementation, validation and checked PR promotion; it does not
+infer live provider credentials, paid calls or production certification.
+
+The next two reproduced defects are correctness issues in the importable library:
+
+1. Native tool loops return only the final model call's usage. Aggregate every model call within
+   one invocation; if any call has unknown usage, retain `None` for the whole invocation. Cover
+   generate, streaming, generate-only fallback, invocation isolation, durable storage and replay.
+2. Malformed provider tool identities and stream indices can reach local tool execution. Reject
+   malformed supported fields before completing a model result, preserve safe provider errors,
+   and prove a valid earlier call in the same response is not executed either.
+
+Run standalone public-contract fixtures from the installed candidate wheel as well as root venv
+pytest, real PostgreSQL, formatting, lint and typing. Merge only at the exact passing PR head.
+Keep public signatures, schema 0002 and canonical contract v1 unchanged. This sprint does not
+replace the immutable v0.4.1 assets; unreleased source behavior must be identified explicitly.
+
+Local acceptance passed: 480 root pytest cases with PostgreSQL, Ruff formatting/lint and strict
+Pyright; the non-editable candidate wheel passed 238 standalone provider/native contract cases.
+The pre-fix PostgreSQL batch reproduced six failures (four usage cases and two invalid-tool paths),
+and the standalone native batch reproduced 15 failures before the fix. Independent review found
+no blockers. Exact-head GitHub CI and downstream application checks remain the promotion gate.

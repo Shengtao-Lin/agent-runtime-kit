@@ -116,6 +116,25 @@ Anthropic streaming merges supplied start/delta counts, replacing cumulative out
 than adding them. OpenAI/Gemini retain the most recent complete usage record. Usage is not a cost
 estimate and does not expose all vendor cache/reasoning/billing categories.
 
+### Tool-call validation (unreleased)
+
+Current development source additionally rejects non-string tool IDs/names instead of coercing
+them, malformed OpenAI tool-call arrays/functions/argument fields, malformed Gemini function-call
+objects, and non-integer or negative OpenAI/Anthropic stream indices. Supplied fields must match
+the supported text/function-call protocol; omitted optional fields and documented OpenAI stream
+null placeholders remain accepted. Anthropic tool input must be an object, including at stream
+block start. These checks are not a blanket rejection of vendor metadata or extension events.
+Repeated tool IDs within one completed result and repeated Anthropic tool-block starts fail safely.
+Separate calls may share names or arguments; they are not deduplicated by content.
+
+Validation completes before a `ModelResult` reaches the native tool loop. A malformed later call
+in the same response prevents execution of an earlier valid call too. Failed streams may already
+have emitted provisional text, but emit no completed result or durable successful history. Tools
+executed in an earlier, already valid model-loop iteration are not rolled back by a later failure.
+
+Native invocation token totals are described in the [runtime runbook](runtime.md#native-invocation-usage-unreleased).
+Provider-level usage remains per model call. Published v0.4.1 does not contain these unreleased fixes.
+
 ### Streaming completion boundary
 
 Text deltas are provisional. EOF alone is never successful completion: OpenAI-compatible streams

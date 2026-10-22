@@ -17,7 +17,13 @@ from agent_runtime.models import (
     ToolCallContent,
     Usage,
 )
-from agent_runtime.models_clients._canonical import assembled_result, token_count, token_usage
+from agent_runtime.models_clients._canonical import (
+    assembled_result,
+    token_count,
+    token_usage,
+    tool_index,
+    tool_string,
+)
 from agent_runtime.models_clients._http import request_failure, response_json, sse_data
 from agent_runtime.models_clients.base import (
     ModelCompleted,
@@ -124,21 +130,25 @@ class AnthropicModelClient:
                         input_tokens = token_count(usage.get("input_tokens"))
                         output_tokens = token_count(usage.get("output_tokens"))
                     elif event_type == "content_block_start":
-                        index = int(str(event.get("index", 0)))
+                        index = tool_index(event.get("index", 0))
                         block = self._mapping(event.get("content_block"), "content block")
                         if block.get("type") == "tool_use":
+                            if index in tool_chunks:
+                                raise ProviderError(
+                                    "Anthropic repeated a tool block index", retryable=False
+                                )
                             initial_input = block.get("input", {})
+                            if not isinstance(initial_input, dict):
+                                raise ProviderError(
+                                    "Anthropic returned invalid tool input", retryable=False
+                                )
                             tool_chunks[index] = {
-                                "id": str(block["id"]),
-                                "name": str(block["name"]),
-                                "arguments": (
-                                    json.dumps(initial_input)
-                                    if initial_input not in ({}, None)
-                                    else ""
-                                ),
+                                "id": tool_string(block["id"]),
+                                "name": tool_string(block["name"]),
+                                "arguments": (json.dumps(initial_input) if initial_input else ""),
                             }
                     elif event_type == "content_block_delta":
-                        index = int(str(event.get("index", 0)))
+                        index = tool_index(event.get("index", 0))
                         delta = self._mapping(event.get("delta"), "content delta")
                         if delta.get("type") == "text_delta":
                             text = delta.get("text")
@@ -147,8 +157,7 @@ class AnthropicModelClient:
                                 yield ModelTextDelta(delta=text)
                         elif delta.get("type") == "input_json_delta":
                             partial = delta.get("partial_json")
-                            if isinstance(partial, str):
-                                tool_chunks[index]["arguments"] += partial
+                            tool_chunks[index]["arguments"] += tool_string(partial)
                     elif event_type == "message_delta":
                         delta = self._mapping(event.get("delta", {}), "message delta")
                         if delta.get("stop_reason") not in (
@@ -254,8 +263,8 @@ class AnthropicModelClient:
                     text_chunks.append(text)
             elif block.get("type") == "tool_use":
                 tool_chunks[index] = {
-                    "id": str(block["id"]),
-                    "name": str(block["name"]),
+                    "id": tool_string(block["id"]),
+                    "name": tool_string(block["name"]),
                     "arguments": json.dumps(block.get("input", {})),
                 }
         usage = token_usage(body.get("usage"), "input_tokens", "output_tokens")
