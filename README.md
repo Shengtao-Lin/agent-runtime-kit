@@ -5,8 +5,8 @@
 A framework-neutral Python runtime toolkit for building configurable, observable AI agents with
 PostgreSQL-backed memory.
 
-> **Project status:** latest published release v0.4.1; `main` includes independent application
-> adoption plus v0.4.2 candidate fixes for native usage accounting and provider tool validation.
+> **Project status:** latest published release v0.4.2, including native usage accounting and
+> provider tool-validation fixes. Release Desk's independent application lock remains on v0.4.1.
 > The installable library, PostgreSQL persistence,
 > provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
 > example are runnable. Authentication and production deployment controls remain application
@@ -27,8 +27,9 @@ gates. See its [upgrade guide](docs/upgrading-to-v0.4.0.md) and
 v0.4.1 hardens direct-library provider validation, unknown usage and single-candidate mapping;
 see its [upgrade guide](docs/upgrading-to-v0.4.1.md) and
 [publication evidence](docs/validation/v0.4.1-publication.md).
-The v0.4.2 candidate sums native multi-call usage and rejects malformed tool calls before execution;
-see the [upgrade guide](docs/upgrading-to-v0.4.2.md). It is not published until its tag workflow succeeds.
+v0.4.2 sums native multi-call usage and rejects malformed tool calls before execution;
+see the [upgrade guide](docs/upgrading-to-v0.4.2.md) and
+[publication evidence](docs/validation/v0.4.2-publication.md).
 The [initial-spec closure report](docs/validation/initial-spec-closure.md) records implemented
 features, concrete acceptance evidence, and deliberately limited framework/security boundaries.
 
@@ -70,7 +71,7 @@ The wheel contains only `agent_runtime`; the fictional agent remains an example 
 package. Install only the extras your application needs. For the published library:
 
 ```bash
-uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.4.1"
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.4.2"
 ```
 
 For checkout development:

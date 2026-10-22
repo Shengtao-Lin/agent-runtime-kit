@@ -25,7 +25,7 @@ Install only the adapter required by the application:
 uv add "agent-runtime-kit[openai-compatible] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@COMMIT_SHA"
 ```
 
-For the published runtime, replace `COMMIT_SHA` with tag `v0.4.1`, or use a reviewed full commit
+For the published runtime, replace `COMMIT_SHA` with tag `v0.4.2`, or use a reviewed full commit
 from `main`. Provider extras remain optional and no real credentials are needed for fake tests.
 
 Replace the extra with `anthropic` or `gemini` as needed. Provision a provider credential through a
@@ -133,8 +133,8 @@ have emitted provisional text, but emit no completed result or durable successfu
 executed in an earlier, already valid model-loop iteration are not rolled back by a later failure.
 
 Native invocation token totals are described in the [runtime runbook](runtime.md#native-invocation-usage-v042).
-Provider-level usage remains per model call. Published v0.4.1 does not contain these fixes; check
-the README's publication status before adopting candidate source.
+Provider-level usage remains per model call. These fixes are included in published v0.4.2;
+v0.4.1 does not contain them.
 
 ### Streaming completion boundary
 
