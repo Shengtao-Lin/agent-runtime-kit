@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import AsyncIterator
 from typing import Literal, cast
 from uuid import uuid4
 
@@ -18,6 +19,20 @@ from agent_runtime.models_clients.openai_compatible import OpenAICompatibleModel
 
 Provider = Literal["openai", "anthropic", "gemini"]
 PROVIDERS: tuple[Provider, ...] = ("openai", "anthropic", "gemini")
+
+
+class Wire(httpx.AsyncByteStream):
+    """Track actual response teardown rather than using a pre-buffered closed response."""
+
+    def __init__(self, data: bytes) -> None:
+        self.data = data
+        self.closed = False
+
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        yield self.data
+
+    async def aclose(self) -> None:
+        self.closed = True
 
 
 def response_body(provider: Provider, text: str) -> dict[str, object]:
@@ -66,7 +81,8 @@ async def invoke(
         if frames is not None
         else json.dumps(body)
     )
-    response = httpx.Response(200, text=wire)
+    wire_stream = Wire(wire.encode())
+    response = httpx.Response(200, stream=wire_stream)
     async with httpx.AsyncClient(
         transport=httpx.MockTransport(lambda _: response), base_url="https://provider.invalid"
     ) as transport:
@@ -83,6 +99,7 @@ async def invoke(
                 return await client.generate(messages, context=context)
             async for event in client.stream(messages, context=context):
                 if event.type == "completed":
+                    assert result is None, "A stream must complete exactly once"
                     result = event.result
             assert result is not None
             return result
@@ -91,6 +108,7 @@ async def invoke(
             raise
         finally:
             assert response.is_closed
+            assert wire_stream.closed
             assert not transport.is_closed
 
 
