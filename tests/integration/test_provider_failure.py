@@ -8,6 +8,7 @@ from uuid import uuid4
 
 import httpx
 import pytest
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from agent_runtime import AgentRegistry, AgentRuntime, RuntimeRequest
@@ -17,8 +18,13 @@ from agent_runtime.memory import PostgresMemoryStore
 from agent_runtime.models import Message, TextContent
 from agent_runtime.models_clients.openai_compatible import OpenAICompatibleModelClient
 from agent_runtime.runs import PostgresRunStore
+from agent_runtime.tools import ToolRegistry
 
 pytestmark = pytest.mark.integration
+
+
+class NoArguments(BaseModel):
+    pass
 
 
 @pytest.mark.parametrize(
@@ -31,6 +37,8 @@ pytestmark = pytest.mark.integration
         ("multiple", True),
         ("usage", False),
         ("usage", True),
+        ("tool_identity", False),
+        ("tool_identity", True),
     ],
 )
 async def test_invalid_provider_output_is_failed_and_never_reexecuted(
@@ -43,12 +51,34 @@ async def test_invalid_provider_output_is_failed_and_never_reexecuted(
     memory = PostgresMemoryStore(engine)
     runs = PostgresRunStore(engine)
     calls = 0
+    tool_calls = 0
+
+    def tool_handler() -> str:
+        nonlocal tool_calls
+        tool_calls += 1
+        return "must not execute"
 
     def handler(_: httpx.Request) -> httpx.Response:
         nonlocal calls
         calls += 1
         text = "PRIVATE-SENTINEL" + "x" * 32_000 if failure == "oversized" else "partial"
-        choice = {"delta" if streaming else "message": {"content": text}}
+        message: dict[str, object] = {"content": text}
+        if failure == "tool_identity":
+            message["tool_calls"] = [
+                {
+                    "id": "valid-call-first",
+                    "index": 0,
+                    "type": "function",
+                    "function": {"name": "dangerous_tool", "arguments": "{}"},
+                },
+                {
+                    "id": "call-1" if streaming else None,
+                    "index": -1 if streaming else 0,
+                    "type": "function",
+                    "function": {"name": "dangerous_tool", "arguments": "{}"},
+                },
+            ]
+        choice = {"delta" if streaming else "message": message}
         body: dict[str, object] = {
             "choices": [choice, choice] if failure == "multiple" else [choice]
         }
@@ -63,9 +93,18 @@ async def test_invalid_provider_output_is_failed_and_never_reexecuted(
         transport=httpx.MockTransport(handler), base_url="https://provider.invalid"
     ) as transport:
         client = OpenAICompatibleModelClient(model="test", api_key="synthetic", client=transport)
+        tools = ToolRegistry()
+        tools.register(
+            name="dangerous_tool",
+            description="Count executions of a synthetic tool.",
+            input_model=NoArguments,
+            handler=tool_handler,
+        )
         registry = AgentRegistry()
         registry.register(
-            NativeAgentInvoker(agent_id="provider-failure", version="1", model_client=client)
+            NativeAgentInvoker(
+                agent_id="provider-failure", version="1", model_client=client, tools=tools
+            )
         )
         runtime = AgentRuntime(agents=registry, memory=memory, runs=runs, namespace=str(uuid4()))
         key = str(uuid4())
@@ -93,6 +132,7 @@ async def test_invalid_provider_output_is_failed_and_never_reexecuted(
             with pytest.raises(IdempotentRunUnavailableError):
                 await runtime.invoke("provider-failure", request, idempotency_key=key)
             assert calls == 1
+            assert tool_calls == 0
         finally:
             await runtime.shutdown()
             await engine.dispose()

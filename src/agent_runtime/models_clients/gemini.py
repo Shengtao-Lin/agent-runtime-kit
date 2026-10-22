@@ -19,7 +19,12 @@ from agent_runtime.models import (
     ToolCallContent,
     Usage,
 )
-from agent_runtime.models_clients._canonical import assembled_result, candidate_index, token_usage
+from agent_runtime.models_clients._canonical import (
+    assembled_result,
+    candidate_index,
+    token_usage,
+    tool_string,
+)
 from agent_runtime.models_clients._http import request_failure, response_json, sse_data
 from agent_runtime.models_clients.base import (
     ModelCompleted,
@@ -139,9 +144,9 @@ class GeminiModelClient:
                         if isinstance(text, str) and text:
                             text_chunks.append(text)
                             yield ModelTextDelta(delta=text)
-                        function = part.get("functionCall")
-                        if isinstance(function, Mapping):
-                            tool_calls.append(self._tool_call(cast(Mapping[str, object], function)))
+                        if "functionCall" in part:
+                            function = self._mapping(part["functionCall"], "function call")
+                            tool_calls.append(self._tool_call(function))
                     usage = self._usage(body) or usage
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
             raise request_failure("Gemini model stream failed", exc) from exc
@@ -230,9 +235,9 @@ class GeminiModelClient:
             text = part.get("text")
             if isinstance(text, str) and text:
                 text_chunks.append(text)
-            function = part.get("functionCall")
-            if isinstance(function, Mapping):
-                tool_calls.append(self._tool_call(cast(Mapping[str, object], function)))
+            if "functionCall" in part:
+                function = self._mapping(part["functionCall"], "function call")
+                tool_calls.append(self._tool_call(function))
         return self._assembled_result(text_chunks, tool_calls, self._usage(body))
 
     @classmethod
@@ -250,7 +255,7 @@ class GeminiModelClient:
             raise ProviderError("Gemini returned invalid tool arguments", retryable=False)
         return ToolCall(
             id=f"gemini-{uuid4()}",
-            name=str(function["name"]),
+            name=tool_string(function["name"]),
             arguments=cast(dict[str, Any], arguments),
         )
 

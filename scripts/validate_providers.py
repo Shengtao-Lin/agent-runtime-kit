@@ -1,4 +1,4 @@
-"""Verify public provider behavior from an installed wheel outside the source checkout."""
+"""Verify provider and native-model contracts from an installed wheel outside the checkout."""
 
 from __future__ import annotations
 
@@ -55,6 +55,8 @@ def main() -> None:
             "test_gemini.py",
             "test_provider_protocols.py",
             "test_provider_contracts.py",
+            "test_provider_tool_contracts.py",
+            "test_native_usage.py",
         ):
             shutil.copy2(repository / "tests" / "unit" / name, root / name)
         audit = run(

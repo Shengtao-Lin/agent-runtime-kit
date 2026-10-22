@@ -98,6 +98,20 @@ async for event in runtime.stream(
 
 The stream budget starts on first iteration and includes partial-event backpressure. Delivery
 to a paused consumer after durable completion is not deadline-bound.
+
+### Native invocation usage (unreleased)
+
+On the current development branch, `NativeAgentInvoker` reports the sum of input and output
+tokens across every model call in one successful invocation, including tool-selection calls.
+This applies equally to `invoke()`, `stream()` and streaming with a generate-only model client.
+If any call omits complete usage, the invocation reports `None`; it never labels a known subset
+as the total. Explicit zero counts remain zero. A later invocation starts a new total.
+
+The completed runtime response stores this value and idempotent replay returns it unchanged,
+without calling the model or tools again. Published v0.4.1 returned only final-call usage for
+native tool loops. Existing stored responses are not rewritten or retrospectively recalculated.
+Framework-adapter usage follows its own output-envelope contract; this native-loop rule does not
+reinterpret framework traces. Token counts are not a monetary cost estimate.
 Consume through `completed`. If the caller stops early, close the async iterator so cancellation
 can transition the claimed run instead of leaving it active.
 

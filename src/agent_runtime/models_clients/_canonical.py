@@ -40,10 +40,26 @@ def candidate_index(candidate: Mapping[str, object]) -> None:
         raise ProviderError("Model returned an unsupported candidate index", retryable=False)
 
 
+def tool_string(value: object) -> str:
+    """Do not turn missing or wrongly typed tool fields into executable strings."""
+    if not isinstance(value, str):
+        raise ProviderError("Model returned an invalid tool call", retryable=False)
+    return value
+
+
+def tool_index(value: object) -> int:
+    """Stream indices are JSON integers, not coercible strings or booleans."""
+    if type(value) is not int or value < 0:
+        raise ProviderError("Model returned an invalid tool index", retryable=False)
+    return value
+
+
 def assembled_result(
     text_chunks: list[str], tool_calls: list[ToolCall], usage: Usage | None
 ) -> ModelResult:
     """Keep canonical validation failures safe even without a surrounding runtime."""
+    if len({call.id for call in tool_calls}) != len(tool_calls):
+        raise ProviderError("Model returned duplicate tool call IDs", retryable=False)
     try:
         parts: list[ContentPart] = []
         if text_chunks:
