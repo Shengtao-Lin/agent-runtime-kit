@@ -54,6 +54,7 @@ def main() -> None:
             "test_anthropic.py",
             "test_gemini.py",
             "test_provider_protocols.py",
+            "test_provider_contracts.py",
         ):
             shutil.copy2(repository / "tests" / "unit" / name, root / name)
         audit = run(

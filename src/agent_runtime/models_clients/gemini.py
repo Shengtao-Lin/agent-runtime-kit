@@ -12,7 +12,6 @@ import httpx
 
 from agent_runtime.errors import ProviderError
 from agent_runtime.models import (
-    ContentPart,
     Message,
     RuntimeContext,
     TextContent,
@@ -20,6 +19,7 @@ from agent_runtime.models import (
     ToolCallContent,
     Usage,
 )
+from agent_runtime.models_clients._canonical import assembled_result, candidate_index, token_usage
 from agent_runtime.models_clients._http import request_failure, response_json, sse_data
 from agent_runtime.models_clients.base import (
     ModelCompleted,
@@ -110,7 +110,10 @@ class GeminiModelClient:
                     if "error" in body:
                         raise ProviderError("Gemini model stream returned an error")
                     candidates = self._sequence(body.get("candidates"), "candidates")
+                    if len(candidates) != 1:
+                        raise ProviderError("Gemini returned multiple candidates", retryable=False)
                     candidate = self._mapping(candidates[0], "candidate")
+                    candidate_index(candidate)
                     reason = candidate.get("finishReason")
                     if reason is not None and reason != "STOP":
                         raise ProviderError(
@@ -215,7 +218,10 @@ class GeminiModelClient:
 
     def _result(self, body: Mapping[str, object]) -> ModelResult:
         candidates = self._sequence(body.get("candidates"), "candidates")
+        if len(candidates) != 1:
+            raise ProviderError("Gemini returned multiple candidates", retryable=False)
         candidate = self._mapping(candidates[0], "candidate")
+        candidate_index(candidate)
         if candidate.get("finishReason") not in (None, "STOP"):
             raise ProviderError("Gemini response did not finish successfully", retryable=False)
         text_chunks: list[str] = []
@@ -250,30 +256,15 @@ class GeminiModelClient:
 
     @classmethod
     def _usage(cls, body: Mapping[str, object]) -> Usage | None:
-        raw = body.get("usageMetadata")
-        if not isinstance(raw, Mapping):
-            return None
-        usage = cast(Mapping[str, object], raw)
-        return Usage(
-            input_tokens=int(str(usage.get("promptTokenCount", 0))),
-            output_tokens=int(str(usage.get("candidatesTokenCount", 0))),
-        )
+        return token_usage(body.get("usageMetadata"), "promptTokenCount", "candidatesTokenCount")
 
     @staticmethod
     def _assembled_result(
         text_chunks: list[str], tool_calls: list[ToolCall], usage: Usage | None
     ) -> ModelResult:
-        parts: list[ContentPart] = []
-        if text_chunks:
-            parts.append(TextContent(text="".join(text_chunks)))
-        parts.extend(ToolCallContent(tool_call=call) for call in tool_calls)
-        if not parts:
+        if not text_chunks and not tool_calls:
             raise ProviderError("Gemini returned an empty assistant message", retryable=False)
-        return ModelResult(
-            message=Message(role="assistant", content=parts),
-            tool_calls=tool_calls,
-            usage=usage,
-        )
+        return assembled_result(text_chunks, tool_calls, usage)
 
     @staticmethod
     def _mapping(value: object, label: str) -> Mapping[str, object]:

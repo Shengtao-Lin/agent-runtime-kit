@@ -10,7 +10,6 @@ import httpx
 
 from agent_runtime.errors import ProviderError
 from agent_runtime.models import (
-    ContentPart,
     Message,
     RuntimeContext,
     TextContent,
@@ -18,6 +17,7 @@ from agent_runtime.models import (
     ToolCallContent,
     Usage,
 )
+from agent_runtime.models_clients._canonical import assembled_result, token_count, token_usage
 from agent_runtime.models_clients._http import request_failure, response_json, sse_data
 from agent_runtime.models_clients.base import (
     ModelCompleted,
@@ -94,8 +94,8 @@ class AnthropicModelClient:
         del context
         text_chunks: list[str] = []
         tool_chunks: dict[int, dict[str, str]] = {}
-        input_tokens = 0
-        output_tokens = 0
+        input_tokens: int | None = None
+        output_tokens: int | None = None
         completed = False
         try:
             async with self._client.stream(
@@ -117,8 +117,12 @@ class AnthropicModelClient:
                         break
                     if event_type == "message_start":
                         message = self._mapping(event.get("message"), "stream message")
-                        usage = self._mapping(message.get("usage", {}), "stream usage")
-                        input_tokens = int(str(usage.get("input_tokens", 0)))
+                        raw_usage = message.get("usage")
+                        usage = self._mapping(
+                            {} if raw_usage is None else raw_usage, "stream usage"
+                        )
+                        input_tokens = token_count(usage.get("input_tokens"))
+                        output_tokens = token_count(usage.get("output_tokens"))
                     elif event_type == "content_block_start":
                         index = int(str(event.get("index", 0)))
                         block = self._mapping(event.get("content_block"), "content block")
@@ -157,8 +161,14 @@ class AnthropicModelClient:
                                 "Anthropic model stream did not finish successfully",
                                 retryable=False,
                             )
-                        usage = self._mapping(event.get("usage", {}), "stream usage")
-                        output_tokens = int(str(usage.get("output_tokens", output_tokens)))
+                        raw_usage = event.get("usage")
+                        usage = self._mapping(
+                            {} if raw_usage is None else raw_usage, "stream usage"
+                        )
+                        if "input_tokens" in usage:
+                            input_tokens = token_count(usage["input_tokens"])
+                        if "output_tokens" in usage:
+                            output_tokens = token_count(usage["output_tokens"])
         except (httpx.HTTPError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             raise request_failure("Anthropic model stream failed", exc) from exc
 
@@ -168,7 +178,7 @@ class AnthropicModelClient:
         result = self._assembled_result(
             text_chunks,
             tool_chunks,
-            Usage(input_tokens=input_tokens, output_tokens=output_tokens),
+            token_usage({"input": input_tokens, "output": output_tokens}, "input", "output"),
         )
         yield ModelCompleted(result=result)
 
@@ -248,22 +258,15 @@ class AnthropicModelClient:
                     "name": str(block["name"]),
                     "arguments": json.dumps(block.get("input", {})),
                 }
-        raw_usage = self._mapping(body.get("usage", {}), "usage")
-        usage = Usage(
-            input_tokens=int(str(raw_usage.get("input_tokens", 0))),
-            output_tokens=int(str(raw_usage.get("output_tokens", 0))),
-        )
+        usage = token_usage(body.get("usage"), "input_tokens", "output_tokens")
         return self._assembled_result(text_chunks, tool_chunks, usage)
 
     @staticmethod
     def _assembled_result(
         text_chunks: list[str],
         tool_chunks: dict[int, dict[str, str]],
-        usage: Usage,
+        usage: Usage | None,
     ) -> ModelResult:
-        content_parts: list[ContentPart] = []
-        if text_chunks:
-            content_parts.append(TextContent(text="".join(text_chunks)))
         tool_calls: list[ToolCall] = []
         try:
             for chunk in (tool_chunks[index] for index in sorted(tool_chunks)):
@@ -276,16 +279,11 @@ class AnthropicModelClient:
                     arguments=cast(dict[str, Any], arguments),
                 )
                 tool_calls.append(call)
-                content_parts.append(ToolCallContent(tool_call=call))
         except (TypeError, ValueError, json.JSONDecodeError) as exc:
             raise ProviderError("Anthropic returned an invalid tool call", retryable=False) from exc
-        if not content_parts:
+        if not text_chunks and not tool_calls:
             raise ProviderError("Anthropic returned an empty assistant message", retryable=False)
-        return ModelResult(
-            message=Message(role="assistant", content=content_parts),
-            tool_calls=tool_calls,
-            usage=usage,
-        )
+        return assembled_result(text_chunks, tool_calls, usage)
 
     @staticmethod
     def _mapping(value: object, label: str) -> Mapping[str, object]:

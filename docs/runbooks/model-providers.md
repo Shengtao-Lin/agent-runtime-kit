@@ -93,6 +93,29 @@ uv run pytest tests/unit/test_openai_compatible.py tests/unit/test_anthropic.py 
 - Provider response details are translated to safe runtime exceptions at the boundary.
 - Usage is populated when supplied by the provider; absent usage does not invent values.
 
+### Direct-library canonical boundary
+
+These guarantees also apply when calling adapters directly, without `AgentRuntime` or a native
+invoker. Text exceeding 32,000 characters per canonical text part, messages exceeding 64 content
+parts and invalid canonical tool calls fail with safe `ProviderError` (`provider_failure`,
+`retryable=false`), not a raw Pydantic validation message. Stream deltas remain provisional;
+canonical validation failure emits no completed result. Transport limits are separate and do not
+raise canonical limits. Exception causes are internal diagnostics and can contain provider content;
+do not serialize or log full tracebacks across a public boundary.
+
+The adapters request one candidate. OpenAI/Gemini reject multiple choices/candidates or a supplied
+index other than integer zero instead of merging or discarding alternatives. Omitted index remains
+compatible with single-result proxies; OpenAI's final usage-only chunk with empty `choices` remains
+valid. This is the kit's supported subset, not a claim that vendor APIs cannot return alternatives.
+
+Canonical usage requires both input and output counts. Absent/null usage or missing/null counts
+produce `usage=None`, never invented zeros; explicitly supplied integer zeros are preserved.
+Supplied counts must be non-negative JSON integers (not booleans, floats or numeric strings), and
+non-object usage is rejected. Invalid supplied counts fail even when the other count is unknown.
+Anthropic streaming merges supplied start/delta counts, replacing cumulative output counts rather
+than adding them. OpenAI/Gemini retain the most recent complete usage record. Usage is not a cost
+estimate and does not expose all vendor cache/reasoning/billing categories.
+
 ### Streaming completion boundary
 
 Text deltas are provisional. EOF alone is never successful completion: OpenAI-compatible streams
