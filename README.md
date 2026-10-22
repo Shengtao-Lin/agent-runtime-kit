@@ -5,8 +5,8 @@
 A framework-neutral Python runtime toolkit for building configurable, observable AI agents with
 PostgreSQL-backed memory.
 
-> **Project status:** latest published release v0.4.0; `main` includes independent application
-> adoption and v0.4.1 provider-contract hardening under validation.
+> **Project status:** latest published release v0.4.1; `main` includes independent application
+> adoption and documentation updates on the released library API.
 > The installable library, PostgreSQL persistence,
 > provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
 > example are runnable. Authentication and production deployment controls remain application
@@ -24,6 +24,9 @@ v0.3.1 hardens provider completion, bounded decoding and safe retry hints; see i
 v0.4.0 adds optional checked runtime lifetimes, public signature checks and sustained-operation
 gates. See its [upgrade guide](docs/upgrading-to-v0.4.0.md) and
 [publication evidence](docs/validation/v0.4.0-publication.md).
+v0.4.1 hardens direct-library provider validation, unknown usage and single-candidate mapping;
+see its [upgrade guide](docs/upgrading-to-v0.4.1.md) and
+[publication evidence](docs/validation/v0.4.1-publication.md).
 The [initial-spec closure report](docs/validation/initial-spec-closure.md) records implemented
 features, concrete acceptance evidence, and deliberately limited framework/security boundaries.
 
@@ -65,7 +68,7 @@ The wheel contains only `agent_runtime`; the fictional agent remains an example 
 package. Install only the extras your application needs. For the published library:
 
 ```bash
-uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.4.0"
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.4.1"
 ```
 
 For checkout development:

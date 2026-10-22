@@ -4,7 +4,10 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ## Unreleased
 
-## 0.4.1 - Release candidate
+- Update Release Desk's independent lock and published provenance assertions to the actual v0.4.1
+  wheel, refresh installation references and record actual-asset upgrade/provider adoption evidence.
+
+## 0.4.1 - 2026-10-22
 
 - Stabilize the full-queue cancellation regression setup without relaxing its deadlock guards,
   preserving cancellation failure assertions and guaranteed test resource teardown.

@@ -3,7 +3,7 @@
 A separately packaged, read-only CLI for reviewing public Python release metadata. It consumes
 the published Agent Runtime Kit wheel; the application is not part of the runtime distribution.
 The application owns its GitHub reader, checklist, routing, configuration and resource lifecycle.
-Its own lock pins the actual v0.4.0 wheel and digest, not an editable checkout. It adopts the public
+Its own lock pins the actual v0.4.1 wheel and digest, not an editable checkout. It adopts the public
 checked runtime lifetime while retaining ownership of its engine and business logic.
 
 This is a deliberately deterministic operational tool, not an LLM-quality demonstration. It needs
@@ -43,8 +43,8 @@ auto-migrate. Secrets are read from environment settings and not printed in CLI 
 ## Daily workflows
 
 ```bash
-uv run release-desk review Shengtao-Lin/agent-runtime-kit v0.4.0 --key release-review-v040-001
-uv run release-desk review Shengtao-Lin/agent-runtime-kit v0.4.0 --key release-review-v040-002 --stream
+uv run release-desk review Shengtao-Lin/agent-runtime-kit v0.4.1 --key release-review-v041-001
+uv run release-desk review Shengtao-Lin/agent-runtime-kit v0.4.1 --key release-review-v041-002 --stream
 ```
 
 Normal mode prints the canonical JSON response; stream mode prints canonical JSON events as
@@ -103,7 +103,7 @@ From repository root, point `RELEASE_DESK_DATABASE_URL` at a disposable database
 uv run python scripts/validate_release_desk.py
 ```
 
-Add `--live` for one public metadata review of this repository's v0.4.0, followed by cross-process
+Add `--live` for one public metadata review of this repository's v0.4.1, followed by cross-process
 replay, history and idempotent feedback checks. It makes no provider calls and no GitHub writes.
 The runner saves JUnit, package inventory and optional canary evidence under
 `build/release-desk-validation/`. `--wheel PATH` is an explicitly non-locked candidate override
