@@ -4,6 +4,15 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ## Unreleased
 
+## 0.4.1 - Release candidate
+
+- Translate canonical text/message validation into safe provider failures for direct-library callers.
+- Preserve unknown usage instead of inventing zeros, validate supplied non-negative integer counts,
+  and merge Anthropic cumulative streaming counts without double counting.
+- Reject unsupported multiple choices/candidates and nonzero candidate indices rather than merging
+  or silently discarding alternatives; retain OpenAI usage-only chunks and omitted-index proxies.
+- Add installed-wheel provider boundary regressions, durable failed-key/no-partial-history tests
+  and checksum-pinned actual v0.4.0 preserved-state upgrade gates.
 - Update Release Desk's independent lock to the actual v0.4.0 wheel and adopt checked runtime
   lifetime management, including application-body failure coverage and a public v0.4 metadata canary.
 
