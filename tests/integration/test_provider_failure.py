@@ -1,7 +1,8 @@
-"""A real provider adapter must not commit provisional text from a truncated stream."""
+"""Real adapters must not commit invalid canonical output or replay failed work."""
 
 from __future__ import annotations
 
+import json
 import os
 from uuid import uuid4
 
@@ -20,7 +21,21 @@ from agent_runtime.runs import PostgresRunStore
 pytestmark = pytest.mark.integration
 
 
-async def test_truncated_provider_output_is_failed_and_never_reexecuted() -> None:
+@pytest.mark.parametrize(
+    ("failure", "streaming"),
+    [
+        ("truncated", True),
+        ("oversized", False),
+        ("oversized", True),
+        ("multiple", False),
+        ("multiple", True),
+        ("usage", False),
+        ("usage", True),
+    ],
+)
+async def test_invalid_provider_output_is_failed_and_never_reexecuted(
+    failure: str, streaming: bool
+) -> None:
     url = os.getenv("AGENT_RUNTIME_TEST_DATABASE_URL")
     if url is None:
         pytest.skip("AGENT_RUNTIME_TEST_DATABASE_URL is not configured")
@@ -32,7 +47,17 @@ async def test_truncated_provider_output_is_failed_and_never_reexecuted() -> Non
     def handler(_: httpx.Request) -> httpx.Response:
         nonlocal calls
         calls += 1
-        return httpx.Response(200, text='data: {"choices":[{"delta":{"content":"partial"}}]}\n\n')
+        text = "PRIVATE-SENTINEL" + "x" * 32_000 if failure == "oversized" else "partial"
+        choice = {"delta" if streaming else "message": {"content": text}}
+        body: dict[str, object] = {
+            "choices": [choice, choice] if failure == "multiple" else [choice]
+        }
+        if failure == "usage":
+            body["usage"] = {"prompt_tokens": -1, "completion_tokens": 2}
+        if not streaming:
+            return httpx.Response(200, json=body)
+        terminal = "" if failure == "truncated" else "data: [DONE]\n\n"
+        return httpx.Response(200, text=f"data: {json.dumps(body)}\n\n{terminal}")
 
     async with httpx.AsyncClient(
         transport=httpx.MockTransport(handler), base_url="https://provider.invalid"
@@ -49,9 +74,15 @@ async def test_truncated_provider_output_is_failed_and_never_reexecuted() -> Non
         )
         try:
             observed: list[str] = []
-            with pytest.raises(ProviderError):
-                async for event in runtime.stream("provider-failure", request, idempotency_key=key):
-                    observed.append(event.type)
+            with pytest.raises(ProviderError) as captured:
+                if streaming:
+                    async for event in runtime.stream(
+                        "provider-failure", request, idempotency_key=key
+                    ):
+                        observed.append(event.type)
+                else:
+                    await runtime.invoke("provider-failure", request, idempotency_key=key)
+            assert "PRIVATE-SENTINEL" not in captured.value.public_message
             assert "completed" not in observed
             record = await runs.get_by_idempotency(agent_id="provider-failure", idempotency_key=key)
             assert record is not None

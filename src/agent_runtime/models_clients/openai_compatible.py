@@ -10,14 +10,13 @@ import httpx
 
 from agent_runtime.errors import ProviderError
 from agent_runtime.models import (
-    ContentPart,
     Message,
     RuntimeContext,
     TextContent,
     ToolCall,
-    ToolCallContent,
     Usage,
 )
+from agent_runtime.models_clients._canonical import assembled_result, candidate_index, token_usage
 from agent_runtime.models_clients._http import request_failure, response_json, sse_data
 from agent_runtime.models_clients.base import (
     ModelCompleted,
@@ -91,17 +90,20 @@ class OpenAICompatibleModelClient:
             )
             body = self._mapping(raw_body, "response")
             choices = self._sequence(body.get("choices"), "choices")
+            if len(choices) != 1:
+                raise ProviderError("Model returned multiple choices", retryable=False)
             choice = self._mapping(choices[0], "choice")
+            candidate_index(choice)
             if choice.get("finish_reason") not in (None, "stop", "tool_calls"):
                 raise ProviderError("Model response did not finish successfully", retryable=False)
             provider_message = self._mapping(choice.get("message"), "message")
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
             raise request_failure("OpenAI-compatible model request failed", exc) from exc
 
-        content_parts: list[ContentPart] = []
+        text_chunks: list[str] = []
         content = provider_message.get("content")
         if isinstance(content, str) and content:
-            content_parts.append(TextContent(text=content))
+            text_chunks.append(content)
         tool_calls: list[ToolCall] = []
         raw_tool_calls = provider_message.get("tool_calls", [])
         if isinstance(raw_tool_calls, Sequence) and not isinstance(raw_tool_calls, (str, bytes)):
@@ -123,26 +125,11 @@ class OpenAICompatibleModelClient:
                         "Model returned an invalid tool call", retryable=False
                     ) from exc
                 tool_calls.append(call)
-                content_parts.append(ToolCallContent(tool_call=call))
-        if not content_parts:
+        if not text_chunks and not tool_calls:
             raise ProviderError("Model returned an empty assistant message", retryable=False)
 
-        usage = None
-        raw_usage = body.get("usage")
-        if isinstance(raw_usage, Mapping):
-            usage_mapping = cast(Mapping[str, object], raw_usage)
-            try:
-                usage = Usage(
-                    input_tokens=int(str(usage_mapping.get("prompt_tokens", 0))),
-                    output_tokens=int(str(usage_mapping.get("completion_tokens", 0))),
-                )
-            except (TypeError, ValueError) as exc:
-                raise ProviderError("Model returned invalid usage", retryable=False) from exc
-        return ModelResult(
-            message=Message(role="assistant", content=content_parts),
-            tool_calls=tool_calls,
-            usage=usage,
-        )
+        usage = token_usage(body.get("usage"), "prompt_tokens", "completion_tokens")
+        return assembled_result(text_chunks, tool_calls, usage)
 
     async def stream(
         self,
@@ -193,18 +180,23 @@ class OpenAICompatibleModelClient:
                     body = self._mapping(cast(object, json.loads(data)), "stream event")
                     if "error" in body:
                         raise ProviderError("OpenAI-compatible model stream returned an error")
-                    raw_usage = body.get("usage")
-                    if isinstance(raw_usage, Mapping):
-                        usage_mapping = cast(Mapping[str, object], raw_usage)
-                        usage = Usage(
-                            input_tokens=int(str(usage_mapping.get("prompt_tokens", 0))),
-                            output_tokens=int(str(usage_mapping.get("completion_tokens", 0))),
-                        )
+                    usage = (
+                        token_usage(body.get("usage"), "prompt_tokens", "completion_tokens")
+                        or usage
+                    )
                     choices = body.get("choices")
                     if not isinstance(choices, Sequence) or isinstance(choices, (str, bytes)):
-                        continue
-                    for raw_choice in cast(Sequence[object], choices):
+                        raise ProviderError(
+                            "Model returned invalid stream choices", retryable=False
+                        )
+                    choices = cast(Sequence[object], choices)
+                    if len(choices) > 1:
+                        raise ProviderError(
+                            "Model returned multiple stream choices", retryable=False
+                        )
+                    for raw_choice in choices:
                         choice = self._mapping(raw_choice, "stream choice")
+                        candidate_index(choice)
                         if choice.get("finish_reason") not in (None, "stop", "tool_calls"):
                             raise ProviderError(
                                 "Model stream did not finish successfully", retryable=False
@@ -241,9 +233,6 @@ class OpenAICompatibleModelClient:
         if not completed:
             raise ProviderError("OpenAI-compatible model stream ended before completion")
 
-        content_parts: list[ContentPart] = []
-        if text_chunks:
-            content_parts.append(TextContent(text="".join(text_chunks)))
         tool_calls: list[ToolCall] = []
         try:
             for chunk in (tool_chunks[index] for index in sorted(tool_chunks)):
@@ -256,22 +245,15 @@ class OpenAICompatibleModelClient:
                     arguments=cast(dict[str, Any], arguments),
                 )
                 tool_calls.append(call)
-                content_parts.append(ToolCallContent(tool_call=call))
         except (TypeError, ValueError, json.JSONDecodeError) as exc:
             raise ProviderError(
                 "Model returned an invalid streamed tool call", retryable=False
             ) from exc
-        if not content_parts:
+        if not text_chunks and not tool_calls:
             raise ProviderError(
                 "Model returned an empty streamed assistant message", retryable=False
             )
-        yield ModelCompleted(
-            result=ModelResult(
-                message=Message(role="assistant", content=content_parts),
-                tool_calls=tool_calls,
-                usage=usage,
-            )
-        )
+        yield ModelCompleted(result=assembled_result(text_chunks, tool_calls, usage))
 
     @staticmethod
     def _message_payload(message: Message) -> dict[str, object]:
