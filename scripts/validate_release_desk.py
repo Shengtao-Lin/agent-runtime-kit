@@ -17,7 +17,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--wheel", type=Path, help="Pre-publication candidate override")
     parser.add_argument(
-        "--live", action="store_true", help="Read public GitHub v0.4.0 metadata once"
+        "--live", action="store_true", help="Read public GitHub v0.4.1 metadata once"
     )
     parser.add_argument("--report-dir", type=Path, default=Path("build/release-desk-validation"))
     args = parser.parse_args()
@@ -104,12 +104,15 @@ def main() -> None:
         )
         if args.live:
             key = f"public-canary-{uuid4()}"
-            command = [str(cli), "review", "Shengtao-Lin/agent-runtime-kit", "v0.4.0", "--key", key]
+            command = [str(cli), "review", "Shengtao-Lin/agent-runtime-kit", "v0.4.1", "--key", key]
             streamed = run([*command, "--stream"], capture=True)
             events = [json.loads(line) for line in streamed.stdout.splitlines()]
             assert events[-1]["type"] == "completed"
             response = events[-1]["response"]
-            assert response["tool_results"][0]["output"]["metadata_ready"]
+            review = response["tool_results"][0]["output"]
+            assert review["metadata_ready"]
+            assert review["repository"] == command[2]
+            assert review["tag"] == command[3]
             replay = json.loads(run(command, capture=True).stdout)
             assert replay == response
             history = json.loads(
@@ -132,11 +135,11 @@ def main() -> None:
             (reports / "public-canary.json").write_text(
                 json.dumps(
                     {
-                        "repository": "Shengtao-Lin/agent-runtime-kit",
-                        "tag": "v0.4.0",
+                        "repository": review["repository"],
+                        "tag": review["tag"],
                         "run_id": response["run_id"],
                         "thread_id": response["thread_id"],
-                        "checks": response["tool_results"][0]["output"]["checks"],
+                        "checks": review["checks"],
                         "replay_preserved": True,
                         "feedback_idempotent": True,
                     },

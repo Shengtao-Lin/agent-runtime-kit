@@ -4,15 +4,15 @@ requires-python = ">=3.11"
 
 [[package]]
 name = "agent-runtime-kit"
-version = "0.4.0"
-source = { url = "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.4.0/agent_runtime_kit-0.4.0-py3-none-any.whl" }
+version = "0.4.1"
+source = { url = "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.4.1/agent_runtime_kit-0.4.1-py3-none-any.whl" }
 dependencies = [
     { name = "opentelemetry-api" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
 ]
 wheels = [
-    { url = "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.4.0/agent_runtime_kit-0.4.0-py3-none-any.whl", hash = "sha256:d258042a87ab9070f191838a2b22ee922e7e55f1bf777bb2f3466ae13720d8aa" },
+    { url = "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.4.1/agent_runtime_kit-0.4.1-py3-none-any.whl", hash = "sha256:1ed21402f8a4870a76bc9dc201f7167545f0bddbcead1502cb67a602c23f09f2" },
 ]
 
 [package.optional-dependencies]
@@ -639,7 +639,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "agent-runtime-kit", extras = ["postgres"], url = "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.4.0/agent_runtime_kit-0.4.0-py3-none-any.whl" }]
+requires-dist = [{ name = "agent-runtime-kit", extras = ["postgres"], url = "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.4.1/agent_runtime_kit-0.4.1-py3-none-any.whl" }]
 
 [package.metadata.requires-dev]
 dev = [

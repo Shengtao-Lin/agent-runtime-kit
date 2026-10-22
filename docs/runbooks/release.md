@@ -4,7 +4,7 @@
 
 Use this runbook to prepare and verify an importable library release, publish existing approved
 artifacts through GitHub Actions, and handle failures without silently changing published history.
-The latest published version is v0.4.0. Version metadata is not publication; never move an existing tag.
+The latest published version is v0.4.1. Version metadata is not publication; never move an existing tag.
 
 ## Preconditions
 

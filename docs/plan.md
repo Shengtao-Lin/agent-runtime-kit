@@ -43,3 +43,16 @@ proxies; document it instead of silently coercing their responses.
 
 After this iteration, the next product decision should be grounded in a real host workload or an
 owner-approved credential/cost-scoped provider canary, not features added merely to fill a roadmap.
+
+## Execution outcome
+
+All four stages are implemented. v0.4.1 is published from verified commit `903333b`; the actual
+downloaded wheel passed 127 provider tests, 36 preserved-state upgrade tests and a 106-lifetime
+shared-engine soak. The independent application now pins that actual wheel and passed eight tests
+plus read-only metadata/restart-replay/feedback acceptance. Root pytest passed 363 cases.
+See [publication evidence](validation/v0.4.1-publication.md) for immutable digests, workflow links,
+the Windows regression-fixture correction and the limits of these claims.
+
+The next integration phase requires a concrete host workload or approved provider/model,
+non-sensitive fixture, credential provisioning and spend cap. These choices are not inferred from
+offline tests, and no credentials should be committed or pasted into repository documentation.
