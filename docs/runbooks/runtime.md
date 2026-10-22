@@ -99,9 +99,9 @@ async for event in runtime.stream(
 The stream budget starts on first iteration and includes partial-event backpressure. Delivery
 to a paused consumer after durable completion is not deadline-bound.
 
-### Native invocation usage (unreleased)
+### Native invocation usage (v0.4.2)
 
-On the current development branch, `NativeAgentInvoker` reports the sum of input and output
+Starting with v0.4.2, `NativeAgentInvoker` reports the sum of input and output
 tokens across every model call in one successful invocation, including tool-selection calls.
 This applies equally to `invoke()`, `stream()` and streaming with a generate-only model client.
 If any call omits complete usage, the invocation reports `None`; it never labels a known subset

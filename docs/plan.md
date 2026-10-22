@@ -82,3 +82,10 @@ Pyright; the non-editable candidate wheel passed 238 standalone provider/native 
 The pre-fix PostgreSQL batch reproduced six failures (four usage cases and two invalid-tool paths),
 and the standalone native batch reproduced 15 failures before the fix. Independent review found
 no blockers. Exact-head GitHub CI and downstream application checks remain the promotion gate.
+
+The follow-up v0.4.2 candidate adds the SHA-256-pinned actual v0.4.1 upgrade to CI and Release,
+retaining all six historical source paths. Local candidate acceptance passed 36 preserved-state
+upgrade cases (four historical gap probes deselected), 238 installed-wheel provider/native cases,
+and a 30-second shared-engine soak with 100 completed lifetimes. Version metadata is preparation,
+not publication: tag only verified main, then verify the actual immutable assets. Release Desk's
+published lock remains v0.4.1 until that post-publication adoption step is completed.

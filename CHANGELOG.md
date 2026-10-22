@@ -4,10 +4,17 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ## Unreleased
 
+No changes yet.
+
+## 0.4.2 - 2026-10-22
+
 - Aggregate native invocation usage across all model calls, retaining unknown totals when any call
   omits usage; cover streaming fallback, persisted responses and exact idempotent replay.
 - Reject malformed provider tool identities, argument containers and stream indices before tool
-  execution, and validate these contracts from an installed wheel outside the source checkout.
+  execution, including duplicate IDs within a completed result. Validate these contracts from an
+  installed wheel outside the source checkout.
+- Add checksum-pinned actual v0.4.1 preserved-state upgrades to CI and Release gates while retaining
+  all historical upgrade paths.
 - Update Release Desk's independent lock and published provenance assertions to the actual v0.4.1
   wheel, refresh installation references and record actual-asset upgrade/provider adoption evidence.
 
