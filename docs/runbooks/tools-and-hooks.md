@@ -69,7 +69,39 @@ has already reached the consumer; they are not pre-disclosure moderation.
 
 Synchronous handlers execute in threads. A timeout/cancellation stops awaiting a result, not the
 underlying thread or its external side effects. Bounded JSON-compatible output is a host obligation;
-the canonical `Any` result field does not enforce a universal byte limit.
+development source adds JSON-value validation below, but still imposes no universal byte limit.
+
+## Tool Payload Boundary (Development)
+
+These checks are in development source, **not** published v0.4.2. Canonical `ToolCall.arguments`,
+`ToolResult.output` and `ToolResultContent.result` accept plain JSON values: null, booleans, strings,
+integers, finite floats, lists and dictionaries with string keys. Arguments must be an object.
+Reject NaN/infinities, cycles, tuples, sets, bytes, non-string object keys and Python objects such as
+Pydantic models instead of relying on implicit serialization. Shared acyclic containers are valid.
+
+For migration, explicitly convert application objects to dictionaries/lists/strings at the handler
+or provider edge, and choose a documented representation for unknown numeric values. The kit does
+not turn NaN into null or stringify arbitrary objects for you. Input models may still parse valid
+JSON into typed Python handler arguments; this does not permit Python objects on the incoming
+canonical boundary. Field annotations remain `Any`; value validation is stricter than the schema.
+
+| Boundary | Failure | Side-effect timing |
+| --- | --- | --- |
+| Ordinary canonical model construction | Pydantic `ValidationError` | No handler is invoked by construction |
+| Native model-result consumption | Non-retryable `provider_failure` | Whole result checked before its first tool |
+| Registry input JSON/schema | `invalid_tool_arguments` | Before hooks and handler |
+| Registry handler output | Non-retryable `tool_execution_failed` | Handler has run; before after-tool hooks |
+| Registry result after hooks | Non-retryable `tool_execution_failed` | Handler and hooks may already have effects |
+
+Registry returns a detached snapshot after successful output checks. Hooks are observation/blocking
+interfaces, not a supported argument-transform pipeline. A failed output cannot undo an external
+effect. Reconcile that effect before deciding on a new run; a failed idempotency key never triggers
+automatic reexecution. Framework-native tools bypass the registry unless explicitly integrated;
+canonical conversion after framework execution cannot prevent an earlier framework side effect.
+
+There is no universal payload byte cap or sandbox guarantee. Hosts still bound sizes, concurrency
+and downstream work. JSON validity alone does not guarantee that every persistence backend accepts
+every numeric/string value. See [ADR 0014](../adr/0014-model-result-and-tool-payload-contracts.md).
 
 ## Design Checklist
 
@@ -85,7 +117,7 @@ the canonical `Any` result field does not enforce a universal byte limit.
 ## Verification
 
 ```bash
-uv run pytest tests/unit/test_tools.py tests/unit/test_hooks.py tests/unit/test_native.py -q
+uv run pytest tests/unit/test_tools.py tests/unit/test_tool_payloads.py tests/unit/test_hooks.py tests/unit/test_native.py -q
 ```
 
 Add application tests for valid input, each validation boundary, synchronous and asynchronous

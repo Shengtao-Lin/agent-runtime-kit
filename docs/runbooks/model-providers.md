@@ -95,7 +95,7 @@ uv run pytest tests/unit/test_openai_compatible.py tests/unit/test_anthropic.py 
 
 ### Direct-library canonical boundary
 
-These guarantees also apply when calling adapters directly, without `AgentRuntime` or a native
+These guarantees also apply when calling the built-in HTTP adapters directly, without `AgentRuntime` or a native
 invoker. Text exceeding 32,000 characters per canonical text part, messages exceeding 64 content
 parts and invalid canonical tool calls fail with safe `ProviderError` (`provider_failure`,
 `retryable=false`), not a raw Pydantic validation message. Stream deltas remain provisional;
@@ -135,6 +135,50 @@ executed in an earlier, already valid model-loop iteration are not rolled back b
 Native invocation token totals are described in the [runtime runbook](runtime.md#native-invocation-usage-v042).
 Provider-level usage remains per model call. These fixes are included in published v0.4.2;
 v0.4.1 does not contain them.
+
+### Custom model result contract (development)
+
+The following checks are in development source and are **not** in published v0.4.2. Keep
+`ModelResult.message` and `ModelResult.tool_calls` consistent when implementing a custom provider:
+
+```python
+from agent_runtime.models import Message, ToolCall, ToolCallContent
+from agent_runtime.models_clients import ModelResult
+
+call = ToolCall(id="lookup-1", name="lookup_order", arguments={"order_id": "DEMO-42"})
+result = ModelResult(
+    message=Message(role="assistant", content=[ToolCallContent(tool_call=call)]),
+    tool_calls=[call],
+)
+```
+
+For a text-only response, use an assistant message with text parts and leave `tool_calls` empty.
+For tools, both representations must contain the same ordered IDs, names and JSON arguments.
+IDs must be unique within one result. Text parts may appear between calls, and different calls
+can share a tool name or arguments. Object key order does not matter; array order and primitive
+representations do (`true`, `1` and `1.0` are different). Empty argument objects remain valid.
+Populate both fields explicitly; the library does not derive or repair a missing list.
+
+Ordinary construction raises `ValidationError` for invalid results. `NativeAgentInvoker` also
+revalidates and snapshots the complete result before dispatch/history/usage accumulation, covering
+mutation, `model_copy(update=...)` and `model_construct(...)`. Invoke, native stream and generate-only
+stream fallback all apply this boundary. Model streams must first satisfy normal EOF/closure.
+Validation failures at native consumption, including those raised during provider construction,
+become `ProviderError(retryable=False)` with no payload in the public message. A malformed later
+call prevents earlier calls in that same result from executing; earlier completed model rounds
+and already emitted provisional text cannot be undone.
+
+Tool payloads must be finite JSON values; see the [tool payload boundary](tools-and-hooks.md#tool-payload-boundary-development).
+Convert Python objects explicitly in the adapter. These are cooperative library checks, not a
+sandbox for arbitrary extensions or a byte-size bound. Protect exception causes as internal data.
+Run the custom-provider checks in the project venv:
+
+```bash
+uv run pytest tests/unit/test_model_result_contracts.py tests/unit/test_model_stream_contracts.py -q
+```
+
+The same tests run from an external non-editable wheel via `scripts/validate_providers.py`.
+See [ADR 0014](../adr/0014-model-result-and-tool-payload-contracts.md) for compatibility and scope.
 
 ### Streaming completion boundary
 

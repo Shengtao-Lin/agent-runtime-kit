@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
+from pydantic import ValidationError
+
 from agent_runtime._streams import checked_stream, close_source
 from agent_runtime.adapters.base import (
     AgentCompleted,
@@ -21,6 +23,7 @@ from agent_runtime.models import (
     ToolResultContent,
     Usage,
 )
+from agent_runtime.models_clients._canonical import checked_result
 from agent_runtime.models_clients.base import ModelClient, ModelResult, StreamingModelClient
 from agent_runtime.telemetry import RuntimeTelemetry
 from agent_runtime.tools.registry import ToolRegistry
@@ -90,9 +93,14 @@ class NativeAgentInvoker:
                     )
             except RuntimeKitError:
                 raise
+            except ValidationError as exc:
+                raise ProviderError(
+                    "Model returned an invalid canonical result", retryable=False
+                ) from exc
             except Exception as exc:
                 raise ProviderError("Model generation failed") from exc
 
+            result = checked_result(result)
             usage = _combined_usage(usage, result.usage)
             generated_messages.append(result.message)
             working_messages.append(result.message)
@@ -171,11 +179,16 @@ class NativeAgentInvoker:
                         )
             except RuntimeKitError:
                 raise
+            except ValidationError as exc:
+                raise ProviderError(
+                    "Model returned an invalid canonical result", retryable=False
+                ) from exc
             except Exception as exc:
                 raise ProviderError("Model generation failed") from exc
 
             if result is None:
                 raise ProviderError("Model stream ended without a completed result")
+            result = checked_result(result)
             usage = _combined_usage(usage, result.usage)
             generated_messages.append(result.message)
             working_messages.append(result.message)

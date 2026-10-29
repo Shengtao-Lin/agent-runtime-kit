@@ -4,6 +4,15 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ## Unreleased
 
+- Require an assistant `ModelResult` with matching ordered message/dispatch tool calls and unique
+  call IDs per result. Revalidate and snapshot custom results before native dispatch/history in
+  invoke, stream and generate-only fallback modes; reject invalid results with non-retryable
+  provider errors.
+- Validate tool arguments/results as finite JSON values without implicit Python-object coercion.
+  Registry argument checks precede handlers; output checks follow handlers and cannot undo their
+  effects. This tightens accepted custom-provider/tool values; see ADR 0014 for migration.
+- Protect framework usage semantics separately from native totals, including history exclusion,
+  explicit zero and envelope overrides.
 - Validate terminal streams through a shared private boundary for native/custom invokers and
   framework adapters: exactly one completion, no later events, and deterministic source closure.
   Hold completion until normal EOF before tool dispatch or durable success. Public v0.4.2 assets

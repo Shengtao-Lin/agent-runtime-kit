@@ -15,6 +15,8 @@ from pydantic import (
     model_validator,
 )
 
+from agent_runtime._json import validate_json_value
+
 MAX_METADATA_KEYS = 64
 MAX_METADATA_BYTES = 16_384
 
@@ -66,6 +68,8 @@ class ToolCall(StrictModel):
     name: str = Field(pattern=r"^[a-zA-Z][a-zA-Z0-9_.-]{0,127}$")
     arguments: dict[str, Any] = Field(default_factory=dict)
 
+    _validate_arguments = field_validator("arguments", mode="before")(validate_json_value)
+
 
 class ToolCallContent(StrictModel):
     """A tool-call message part."""
@@ -80,6 +84,8 @@ class ToolResultContent(StrictModel):
     type: Literal["tool_result"] = "tool_result"
     tool_call_id: str = Field(min_length=1, max_length=256)
     result: Any
+
+    _validate_result = field_validator("result", mode="before")(validate_json_value)
 
 
 ContentPart = Annotated[
@@ -123,6 +129,8 @@ class ToolResult(StrictModel):
     status: Literal["succeeded", "failed"]
     output: Any = None
     error_code: str | None = None
+
+    _validate_output = field_validator("output", mode="before")(validate_json_value)
 
 
 def _empty_tool_results() -> list[ToolResult]:
