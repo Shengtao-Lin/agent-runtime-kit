@@ -3,6 +3,8 @@
 Reviewed against v0.4.2 source on 2026-10-28. This describes implemented behavior unless marked
 **proposed**. [The plan](plan.md) owns future work; [ADRs](adr/README.md) explain decisions;
 [runbooks](runbooks/README.md) explain operation. Release evidence is not production certification.
+Development-source streaming changes added on 2026-10-29 are labeled below; they are not in the
+immutable v0.4.2 release.
 
 ## Product boundary
 
@@ -53,10 +55,9 @@ Core imports must remain usable without HTTP, database or framework extras. Pyda
 zero-dependency library. Optional implementations use explicit modules/lazy imports. Business
 logic must not flow from examples or applications into the package.
 
-**Known layering debt:** `runtime.py` imports a generic iterator-close helper from
-`adapters/framework_streaming.py`. It does not eagerly load a framework, but a framework-named
-module is the wrong long-term home for a core utility. Move it to a neutral private boundary
-with conformance tests, not by introducing another public abstraction.
+**Development source:** iterator closure and terminal validation now live in private `_streams.py`.
+Runtime no longer imports this utility from a framework-named module. No public API or additional
+queue is introduced. The dated review retains the original v0.4.2 layering finding.
 
 ## Execution paths and policy coverage
 
@@ -134,10 +135,14 @@ a 64-item queue for backpressure. Text/tool-result events are provisional. Repla
 stored outcome, not a saved token event log; SSE is not a resumable event service.
 
 Framework wrappers default to terminal fallback and support explicit incremental streaming.
-Their event validator requires one completion and no following events. Built-in providers validate
-their supported protocols. **These checks are not yet uniform for arbitrary custom streams:**
-generic model/invoker loops can accept duplicate completions. Shared extension conformance is
-priority work in [the plan](plan.md).
+Built-in providers validate their supported protocols. **Development source** uses one private
+validator for framework streams, custom model streams consumed by the native loop, and custom
+invoker streams consumed by runtime. It withholds completion until normal source exhaustion,
+rejects missing/duplicate completions and later events, and closes the source on failure,
+cancellation or abandonment. Sources must terminate after completion; the invocation deadline
+still applies while waiting for EOF. Direct calls to arbitrary custom implementations bypass these
+kit boundaries. Published v0.4.2 lacks the generic model/invoker enforcement; remaining extension
+result-consistency work is in [the plan](plan.md).
 
 Canonical content is text, tool calls and tool results, not a universal multimodal/reasoning/artifact
 format. `StrictModel` rejects extra fields; it is not globally strict or immutable. Text, content

@@ -18,7 +18,8 @@ optional integrations and host-owned resources. See [architecture](architecture.
 - The 2026-10-28 review used release commit `b4bf577` and publication documentation at `68ac428`.
   [Publication PR #33](https://github.com/Shengtao-Lin/agent-runtime-kit/pull/33) subsequently passed
   CI and merged on 2026-10-29. This revision preserves that review's evidence and current priorities.
-- Release Desk still pins actual v0.4.1. Candidate v0.4.2 checks are not actual adoption.
+- Release Desk now pins actual v0.4.2. PR #35 passed the independent application's published/candidate
+  matrix; its published Python 3.12 job also verified a public metadata canary and cross-process replay.
 - Existing gates cover real PostgreSQL, non-editable wheels, preserved-state upgrades, container
   shutdown and selected dependency matrices. They do not prove universal extension conformance,
   production load capacity or account-specific provider compatibility.
@@ -38,6 +39,10 @@ compatibility impact and acceptance criteria are known.
 
 ## A. Complete actual-release adoption
 
+Completed on 2026-10-29 in PR #35: the published wheel's pinned URL/digest, eight application tests
+and public metadata/restart/history/feedback acceptance passed in CI with real PostgreSQL.
+Local Docker was unavailable; these are CI results, not a local-database claim.
+
 1. Review/finish publication documentation without replacing existing tags or assets.
 2. Update Release Desk's manifest, independent lock and provenance assertions to the actual
    v0.4.2 URL/digest. Avoid unrelated dependency upgrades.
@@ -54,6 +59,10 @@ by itself require another library release.
 This is the highest-priority library correctness work; do it before adding more adapters.
 
 ### B1. One terminal result at every streaming boundary
+
+Implemented in development source on 2026-10-29: shared private terminal/closure handling, seven
+reproduced regression failures, custom-model unit fixtures and PostgreSQL failure/replay tests.
+Promotion still requires the complete PR checks. This behavior is not in published v0.4.2.
 
 - Write failing public-protocol fixtures for custom model/agent streams: missing/duplicate
   completion, events after completion, partial failure, cancellation and iterator closure.

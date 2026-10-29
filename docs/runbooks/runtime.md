@@ -99,6 +99,14 @@ async for event in runtime.stream(
 The stream budget starts on first iteration and includes partial-event backpressure. Delivery
 to a paused consumer after durable completion is not deadline-bound.
 
+### Custom stream completion (development source)
+
+Custom invoker streams must yield one completed output and then end normally. Runtime now validates
+that sequence and closes the iterator; a missing completion or a later event fails with
+`AgentInvocationError` before durable success. A source waiting forever after completion remains
+subject to the invocation deadline. This development behavior is not in published v0.4.2.
+See [ADR 0013](../adr/0013-terminal-stream-conformance.md).
+
 ### Native invocation usage (v0.4.2)
 
 Starting with v0.4.2, `NativeAgentInvoker` reports the sum of input and output

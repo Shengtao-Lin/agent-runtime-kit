@@ -17,7 +17,7 @@ from langgraph.graph import END, START, StateGraph
 from typing_extensions import TypedDict
 
 from agent_runtime.adapters import LangChainRunnableAdapter, LangGraphAdapter
-from agent_runtime.adapters.base import AgentCompleted, AgentStreamEvent
+from agent_runtime.adapters.base import AgentCompleted, AgentStreamEvent, AgentTextDelta
 from agent_runtime.adapters.framework_messages import framework_input
 from agent_runtime.adapters.langchain import AsyncRunnable
 from agent_runtime.adapters.langgraph import AsyncGraph
@@ -96,7 +96,8 @@ async def test_partial_failure_and_close_preserve_teardown() -> None:
 
 
 @pytest.mark.asyncio
-async def test_custom_mapper_cannot_emit_after_completion() -> None:
+@pytest.mark.parametrize("shape", ["duplicate", "late_text", "missing"])
+async def test_custom_mapper_cannot_emit_after_completion(shape: str) -> None:
     async def generate(value: object) -> AsyncIterator[AIMessageChunk]:
         del value
         yield AIMessageChunk(content="one")
@@ -108,8 +109,13 @@ async def test_custom_mapper_cannot_emit_after_completion() -> None:
         from agent_runtime.models import InvocationOutput
 
         output = InvocationOutput(messages=invocation.messages)
+        if shape == "missing":
+            return
         yield AgentCompleted(output=output)
-        yield AgentCompleted(output=output)
+        if shape == "duplicate":
+            yield AgentCompleted(output=output)
+        else:
+            yield AgentTextDelta(delta="PRIVATE-SENTINEL")
 
     adapter = LangChainRunnableAdapter(
         agent_id="stream",
@@ -117,8 +123,11 @@ async def test_custom_mapper_cannot_emit_after_completion() -> None:
         runnable=cast(AsyncRunnable, RunnableLambda(generate)),
         stream_mapper=malformed,
     )
+    observed: list[str] = []
     with pytest.raises(AgentInvocationError):
-        _ = [event async for event in adapter.stream(request())]
+        async for event in adapter.stream(request()):
+            observed.append(event.type)
+    assert "completed" not in observed
 
 
 class State(TypedDict):

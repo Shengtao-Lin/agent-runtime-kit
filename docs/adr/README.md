@@ -18,6 +18,7 @@ historical ADRs. Amend decisions explicitly; do not silently treat old implement
 | [0010](0010-framework-incremental-streaming.md) | Opt-in framework streams | Default terminal fallback remains |
 | [0011](0011-managed-runtime-lifetime.md) | Explicit managed runtime lifetime | Implemented in v0.4.0; host owns dependencies |
 | [0012](0012-library-first-evolution.md) | Library-first evolution | Current direction; proposed work is tracked in the plan |
+| [0013](0013-terminal-stream-conformance.md) | Terminal stream conformance | Development implementation; completion withheld until source EOF/cleanup |
 
 The original lifetime ADR also used number 0010. Its
 [old path](0010-managed-runtime-lifetime.md) is a navigation alias, not another numbered decision.
