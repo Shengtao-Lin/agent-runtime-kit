@@ -31,10 +31,16 @@ Before registration, decide:
 | Adapter | Use when | Streaming behavior |
 | --- | --- | --- |
 | `NativeAgentInvoker` | You want the kit's bounded provider/tool loop | True incremental streaming when the model client supports it |
-| `LangChainRunnableAdapter` | You have an async object with `ainvoke()` | Non-streaming fallback unless a custom streaming invoker is implemented |
-| `LangGraphAdapter` | You have a compiled async graph with `ainvoke()` | Non-streaming fallback unless a custom streaming invoker is implemented |
+| `LangChainRunnableAdapter` | You have an async object with `ainvoke()` | Terminal fallback by default; opt-in `streaming=True`, with `stream_mapper` for custom shapes |
+| `LangGraphAdapter` | You have a compiled async graph with `ainvoke()` | Terminal fallback by default; opt-in `streaming=True`, with explicit stream mapping/node selection |
 
 All three satisfy the same registry and runtime contracts.
+
+Shared contracts do not imply identical internal policy. Runtime hooks bracket the entire invoker.
+Only tools deliberately routed through a configured `ToolRegistry` receive its validation, timeouts
+and hooks; framework-native tools remain host-owned. Default framework usage mapping takes the last
+new AI message that supplies usage unless an explicit output envelope overrides it. Native usage
+instead sums all calls, retaining unknown totals. See the [architecture](../architecture.md).
 
 ## Integration Workflows
 

@@ -1,6 +1,11 @@
 # ADR 0008: Full Invocation Deadline and Bounded Cleanup
 
-Status: Accepted for v0.2.0 development.
+Status: Accepted; implemented in v0.2.0.
+
+Current applicability: [ADR 0009](0009-fenced-thread-ownership.md) supplies the lease/recovery work
+referenced below. Cleanup may still fail during an outage; later recovery marks the expired run
+failed and never resumes execution. [ADR 0011](0011-managed-runtime-lifetime.md) adds optional checked
+lifetime management without replacing these budgets.
 
 ## Context
 

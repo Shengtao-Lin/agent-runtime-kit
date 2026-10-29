@@ -12,26 +12,13 @@ PostgreSQL-backed memory.
 > example are runnable. Authentication and production deployment controls remain application
 > concerns.
 
-The v0.2.0 release adds wheel-only migrations, atomic finalization, full cooperative deadlines,
-and fenced thread ownership/recovery. It requires a drained-worker database upgrade to `0002`.
-Read the [upgrade guide](docs/upgrading-to-v0.2.0.md) before upgrading from v0.1.1.
-The v0.3.0 release adds opt-in incremental framework streaming and broader independent-consumer,
-dependency compatibility, fault and performance evidence. Schema remains `0002`.
-See the [v0.3.0 upgrade guide](docs/upgrading-to-v0.3.0.md) and
-[publication evidence](docs/validation/v0.3.0-publication.md).
-v0.3.1 hardens provider completion, bounded decoding and safe retry hints; see its
-[upgrade guide](docs/upgrading-to-v0.3.1.md) and [publication evidence](docs/validation/v0.3.1-publication.md).
-v0.4.0 adds optional checked runtime lifetimes, public signature checks and sustained-operation
-gates. See its [upgrade guide](docs/upgrading-to-v0.4.0.md) and
-[publication evidence](docs/validation/v0.4.0-publication.md).
-v0.4.1 hardens direct-library provider validation, unknown usage and single-candidate mapping;
-see its [upgrade guide](docs/upgrading-to-v0.4.1.md) and
-[publication evidence](docs/validation/v0.4.1-publication.md).
-v0.4.2 sums native multi-call usage and rejects malformed tool calls before execution;
-see the [upgrade guide](docs/upgrading-to-v0.4.2.md) and
-[publication evidence](docs/validation/v0.4.2-publication.md).
-The [initial-spec closure report](docs/validation/initial-spec-closure.md) records implemented
-features, concrete acceptance evidence, and deliberately limited framework/security boundaries.
+Current compatibility axes are package v0.4.2, canonical contract `v1` and PostgreSQL schema `0002`.
+Read the [current upgrade guide](docs/upgrading-to-v0.4.2.md); upgrades from v0.1.1 additionally
+require the drained-worker [schema upgrade procedure](docs/upgrading-to-v0.2.0.md).
+See [actual publication evidence](docs/validation/v0.4.2-publication.md) for tested scope,
+[the changelog](CHANGELOG.md) for release history, and [the documentation map](docs/README.md)
+for architecture, integration and operations. [The development plan](docs/plan.md) prioritizes
+extension correctness and independent-host adoption over adding platform features.
 
 ## Why this project
 
@@ -41,12 +28,13 @@ runtime concerns without requiring application teams to adopt one orchestration 
 
 ```mermaid
 flowchart TD
-    Caller[HTTP or Python caller] --> Runtime[AgentRuntime]
+    Caller[Application-owned Python or HTTP host] --> Runtime[AgentRuntime]
     Runtime --> Registry[AgentRegistry]
     Registry --> Native[Native invoker]
     Registry --> LC[LangChain adapter]
     Registry --> LG[LangGraph adapter]
-    Runtime --> Policy[Tools, hooks, guardrails]
+    Runtime --> Policy[Invocation hooks]
+    Native --> Tools[Configured tools and tool hooks]
     Runtime --> Postgres[(PostgreSQL)]
     Runtime --> OTEL[OpenTelemetry]
 ```
@@ -311,8 +299,9 @@ data and requires an explicit privacy, retention, and access-control review.
 
 The [independent consumer validation](validation/consumer/README.md) installs a published or built
 wheel into a separate application venv outside the checkout. Its
-[integration report](docs/validation/independent-consumer.md) records normal workflows and the
-reliability work proposed for v0.2.0.
+[integration report](docs/validation/independent-consumer.md) preserves the original workflow probes
+and historical reliability gaps; current shipped acceptance is recorded in the
+[release evidence](docs/validation/v0.4.2-publication.md).
 
 ```bash
 make install
@@ -355,8 +344,9 @@ responsibilities outside this MVP. The demonstration guardrails are not a produc
 The MVP does not include an evaluation platform, workflow builder, hosted control plane, vector
 search, background scheduler, semantic retrieval, or multiple persistence backends.
 
-See the [user runbook](docs/user-runbook.md), [architecture notes](docs/architecture.md),
-[component runbooks](docs/runbooks/README.md), [ADRs](docs/adr), and [changelog](CHANGELOG.md) for
+See the [documentation map](docs/README.md), [architecture notes](docs/architecture.md),
+[development plan](docs/plan.md), [component runbooks](docs/runbooks/README.md),
+[ADR index](docs/adr/README.md), and [changelog](CHANGELOG.md) for
 installation, operations, design, and release details.
 
 ## Independent project disclaimer

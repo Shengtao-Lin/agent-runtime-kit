@@ -3,6 +3,16 @@
 - Status: Accepted
 - Date: 2026-10-20
 
+## Current applicability
+
+The atomic-finalization decision remains accepted. [ADR 0008](0008-full-invocation-deadline.md)
+extends deadline/cleanup coverage; [ADR 0009](0009-fenced-thread-ownership.md) adds shipped ownership
+and recovery. In current code, mutation locks are **thread then run**, not the original run-first
+sequence described below. References below to planned recovery or absent fencing are historical
+scope at this decision's adoption, not current limitations. Atomicity still excludes external tool
+effects, standalone memory writes and feedback. Current `fail_if_running()` settles both accepted
+and running states; the running-only description below reflects the original scope.
+
 ## Context
 
 The v0.1.1 runtime appended messages and saved the successful run/response in separate transactions.

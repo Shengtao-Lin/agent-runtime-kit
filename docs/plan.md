@@ -1,98 +1,153 @@
-# Next Iteration: Direct-Library Provider Contracts
+# Development Plan
 
-## Baseline and decision
+Reviewed on 2026-10-28 against v0.4.2. This is the living implementation queue, not a release log
+or authorization to spend money, select credentials or change production systems. Historical
+execution records are [archived separately](validation/iteration-history-through-v0.4.2.md).
 
-As of 2026-10-21, v0.4.0 is published, the independent Release Desk application consumes its
-SHA-256-pinned wheel, main CI is green, and no PR is open. The initial specification is implemented;
-v0.4 additionally provides optional managed runtime lifetimes and installed-wheel sustained probes.
-See [initial closure](validation/initial-spec-closure.md) and
-[v0.4 publication](validation/v0.4.0-publication.md). These do not establish production certification.
+## Direction and baseline
 
-The next bounded iteration is v0.4.1, not a new orchestration framework or sample-agent feature set.
-Direct importable adapter calls must receive safe provider failures just as runtime callers do.
-The first offline regression batch reproduced 23 failures out of 58 cases on the v0.4.0 source:
-canonical text validation escaped in four paths, absent/partial usage invented zero counts,
-numeric-string token counts were coerced, and unsupported multiple choices/candidates were accepted.
+Keep a small importable runtime library that makes one application-owned agent invocation durable,
+observable and explicit about failure. Preserve framework-owned execution, one conversation owner,
+optional integrations and host-owned resources. See [architecture](architecture.md),
+[ADR 0012](adr/0012-library-first-evolution.md) and the
+[design review](validation/architecture-review-2026-10-28.md).
 
-## Execution and acceptance
+- Initial capability scope is implemented; see [initial-spec closure](validation/initial-spec-closure.md).
+- v0.4.2 is published with atomic/fenced persistence, optional checked lifetime management,
+  provider validation and native whole-invocation usage. Contract is `v1`, schema `0002`.
+- The 2026-10-28 review used release commit `b4bf577` and publication documentation at `68ac428`.
+  [Publication PR #33](https://github.com/Shengtao-Lin/agent-runtime-kit/pull/33) subsequently passed
+  CI and merged on 2026-10-29. This revision preserves that review's evidence and current priorities.
+- Release Desk still pins actual v0.4.1. Candidate v0.4.2 checks are not actual adoption.
+- Existing gates cover real PostgreSQL, non-editable wheels, preserved-state upgrades, container
+  shutdown and selected dependency matrices. They do not prove universal extension conformance,
+  production load capacity or account-specific provider compatibility.
 
-1. **Provider boundaries:** shared private canonical assembly, honest unknown usage, strict supplied
-   token counts and single-candidate enforcement. Add mocked-HTTP generate/stream regressions,
-   including response closure and no successful completion after validation failure. Preserve
-   public signatures, canonical contract v1, schema 0002 and dependency ranges.
-2. **Durable failure:** real PostgreSQL tests must retain failed/provider_failure records with no
-   response or partial history; retrying a failed key must not call the provider again.
-3. **Distribution gate:** run full venv pytest, formatting, lint and strict typing. Execute the
-   new contract tests from a non-editable installed wheel outside the checkout. Add SHA-256-pinned
-   actual v0.4.0 upgrade acceptance to CI/Release while retaining historical gates and short soak.
-4. **Release and adoption:** merge only verified PR heads; tag only verified main. Publish v0.4.1
-   through existing gates, download/check actual immutable assets, rerun provider/upgrade acceptance,
-   then update the independent application's own lock to that actual wheel and validate it.
+## Priority order
 
-## Authority, stop conditions and non-goals
+| Stage | Outcome | Depends on |
+| --- | --- | --- |
+| A. Close release adoption | One independent application consumes actual v0.4.2 | Verified assets and passing publication-documentation checks |
+| B. Enforce extension contracts | Custom extensions obey terminal and canonical invariants | Current-state review; no paid provider needed |
+| C. Guard library boundaries | CI detects import, packaging, API and compatibility drift | Public-surface inventory and focused tests |
+| D. Validate one host workload | Resource and side-effect requirements drive API decisions | A named host scenario and operating envelope |
 
-Communicate in Chinese; keep repository/PR/commit text English. Tests use venv and pytest. Scoped
-implementation, pushes, PRs, merges and publication proceed under owner authorization. Recheck weekly
-usage between stages; stop at 50% used or when credentials, account configuration, paid operations or
-material product decisions require the owner. Do not consume usage reset credits automatically.
+A and B can be prepared independently; keep separate PRs and acceptance evidence. Documentation
+clarification does not implement B/C/D. Do not promise a version or feature release before its
+compatibility impact and acceptance criteria are known.
 
-No live model calls, production load claims, automatic provider retries, new authentication/tenant
-platform, RAG, scheduler, UI, database backend or PyPI configuration are included. Unknown usage
-remains unknown, not a billing estimate. A stricter malformed-input boundary may expose incompatible
-proxies; document it instead of silently coercing their responses.
+## A. Complete actual-release adoption
 
-After this iteration, the next product decision should be grounded in a real host workload or an
-owner-approved credential/cost-scoped provider canary, not features added merely to fill a roadmap.
+1. Review/finish publication documentation without replacing existing tags or assets.
+2. Update Release Desk's manifest, independent lock and provenance assertions to the actual
+   v0.4.2 URL/digest. Avoid unrelated dependency upgrades.
+3. Validate its own lock from an external venv; run application pytest and a read-only public
+   metadata canary, cross-process exact replay, history and feedback idempotency.
+4. Record provenance/results; update adoption status only after success.
 
-## Execution outcome
+**Exit:** the independent application imports no checkout/example code, consumes the published
+digest, and passes its current tests and restart acceptance. Adopting a published wheel does not
+by itself require another library release.
 
-All four stages are implemented. v0.4.1 is published from verified commit `903333b`; the actual
-downloaded wheel passed 127 provider tests, 36 preserved-state upgrade tests and a 106-lifetime
-shared-engine soak. The independent application now pins that actual wheel and passed eight tests
-plus read-only metadata/restart-replay/feedback acceptance. Root pytest passed 363 cases.
-See [publication evidence](validation/v0.4.1-publication.md) for immutable digests, workflow links,
-the Windows regression-fixture correction and the limits of these claims.
+## B. Strengthen custom extension contracts
 
-The next integration phase requires a concrete host workload or approved provider/model,
-non-sensitive fixture, credential provisioning and spend cap. These choices are not inferred from
-offline tests, and no credentials should be committed or pasted into repository documentation.
+This is the highest-priority library correctness work; do it before adding more adapters.
 
-## Follow-up: bounded library correctness sprint
+### B1. One terminal result at every streaming boundary
 
-On 2026-10-22 the owner authorized a 30-minute continuation without the earlier weekly-usage
-stop line. The scope remains implementation, validation and checked PR promotion; it does not
-infer live provider credentials, paid calls or production certification.
+- Write failing public-protocol fixtures for custom model/agent streams: missing/duplicate
+  completion, events after completion, partial failure, cancellation and iterator closure.
+- Use one private, framework-neutral terminal-validation pattern at model and invoker boundaries.
+  Preserve closure/backpressure; do not introduce another queue at each translation layer.
+- Keep provider wire completion distinct from canonical stream completion.
 
-The next two reproduced defects are correctness issues in the importable library:
+**Exit:** invalid streams cannot execute tools from an ambiguous model result or commit successful
+history. Cover calls through kit adapters/invokers or the conformance harness, runtime durable
+failure and valid framework mappers. Arbitrary direct calls to custom implementations cannot be
+intercepted by the library. Document safe errors; no blanket retry policy change is implicit.
 
-1. Native tool loops return only the final model call's usage. Aggregate every model call within
-   one invocation; if any call has unknown usage, retain `None` for the whole invocation. Cover
-   generate, streaming, generate-only fallback, invocation isolation, durable storage and replay.
-2. Malformed provider tool identities and stream indices can reach local tool execution. Reject
-   malformed supported fields before completing a model result, preserve safe provider errors,
-   and prove a valid earlier call in the same response is not executed either.
+### B2. One unambiguous model/tool result
 
-Run standalone public-contract fixtures from the installed candidate wheel as well as root venv
-pytest, real PostgreSQL, formatting, lint and typing. Merge only at the exact passing PR head.
-Keep public signatures, schema 0002 and canonical contract v1 unchanged. This sprint does not
-replace the immutable v0.4.1 assets; unreleased source behavior must be identified explicitly.
+- Specify correspondence between assistant tool-call parts and `ModelResult.tool_calls`: identity,
+  order, name and arguments. Add mismatched-list, duplicate-ID and invalid-role regressions first.
+- Prefer shared validation retaining current fields over removing redundant fields immediately.
+  If the public shape must change, record a separate ADR and migration path.
+- Specify JSON-compatible tool payload semantics, including non-finite numbers. State whether
+  validation occurs before a tool, after a tool or at persistence; failure cannot undo an external
+  effect. Numeric size-limit defaults depend on Stage D's host measurements and are deferred until
+  then; they do not block the result-correspondence or terminal-stream work.
+- Test framework usage separately from native aggregation. Do not sum loaded history, infer
+  missing values or silently call last-message usage a whole-run total.
 
-Local acceptance passed: 480 root pytest cases with PostgreSQL, Ruff formatting/lint and strict
-Pyright; the non-editable candidate wheel passed 238 standalone provider/native contract cases.
-The pre-fix PostgreSQL batch reproduced six failures (four usage cases and two invalid-tool paths),
-and the standalone native batch reproduced 15 failures before the fix. Independent review found
-no blockers. Exact-head GitHub CI and downstream application checks remain the promotion gate.
+**Exit:** malformed custom results fail before ambiguous dispatch or durable success. Valid empty
+arguments, fragmented provider arguments and explicit zero/unknown usage retain documented meaning.
 
-The follow-up v0.4.2 candidate adds the SHA-256-pinned actual v0.4.1 upgrade to CI and Release,
-retaining all six historical source paths. Local candidate acceptance passed 36 preserved-state
-upgrade cases (four historical gap probes deselected), 238 installed-wheel provider/native cases,
-and a 30-second shared-engine soak with 100 completed lifetimes. Version metadata is preparation,
-not publication: tag only verified main, then verify the actual immutable assets. Release Desk's
-published lock remains v0.4.1 until that post-publication adoption step is completed.
+### B3. Explicit policy coverage
 
-The bounded sprint published v0.4.2 after PRs #31/#32 and the exact main commit passed their gates.
-Actual downloaded assets and image identity were verified: 238 provider/native cases, 36 preserved
-upgrade cases and 98 shared-engine lifetimes passed against the published wheel. See
-[publication evidence](validation/v0.4.2-publication.md). The next bounded step is to adopt the
-actual v0.4.2 wheel in Release Desk's independent lock and rerun its published provenance, restart
-replay and feedback canary. Its candidate checks already pass; actual lock adoption remains pending.
+Keep existing hook names compatible while documenting invocation-level semantics. Test deliberate
+runtime/tool hook composition; framework-native operations bypass the registry unless integrated.
+A per-model/per-token hook is a separate decision, not a silent reinterpretation of existing names.
+
+**Exit:** tests/runbooks show what is enforced and where, including provisional output before an
+output guardrail. Do not claim a universal framework safety interceptor.
+
+## C. Add architectural fitness checks
+
+These are proposed checks; current CI does not implement the complete list.
+
+| Invariant | Planned automated evidence |
+| --- | --- |
+| Minimal library imports | Core-only installed wheel imports without loading optional HTTP/DB/framework implementations or starting network/resource work |
+| Correct distribution | Package/types/migrations included; applications/examples excluded; non-editable external consumer |
+| Dependency direction | Focused import checks reject core dependencies on service, concrete PostgreSQL or framework implementations; generic helpers have a neutral private home |
+| Reviewed public surface | Inventory exports/protocols first; extend targeted signature/schema/behavior checks without freezing private helpers |
+| Relevant compatibility evidence | Add dependency manifest/lock, adapter code and framework fixtures to lower/latest PR triggers; retain resolved inventories |
+| Navigable design | Local links/anchors, unique canonical ADR IDs and referenced acceptance files |
+
+Demonstrate that intentionally forbidden imports or extra completions fail the relevant guard.
+Do not add a public API just to ease testing. Retain real-database/upgrade gates; if CI cost becomes
+a problem, measure redundancy and propose an explicit matrix instead of silently dropping coverage.
+
+**Exit:** deliberate architectural violations are caught and guards run on the changes they protect,
+while core-only consumers remain lightweight.
+
+## D. Choose one concrete host workload before expanding scope
+
+Start with a host-owned scenario, which may be deterministic/offline. Specify concurrency/admission,
+conversation length, input/tool payload sizes, downstream timeouts, side-effect idempotency,
+restart/recovery expectations and privacy constraints. Do not infer capacity from test counts.
+
+The strongest current design pressure is **history/context growth**: runtime loads the whole thread.
+Measure it first. If needed, design context selection separately from durable history, preserving
+tool-call/result pairs and system policy, keeping replay unchanged and making omissions observable.
+No implicit deletion, truncation, summarization or semantic retrieval.
+
+Credentialed provider canaries are an optional separate lane requiring an approved provider/model,
+account, fixture, secret provisioning and spend cap. Offline architecture work is not blocked on them.
+
+**Exit:** a reproducible host scenario demonstrates a gap, a small ADR compares alternatives, and
+candidate-wheel acceptance verifies the chosen contract. Versioning follows the actual change.
+
+## Deferred until justified
+
+- Distributed workers, resumable workflows, human-approval queues or exactly-once tools need a
+  separate execution/side-effect model, not merely longer run leases.
+- RAG/pgvector, semantic memory and summarization need retrieval/context requirements and data policy.
+- More providers/frameworks need a consumer and supported subset; do not invent a universal vendor
+  schema or extend the descriptor's framework labels speculatively.
+- Authentication/RLS, hosted control planes, scheduling, UI and multiple databases are separate
+  product decisions, not prerequisites to using the library.
+- Feedback outbox/evaluation/automatic optimization remain separate; immutable feedback does not
+  imply exactly-once export or learning behavior.
+
+## Definition of a finished iteration
+
+Each implementation PR states the problem, owner, current-versus-proposed behavior, compatibility,
+rollback implications and reproducer. Use venv and pytest. Relevant checks pass against source
+and an installed wheel; persistence changes need real PostgreSQL. Update architecture/ADR/runbooks
+when their claims change. Keep repository text English.
+
+Promotion requires exact-head checks; tagging requires verified main and immutable artifact checks.
+A metadata version or checked plan box is not completion. Python API, canonical contract and schema
+changes each need compatibility review. Do not promise 1.0 until public-surface coverage and
+independent-host evidence support it.

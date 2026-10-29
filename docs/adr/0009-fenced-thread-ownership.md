@@ -1,6 +1,7 @@
 # ADR 0009: Fenced Thread Ownership and Explicit Crash Recovery
 
-Status: Accepted for v0.2.0 development.
+Status: Accepted; implemented in v0.2.0. Extends ADRs 0007/0008 and supersedes ADR 0007's historical
+run-first lock order with thread-first mutation locking.
 
 ## Context
 
