@@ -64,10 +64,10 @@ def test_consumes_installed_release_not_source_checkout():
     assert provenance["url"].endswith(".whl")
     assert not provenance.get("dir_info", {}).get("editable", False)
     if os.environ.get("RELEASE_DESK_LIBRARY_SOURCE") == "published":
-        assert distribution.version == "0.4.1"
+        assert distribution.version == "0.4.2"
         assert provenance["url"] == (
-            "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.4.1/"
-            "agent_runtime_kit-0.4.1-py3-none-any.whl"
+            "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.4.2/"
+            "agent_runtime_kit-0.4.2-py3-none-any.whl"
         )
     assert importlib.util.find_spec("examples") is None
     assert importlib.util.find_spec("langchain_core") is None

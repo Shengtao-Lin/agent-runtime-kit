@@ -17,7 +17,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--wheel", type=Path, help="Pre-publication candidate override")
     parser.add_argument(
-        "--live", action="store_true", help="Read public GitHub v0.4.1 metadata once"
+        "--live", action="store_true", help="Read public GitHub v0.4.2 metadata once"
     )
     parser.add_argument("--report-dir", type=Path, default=Path("build/release-desk-validation"))
     args = parser.parse_args()
@@ -104,7 +104,7 @@ def main() -> None:
         )
         if args.live:
             key = f"public-canary-{uuid4()}"
-            command = [str(cli), "review", "Shengtao-Lin/agent-runtime-kit", "v0.4.1", "--key", key]
+            command = [str(cli), "review", "Shengtao-Lin/agent-runtime-kit", "v0.4.2", "--key", key]
             streamed = run([*command, "--stream"], capture=True)
             events = [json.loads(line) for line in streamed.stdout.splitlines()]
             assert events[-1]["type"] == "completed"
@@ -147,6 +147,11 @@ def main() -> None:
                 )
                 + "\n",
                 encoding="utf-8",
+            )
+            print(
+                f"Public canary passed: {review['repository']} {review['tag']}; "
+                f"{len(review['checks'])} checks, exact restart replay, history=4, "
+                "idempotent feedback"
             )
     print(f"Release Desk reports: {reports}")
 
