@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "A read-only public Python release review CLI using Agent Runtime Kit."
 requires-python = ">=3.11"
 dependencies = [
-  "agent-runtime-kit[postgres] @ https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.4.1/agent_runtime_kit-0.4.1-py3-none-any.whl",
+  "agent-runtime-kit[postgres] @ https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.4.2/agent_runtime_kit-0.4.2-py3-none-any.whl",
 ]
 
 [project.scripts]

@@ -54,7 +54,7 @@ jobs:
           enable-cache: true
       - name: Validate the locked published-wheel application
         if: matrix.source == 'published'
-        run: python scripts/validate_release_desk.py
+        run: python scripts/validate_release_desk.py ${{ matrix.python == '3.12' && '--live' || '' }}
       - name: Validate the candidate wheel through the same application
         if: matrix.source == 'candidate'
         run: |
