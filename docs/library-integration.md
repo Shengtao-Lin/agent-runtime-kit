@@ -12,8 +12,10 @@ published status before adopting a development version rather than inferring rel
 
 1. Install a reviewed wheel with only the extras needed by the host. Keep the application's lock
    separate from the library checkout. Never import `examples` or `applications` as runtime APIs.
-2. Read secrets from application-owned settings. No constructor automatically loads an `.env` file,
-   selects a paid model, runs a migration or provisions a database.
+2. Read secrets from application-owned settings. Runtime/store/provider construction does not load
+   an `.env` file, select a paid model, migrate or provision a database. Explicitly constructing
+   the optional convenience `RuntimeSettings` does read environment and `.env`; hosts may supply
+   their own settings instead. Importing the library does not construct these settings.
 3. Run `python -m agent_runtime.migrations upgrade` as an explicitly authorized one-shot operation
    with the `postgres` extra and `DATABASE_URL`. Drain workers when the upgrade guide requires it.
 4. Create one bounded engine/pool and long-lived model client per application lifetime. Check
@@ -100,6 +102,12 @@ changing global loop policy during library import. Never print resolved secret-b
 
 ## Public API and extension boundaries
 
+- Review the [architecture policy matrix](architecture.md#execution-paths-and-policy-coverage):
+  runtime hooks bracket an invocation, not each model round, and tool hooks require explicit registry
+  wiring. Framework-owned tools do not automatically inherit the native registry's policy.
+- Custom model/invoker implementations are trusted extensions. Built-in adapter checks are not
+  universal extension validation; current terminal-event/result consistency gaps and their planned
+  conformance checks are documented in [the development plan](plan.md).
 - Use documented package exports and protocols: runtime/models/registry, `AgentInvoker`,
   `ModelClient`, tools/hooks, memory/run/feedback stores and optional adapter modules.
 - Provider modules require their own extras; core import must not load HTTP, database or framework

@@ -60,6 +60,17 @@ should not run before an inexpensive rejection.
 | `before_tool` | Tool name, call ID, and arguments | Authorization and argument policy |
 | `after_tool` | Tool name, call ID, and result | Result checks and categorical audit |
 
+The runtime calls `before_model`/`after_model` once around the complete invoker, not on each model
+round. Tool hooks require both an explicitly configured `ToolRegistry(hooks=...)` and a supplied
+runtime context. Reuse the intended hook manager deliberately; runtime construction does not wire
+other components automatically. Framework-native tools bypass this registry unless the host routes
+them through it. Output hooks run before persistence but may run after provisional stream output
+has already reached the consumer; they are not pre-disclosure moderation.
+
+Synchronous handlers execute in threads. A timeout/cancellation stops awaiting a result, not the
+underlying thread or its external side effects. Bounded JSON-compatible output is a host obligation;
+the canonical `Any` result field does not enforce a universal byte limit.
+
 ## Design Checklist
 
 - Use stable, unique tool names and strict Pydantic models with bounded fields.

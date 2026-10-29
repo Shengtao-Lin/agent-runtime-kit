@@ -2,7 +2,7 @@
 
 This runbook is the practical guide for installing, integrating, operating, and troubleshooting
 Agent Runtime Kit. For design boundaries and rationale, see [Architecture](architecture.md) and the
-[architecture decision records](adr/). For a single subsystem, use the
+[architecture decision records](adr/README.md). For a single subsystem, use the
 [component runbooks](runbooks/README.md).
 
 ## What You Can Do
@@ -41,7 +41,20 @@ Choose the prerequisites that match how you plan to use the project:
 Windows containers are not required. A provider API key is not required for tests or the default
 example because both use deterministic or mocked model clients.
 
+## Choose Your Integration Path
+
+| Goal | Path |
+| --- | --- |
+| Import the library into your own project | Follow [library integration](library-integration.md): install only required extras in your own venv, configure your database, run packaged migrations, construct/register your invoker and own resource teardown |
+| Try the fictional HTTP service or contribute to this repository | Follow the repository walkthrough below: clone, install development extras and use local Compose |
+
+Library consumers do not need this checkout, its Compose stack, `examples`, or an HTTP server.
+Repository-relative commands below belong to the example/development path, not to every host.
+
 ## Quick Start
+
+This is the repository example/development walkthrough. Library consumers should use the separate
+integration path above.
 
 ### 1. Clone and install
 
@@ -51,7 +64,7 @@ cd agent-runtime-kit
 uv sync --locked --all-extras --dev
 ```
 
-To consume a tagged release from another project instead:
+For reference, the separate library-install path starts in your own project with:
 
 ```bash
 uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.4.2"
@@ -59,6 +72,8 @@ uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-
 
 Available extras are `postgres`, `service`, `telemetry`, `adapters`, `openai-compatible`,
 `anthropic`, and `gemini`. Install only the integrations your application imports.
+After that install, continue with [library integration](library-integration.md), not the checkout
+commands below. Packaged migrations are available through `python -m agent_runtime.migrations`.
 
 ### 2. Start PostgreSQL and apply migrations
 
