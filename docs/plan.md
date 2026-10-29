@@ -89,3 +89,10 @@ upgrade cases (four historical gap probes deselected), 238 installed-wheel provi
 and a 30-second shared-engine soak with 100 completed lifetimes. Version metadata is preparation,
 not publication: tag only verified main, then verify the actual immutable assets. Release Desk's
 published lock remains v0.4.1 until that post-publication adoption step is completed.
+
+The bounded sprint published v0.4.2 after PRs #31/#32 and the exact main commit passed their gates.
+Actual downloaded assets and image identity were verified: 238 provider/native cases, 36 preserved
+upgrade cases and 98 shared-engine lifetimes passed against the published wheel. See
+[publication evidence](validation/v0.4.2-publication.md). The next bounded step is to adopt the
+actual v0.4.2 wheel in Release Desk's independent lock and rerun its published provenance, restart
+replay and feedback canary. Its candidate checks already pass; actual lock adoption remains pending.
