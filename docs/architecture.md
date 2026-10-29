@@ -141,18 +141,25 @@ invoker streams consumed by runtime. It withholds completion until normal source
 rejects missing/duplicate completions and later events, and closes the source on failure,
 cancellation or abandonment. Sources must terminate after completion; the invocation deadline
 still applies while waiting for EOF. Direct calls to arbitrary custom implementations bypass these
-kit boundaries. Published v0.4.2 lacks the generic model/invoker enforcement; remaining extension
-result-consistency work is in [the plan](plan.md).
+kit boundaries. Published v0.4.2 lacks the generic model/invoker enforcement. See
+[ADR 0013](adr/0013-terminal-stream-conformance.md) and [the plan](plan.md).
 
 Canonical content is text, tool calls and tool results, not a universal multimodal/reasoning/artifact
 format. `StrictModel` rejects extra fields; it is not globally strict or immutable. Text, content
-part counts and metadata have limits, but custom tool arguments/results contain `Any` without a
-universal JSON/byte bound. HTTP body and provider decoder limits are not whole-invocation bounds.
+part counts and metadata have limits. **Development source** validates canonical tool payloads as
+finite JSON values on ordinary construction and at registry boundaries; their public annotations
+remain `Any`. No universal byte limit is imposed. HTTP body and provider decoder limits are not
+whole-invocation bounds, and JSON validity is not a guarantee of every storage backend's acceptance.
 
-`ModelResult` duplicates tool calls in `message.content` and `tool_calls`; native execution uses
-the latter. Built-in providers construct them together; custom results lack a consistency check.
-One unambiguous ordered set of calls is the intended invariant; centralized enforcement is
-**proposed**, not an existing guarantee.
+`ModelResult` retains tool calls in `message.content` and `tool_calls`. **Development source** requires
+an assistant message, unique IDs within the result and matching ordered IDs/names/JSON arguments.
+Native execution revalidates and snapshots each complete model result before any dispatch or
+history accumulation, including generate-only stream fallback. Invalid results cannot dispatch
+an earlier valid call from the same batch. Registry output validation occurs after the handler's
+effect and before after-tool hooks, then repeats before returning a detached result. It cannot undo
+external effects or intercept framework-native tools. Arbitrary custom invokers bypassing canonical
+construction remain outside this enforcement. See [ADR 0014](adr/0014-model-result-and-tool-payload-contracts.md)
+for error categories, compatibility and migration. Published v0.4.2 lacks these checks.
 
 Native usage sums every model call; any unknown call makes the invocation total unknown. Framework
 conversion retains the last newly generated AI message that supplies usage unless an explicit

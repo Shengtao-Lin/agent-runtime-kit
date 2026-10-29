@@ -30,6 +30,7 @@ from agent_runtime.models import (
     ToolCall,
     ToolCallContent,
     ToolResultContent,
+    Usage,
 )
 from agent_runtime.telemetry import RuntimeTelemetry
 from examples.support_agent.agent import FakeSupportModel, build_agent_registry, build_tool_registry
@@ -89,6 +90,40 @@ def test_non_uuid_ids_are_stable_and_direct_native_messages_are_supported() -> N
     assert first.messages == second.messages
     assert from_framework_message(SystemMessage(content="system")).role == "system"
     assert from_framework_message(HumanMessage(content="human")).role == "user"
+
+
+@pytest.mark.parametrize("supplied", ["none", "first", "last", "zero", "override", "unknown"])
+def test_framework_usage_excludes_history_and_is_not_a_native_total(supplied: str) -> None:
+    history = AIMessage(
+        id=str(uuid4()),
+        content="old answer",
+        usage_metadata={"input_tokens": 100, "output_tokens": 200, "total_tokens": 300},
+    )
+    original = request()
+    original.messages.insert(0, from_framework_message(history))
+    first = AIMessage(content="new reasoning")
+    last = AIMessage(content="new answer")
+    expected = None
+    if supplied != "none":
+        first.usage_metadata = {"input_tokens": 3, "output_tokens": 4, "total_tokens": 7}
+        expected = Usage(input_tokens=3, output_tokens=4)
+    if supplied in ("last", "zero", "override", "unknown"):
+        tokens = 0 if supplied == "zero" else 5
+        last.usage_metadata = {
+            "input_tokens": tokens,
+            "output_tokens": tokens,
+            "total_tokens": tokens * 2,
+        }
+        expected = Usage(input_tokens=tokens, output_tokens=tokens)
+    envelope: dict[str, object] = {
+        "messages": [history, to_framework_message(original.messages[1]), first, last],
+    }
+    if supplied in ("override", "unknown"):
+        expected = Usage(input_tokens=8, output_tokens=9) if supplied == "override" else None
+        envelope["usage"] = expected
+    output = messages_output(envelope, original)
+    assert len(output.messages) == 2
+    assert output.usage == expected
 
 
 @pytest.mark.parametrize(

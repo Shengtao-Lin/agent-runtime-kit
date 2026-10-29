@@ -214,6 +214,25 @@ async def test_valid_empty_argument_call_still_translates(
     assert result.tool_calls[0].arguments == {}
 
 
+@pytest.mark.parametrize("provider", PROVIDERS)
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("number", [float("nan"), float("inf"), float("-inf")])
+async def test_nonfinite_tool_arguments_fail_with_safe_provider_errors(
+    provider: Provider, streaming: bool, number: float
+) -> None:
+    call = valid_call(provider)
+    arguments = {"PRIVATE-SENTINEL": [number]}
+    if provider == "openai":
+        cast(dict[str, object], call["function"])["arguments"] = json.dumps(arguments)
+    else:
+        call["input" if provider == "anthropic" else "args"] = arguments
+    body, frames = tool_response(provider, streaming=streaming, call=call)
+    with pytest.raises(ProviderError) as caught:
+        await invoke(provider, streaming=streaming, body=body, frames=frames if streaming else None)
+    assert caught.value.retryable is False
+    assert "PRIVATE-SENTINEL" not in caught.value.public_message
+
+
 @pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("arguments", [None, False, [], "PRIVATE-SENTINEL"])
 async def test_anthropic_input_is_an_object(streaming: bool, arguments: object) -> None:

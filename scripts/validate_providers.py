@@ -58,6 +58,8 @@ def main() -> None:
             "test_provider_tool_contracts.py",
             "test_native_usage.py",
             "test_model_stream_contracts.py",
+            "test_model_result_contracts.py",
+            "test_tool_payloads.py",
         ):
             shutil.copy2(repository / "tests" / "unit" / name, root / name)
         audit = run(

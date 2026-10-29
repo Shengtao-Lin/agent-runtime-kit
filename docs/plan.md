@@ -1,6 +1,7 @@
 # Development Plan
 
-Reviewed on 2026-10-28 against v0.4.2. This is the living implementation queue, not a release log
+Reviewed on 2026-10-28 against v0.4.2; extension-contract progress updated on 2026-10-29.
+This is the living implementation queue, not a release log
 or authorization to spend money, select credentials or change production systems. Historical
 execution records are [archived separately](validation/iteration-history-through-v0.4.2.md).
 
@@ -62,7 +63,8 @@ This is the highest-priority library correctness work; do it before adding more 
 
 Implemented in development source on 2026-10-29: shared private terminal/closure handling, seven
 reproduced regression failures, custom-model unit fixtures and PostgreSQL failure/replay tests.
-Promotion still requires the complete PR checks. This behavior is not in published v0.4.2.
+PR #36 passed CI and the standalone application matrix, then merged; main CI also passed.
+This behavior is not in published v0.4.2.
 
 - Write failing public-protocol fixtures for custom model/agent streams: missing/duplicate
   completion, events after completion, partial failure, cancellation and iterator closure.
@@ -76,6 +78,12 @@ failure and valid framework mappers. Arbitrary direct calls to custom implementa
 intercepted by the library. Document safe errors; no blanket retry policy change is implicit.
 
 ### B2. One unambiguous model/tool result
+
+Implemented in development source on 2026-10-29; complete PR checks are required for promotion.
+[ADR 0014](adr/0014-model-result-and-tool-payload-contracts.md) records the retained fields, native
+snapshot boundary, finite JSON payload rules, error timing and compatibility implications.
+The initial public-model reproducer had 48 failing cases. No version/tag or schema change is made.
+After this iteration's checks pass, B3 is the next implementation task.
 
 - Specify correspondence between assistant tool-call parts and `ModelResult.tool_calls`: identity,
   order, name and arguments. Add mismatched-list, duplicate-ID and invalid-role regressions first.

@@ -1,4 +1,4 @@
-"""Private validation shared by the HTTP adapters, not a vendor wire schema."""
+"""Private canonical validation shared by model adapters and native consumers."""
 
 from __future__ import annotations
 
@@ -8,6 +8,16 @@ from typing import cast
 from agent_runtime.errors import ProviderError
 from agent_runtime.models import ContentPart, Message, TextContent, ToolCall, ToolCallContent, Usage
 from agent_runtime.models_clients.base import ModelResult
+
+
+def checked_result(result: ModelResult) -> ModelResult:
+    """Revalidate and detach mutable extension output before dispatch or accumulation."""
+    try:
+        # Check original payloads before serialization can turn Python objects into JSON values.
+        ModelResult.model_validate(result)
+        return ModelResult.model_validate(result.model_dump(mode="python", warnings="error"))
+    except Exception as exc:
+        raise ProviderError("Model returned an invalid canonical result", retryable=False) from exc
 
 
 def token_count(value: object) -> int | None:

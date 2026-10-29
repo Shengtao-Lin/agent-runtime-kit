@@ -7,8 +7,9 @@ import inspect
 from collections.abc import Callable
 from typing import Any
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 
+from agent_runtime._json import validate_json_value
 from agent_runtime.errors import (
     DuplicateRegistrationError,
     ToolExecutionError,
@@ -75,8 +76,9 @@ class ToolRegistry:
             raise ToolNotFoundError(f"Tool '{name}' is not registered") from exc
 
         try:
+            validate_json_value(arguments)
             validated = tool.input_model.model_validate(arguments)
-        except ValidationError as exc:
+        except ValueError as exc:
             raise ToolValidationError(f"Arguments for tool '{name}' are invalid") from exc
 
         if self._hooks is not None and context is not None:
@@ -112,12 +114,15 @@ class ToolRegistry:
                 raise
             raise ToolExecutionError(f"Tool '{name}' failed") from exc
 
-        result = ToolResult(
-            tool_call_id=tool_call_id,
-            tool_name=name,
-            status="succeeded",
-            output=output,
-        )
+        try:
+            result = ToolResult(
+                tool_call_id=tool_call_id,
+                tool_name=name,
+                status="succeeded",
+                output=output,
+            )
+        except ValueError as exc:
+            raise ToolExecutionError(f"Tool '{name}' returned an invalid JSON result") from exc
         if self._hooks is not None and context is not None:
             await self._hooks.run(
                 HookEvent(
@@ -128,4 +133,8 @@ class ToolRegistry:
                     tool_result=result,
                 )
             )
-        return result
+        try:
+            validate_json_value(result.output)
+            return ToolResult.model_validate(result.model_dump(mode="python", warnings="error"))
+        except ValueError as exc:
+            raise ToolExecutionError(f"Tool '{name}' returned an invalid JSON result") from exc
