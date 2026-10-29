@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
+from collections.abc import AsyncIterator, Callable, Mapping
 from typing import Protocol, cast
 
+from agent_runtime._streams import checked_stream, close_source
 from agent_runtime.adapters.base import (
     AgentCompleted,
     AgentStreamEvent,
@@ -26,13 +27,6 @@ class StreamingRunnable(Protocol):
 
 class StreamingGraph(Protocol):
     def astream(self, input: object, *, stream_mode: list[str]) -> AsyncIterator[object]: ...
-
-
-async def close_source(source: AsyncIterator[object]) -> None:
-    """Close framework generators deterministically when the consumer exits early."""
-    close = getattr(source, "aclose", None)
-    if callable(close):
-        await cast(Callable[[], Awaitable[object]], close)()
 
 
 def _text(value: object) -> str:
@@ -141,14 +135,11 @@ async def checked_events(
     events: AsyncIterator[AgentStreamEvent],
 ) -> AsyncIterator[AgentStreamEvent]:
     """Require exactly one terminal event, with no later partial output."""
-    completed = False
+    checked = checked_stream(
+        events, is_completed=lambda event: isinstance(event, AgentCompleted), failure=ValueError
+    )
     try:
-        async for event in events:
-            if completed:
-                raise ValueError("Framework stream emitted an event after completion")
-            completed = isinstance(event, AgentCompleted)
+        async for event in checked:
             yield event
     finally:
-        await close_source(events)
-    if not completed:
-        raise ValueError("Framework stream ended without completion")
+        await close_source(checked)

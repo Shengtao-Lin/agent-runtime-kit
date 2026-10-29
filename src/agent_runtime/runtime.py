@@ -13,9 +13,10 @@ from math import isfinite
 from typing import Literal, cast
 from uuid import UUID, uuid4
 
+from agent_runtime._streams import checked_stream, close_source
 from agent_runtime.adapters.base import StreamingAgentInvoker
-from agent_runtime.adapters.framework_streaming import close_source
 from agent_runtime.errors import (
+    AgentInvocationError,
     IdempotencyConflictError,
     IdempotentRunUnavailableError,
     InvocationTimeoutError,
@@ -414,7 +415,11 @@ class AgentRuntime:
         )
         if emit is not None and isinstance(invoker, StreamingAgentInvoker):
             output = None
-            stream = invoker.stream(invocation)
+            stream = checked_stream(
+                invoker.stream(invocation),
+                is_completed=lambda event: event.type == "completed",
+                failure=AgentInvocationError,
+            )
             try:
                 async for event in stream:
                     if event.type == "text_delta":
@@ -426,7 +431,7 @@ class AgentRuntime:
             finally:
                 await close_source(stream)
             if output is None:
-                raise ValueError("Agent stream ended without a completed output")
+                raise AgentInvocationError("Agent stream ended without a completed output")
         else:
             output = await invoker.invoke(invocation)
         await self._hooks.run(

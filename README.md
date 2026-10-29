@@ -6,7 +6,7 @@ A framework-neutral Python runtime toolkit for building configurable, observable
 PostgreSQL-backed memory.
 
 > **Project status:** latest published release v0.4.2, including native usage accounting and
-> provider tool-validation fixes. Release Desk's independent application lock remains on v0.4.1.
+> provider tool-validation fixes. Release Desk's independent application lock pins actual v0.4.2.
 > The installable library, PostgreSQL persistence,
 > provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
 > example are runnable. Authentication and production deployment controls remain application

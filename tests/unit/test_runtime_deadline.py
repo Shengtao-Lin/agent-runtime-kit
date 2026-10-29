@@ -15,6 +15,7 @@ import pytest
 from agent_runtime import AgentRegistry, AgentRuntime
 from agent_runtime.adapters.base import AgentCompleted, AgentStreamEvent, AgentTextDelta
 from agent_runtime.errors import (
+    AgentInvocationError,
     InvocationTimeoutError,
     RuntimeClosingError,
     RuntimeShutdownTimeoutError,
@@ -33,6 +34,61 @@ from agent_runtime.models import (
 )
 from agent_runtime.runs.base import RunStore
 from agent_runtime.runs.models import RunClaim, RunRecord
+
+
+@pytest.mark.parametrize("shape", ["missing", "duplicate", "late_text"])
+async def test_custom_invoker_terminal_contract_prevents_completion(
+    shape: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    h = harness(timeout=2)
+    closed = asyncio.Event()
+
+    async def malformed(request: InvocationInput) -> AsyncIterator[AgentStreamEvent]:
+        try:
+            yield AgentTextDelta(delta="provisional")
+            if shape == "missing":
+                return
+            result = AgentCompleted(output=await h.invoker.invoke(request))
+            yield result
+            if shape == "duplicate":
+                yield result
+            else:
+                yield AgentTextDelta(delta="PRIVATE-SENTINEL")
+        finally:
+            closed.set()
+
+    monkeypatch.setattr(h.invoker, "stream", malformed)
+    seen: list[str] = []
+    with pytest.raises(AgentInvocationError) as caught:
+        async for event in h.runtime.stream("deadline", h.request):
+            seen.append(event.type)
+    assert "PRIVATE-SENTINEL" not in caught.value.public_message
+    assert "completed" not in seen
+    assert closed.is_set()
+    h.runs.complete.assert_not_awaited()
+    assert h.runs.fail_if_running.call_args.kwargs["error_code"] == "agent_invocation_failed"
+    assert await h.runtime.shutdown(timeout_seconds=2)
+
+
+async def test_completion_requires_source_eof_within_invocation_deadline(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    h = harness(timeout=0.1)
+    closed = asyncio.Event()
+
+    async def never_ends(request: InvocationInput) -> AsyncIterator[AgentStreamEvent]:
+        try:
+            yield AgentCompleted(output=await h.invoker.invoke(request))
+            await asyncio.Event().wait()
+        finally:
+            closed.set()
+
+    monkeypatch.setattr(h.invoker, "stream", never_ends)
+    with pytest.raises(InvocationTimeoutError):
+        await call(h, "stream")
+    assert closed.is_set()
+    h.runs.complete.assert_not_awaited()
+    assert await h.runtime.shutdown(timeout_seconds=2)
 
 
 class Invoker:

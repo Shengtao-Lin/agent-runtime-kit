@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
+from agent_runtime._streams import checked_stream, close_source
 from agent_runtime.adapters.base import (
     AgentCompleted,
     AgentStreamEvent,
@@ -145,15 +146,23 @@ class NativeAgentInvoker:
                 attributes.update(self._telemetry.content_attributes(working_messages))
                 with self._telemetry.span("agent.model.generate", attributes):
                     if isinstance(self._model_client, StreamingModelClient):
-                        async for event in self._model_client.stream(
-                            working_messages,
-                            tools=self._tools.definitions(),
-                            context=request.context,
-                        ):
-                            if event.type == "text_delta":
-                                yield AgentTextDelta(delta=event.delta)
-                            else:
-                                result = event.result
+                        stream = checked_stream(
+                            self._model_client.stream(
+                                working_messages,
+                                tools=self._tools.definitions(),
+                                context=request.context,
+                            ),
+                            is_completed=lambda event: event.type == "completed",
+                            failure=lambda message: ProviderError(message, retryable=False),
+                        )
+                        try:
+                            async for event in stream:
+                                if event.type == "text_delta":
+                                    yield AgentTextDelta(delta=event.delta)
+                                else:
+                                    result = event.result
+                        finally:
+                            await close_source(stream)
                     else:
                         result = await self._model_client.generate(
                             working_messages,

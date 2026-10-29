@@ -4,7 +4,12 @@ All notable changes to Agent Runtime Kit are documented here.
 
 ## Unreleased
 
-No changes yet.
+- Validate terminal streams through a shared private boundary for native/custom invokers and
+  framework adapters: exactly one completion, no later events, and deterministic source closure.
+  Hold completion until normal EOF before tool dispatch or durable success. Public v0.4.2 assets
+  are unchanged; sources must end after completion.
+- Adopt actual v0.4.2 in Release Desk's independent lock and run its read-only public metadata,
+  cross-process replay and feedback canary in the published Python 3.12 application CI job.
 
 ## 0.4.2 - 2026-10-22
 
