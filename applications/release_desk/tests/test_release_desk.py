@@ -280,9 +280,10 @@ async def test_repeated_reviews_bound_initial_context_without_losing_history(
             "tool",
             "assistant",
         ] * 60
-    # Recomposition with a different policy does not reexecute the successful key.
+    # Changing both the window and read mode does not reexecute the successful key.
     async with application(
-        settings.model_copy(update={"context_max_bytes": 2}), source=source
+        settings.model_copy(update={"context_max_bytes": 2, "stream_history": not stream_history}),
+        source=source,
     ) as app:
         before_replay = reads.copy()
         replay = await app.runtime.invoke(app.agent_id, current, idempotency_key="59")
@@ -293,6 +294,9 @@ async def test_repeated_reviews_bound_initial_context_without_losing_history(
                 app.agent_id, app.request(review, thread_id=thread_id), idempotency_key="overflow"
             )
         assert source.calls == 60
+        expected_reads = before_replay.copy()
+        expected_reads["materialized" if stream_history else "incremental"] += 1
+        assert reads == expected_reads
         assert len(await app.memory.get_messages(thread_id, namespace=settings.namespace)) == 240
 
 
