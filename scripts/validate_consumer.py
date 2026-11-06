@@ -28,6 +28,7 @@ RELEASE_WHEELS = {
     "0.4.1": "1ed21402f8a4870a76bc9dc201f7167545f0bddbcead1502cb67a602c23f09f2",
     "0.4.2": "016af5bbc1568a495901945e687b267214d60effafc2db17f6f865259f46decf",
     "0.5.0": "d112163a318aa280e64bd20a0d8dd1db519007db3fc5aa419f0f3d1bdb60cd59",
+    "0.6.0": "abe01feae67feab23f5a5625a3a19f99914bd24e10d87da711f14a119e027798",
 }
 
 
@@ -158,8 +159,12 @@ def main() -> None:
         if args.wheel:
             shutil.copy2(repository / "tests/unit/test_extension_api.py", consumer / "tests")
             shutil.copy2(repository / "tests/unit/test_context_window.py", consumer / "tests")
+            shutil.copy2(repository / "tests/unit/test_streaming_context.py", consumer / "tests")
             shutil.copy2(
                 repository / "tests/integration/test_context_persistence.py", consumer / "tests"
+            )
+            shutil.copy2(
+                repository / "tests/integration/test_history_stream.py", consumer / "tests"
             )
             snapshots = consumer / "snapshots"
             snapshots.mkdir()

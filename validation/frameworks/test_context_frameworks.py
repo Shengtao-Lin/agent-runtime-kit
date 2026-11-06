@@ -28,7 +28,10 @@ class Observer:
 
 @pytest.mark.parametrize("framework", ["langchain", "langgraph"])
 @pytest.mark.parametrize("streaming", [False, True])
-async def test_framework_context_entry_and_replay(database_url, identity, framework, streaming):
+@pytest.mark.parametrize("stream_history", [False, True])
+async def test_framework_context_entry_and_replay(
+    database_url, identity, framework, streaming, stream_history
+):
     policy = Message(role="system", content=[TextContent(text="retain policy")])
     current = request("quote")
     expected = [policy, *current.messages]
@@ -42,6 +45,7 @@ async def test_framework_context_entry_and_replay(database_url, identity, framew
         framework,
         hooks=HookManager([observer]),
         context_window=ContextWindow(budget),
+        stream_history=stream_history,
     ) as app:
         thread = await app.memory.create_thread(namespace=identity)
         history = [policy, Message(role="user", content=[TextContent(text="old" * 1000)])]
@@ -73,9 +77,14 @@ async def test_framework_context_entry_and_replay(database_url, identity, framew
 
 
 @pytest.mark.parametrize("framework", ["langchain", "langgraph"])
-async def test_framework_cancel_after_selection(database_url, identity, framework):
+@pytest.mark.parametrize("stream_history", [False, True])
+async def test_framework_cancel_after_selection(database_url, identity, framework, stream_history):
     async with application(
-        database_url, identity, framework, context_window=ContextWindow(512)
+        database_url,
+        identity,
+        framework,
+        context_window=ContextWindow(512),
+        stream_history=stream_history,
     ) as app:
         thread = await app.memory.create_thread(namespace=identity)
         history = [Message(role="user", content=[TextContent(text="old" * 1000)])]

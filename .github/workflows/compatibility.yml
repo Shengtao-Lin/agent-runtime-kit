@@ -15,7 +15,9 @@ on:
       - "validation/frameworks/**"
       - "tests/unit/test_extension_api.py"
       - "tests/unit/test_context_window.py"
+      - "tests/unit/test_streaming_context.py"
       - "tests/integration/test_context_persistence.py"
+      - "tests/integration/test_history_stream.py"
       - "tests/snapshots/public_surface.json"
 
 permissions:

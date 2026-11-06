@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import AsyncGenerator, Sequence
 from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import UUID, uuid4
 
 from sqlalchemy import delete, or_, select, text
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.engine import CursorResult
+from sqlalchemy.engine import CursorResult, Row
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 
 from agent_runtime.errors import ThreadNotFoundError
@@ -175,6 +175,49 @@ class PostgresMemoryStore:
                 )
             ).scalars()
             return tuple(self._message_model(row) for row in rows)
+
+    async def stream_messages(
+        self, thread_id: UUID, *, namespace: str | None = None
+    ) -> AsyncGenerator[StoredMessage, None]:
+        """Yield the complete ordered history from one cursor snapshot in bounded row batches.
+
+        The caller must close the generator, including on early exit. A batch is a row-count limit,
+        not a byte limit; all rows are scanned/transferred and individual payloads may be large.
+        """
+        with self._telemetry.span(
+            "agent.memory.read",
+            {"agent.memory.operation": "stream_messages", "agent.thread.id": str(thread_id)},
+        ):
+            async with self._sessions() as session:
+                if namespace is not None:
+                    thread = await session.scalar(
+                        select(AgentThreadTable.id).where(
+                            AgentThreadTable.id == thread_id,
+                            AgentThreadTable.namespace == namespace,
+                        )
+                    )
+                    if thread is None:
+                        raise ThreadNotFoundError(f"Thread '{thread_id}' does not exist")
+                rows = await session.stream(
+                    select(
+                        AgentMessageTable.id,
+                        AgentMessageTable.thread_id,
+                        AgentMessageTable.sequence,
+                        AgentMessageTable.role,
+                        AgentMessageTable.content,
+                        AgentMessageTable.metadata_,
+                        AgentMessageTable.created_at,
+                    )
+                    .where(AgentMessageTable.thread_id == thread_id)
+                    .order_by(AgentMessageTable.sequence)
+                    .execution_options(yield_per=256)
+                )
+                try:
+                    async for batch in rows.partitions(256):
+                        for row in batch:
+                            yield self._message_model(row)
+                finally:
+                    await rows.close()
 
     async def put(
         self,
@@ -346,7 +389,7 @@ class PostgresMemoryStore:
         )
 
     @staticmethod
-    def _message_model(row: AgentMessageTable) -> StoredMessage:
+    def _message_model(row: AgentMessageTable | Row[Any]) -> StoredMessage:
         return StoredMessage(
             thread_id=row.thread_id,
             sequence=row.sequence,

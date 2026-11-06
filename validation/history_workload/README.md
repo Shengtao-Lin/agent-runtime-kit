@@ -11,7 +11,7 @@ Set `WORKLOAD_DATABASE_URL` to an isolated disposable PostgreSQL database. Use t
 python scripts/validate_history_workload.py --smoke --repetitions 1 --report-dir build/history-smoke
 python scripts/validate_history_workload.py --repetitions 3 --report-dir build/history-v060-baseline
 python scripts/validate_history_workload.py --wheel dist/agent_runtime_kit-VERSION-py3-none-any.whl \
-  --expected-version VERSION --repetitions 3 --report-dir build/history-candidate
+  --expected-version VERSION --stream-history --repetitions 3 --report-dir build/history-candidate
 python scripts/compare_history_workloads.py build/history-v060-baseline \
   --output build/history-v060-baseline/summary.json
 python scripts/compare_history_workloads.py build/history-v060-baseline build/history-candidate \
@@ -25,6 +25,13 @@ and [Psycopg JSON loaders](https://www.psycopg.org/psycopg3/docs/api/types.html#
 around the installed implementation; they do not replace its query or decoder behavior. Server
 EXPLAIN runs separately. Nested timings and logical JSON bytes are not independent network timings
 or wire-byte counts. Tracemalloc and sampled RSS have different coverage and overhead.
+
+The candidate flag explicitly enables incremental history consumption; omit it for the unchanged
+default path. Actual v0.6.0 cannot enable this capability. Both manifest and raw reports record the
+mode. For incremental diagnostic reads, time awaiting each next row is charged to history reading;
+the selection wall duration subtracts those nested waits. This remainder is an exclusive estimate,
+not an independently measured CPU cost. Cursor-execute events cover opening/initial execution,
+not all subsequent server-cursor fetches. All rows still contribute decode/conversion counts.
 
 A `passed` raw report means the experiment and correctness assertions completed. Its `host_budgets`
 may still contain failures: that is precisely the baseline evidence used to justify optimization.

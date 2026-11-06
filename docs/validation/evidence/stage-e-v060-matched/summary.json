@@ -1,0 +1,2302 @@
+{
+  "manifest": {
+    "target": "published-baseline",
+    "expected_version": "0.6.0",
+    "wheel_sha256": "abe01feae67feab23f5a5625a3a19f99914bd24e10d87da711f14a119e027798",
+    "baseline_url": "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.6.0/agent_runtime_kit-0.6.0-py3-none-any.whl",
+    "repetitions": 3,
+    "smoke": false,
+    "context_max_bytes": 65536,
+    "stream_history": false,
+    "specification_commit": "d587d1f",
+    "profiles": [
+      [
+        100,
+        1,
+        "invoke",
+        "timing"
+      ],
+      [
+        100,
+        1,
+        "invoke",
+        "diagnostic"
+      ],
+      [
+        100,
+        1,
+        "stream",
+        "timing"
+      ],
+      [
+        100,
+        1,
+        "stream",
+        "diagnostic"
+      ],
+      [
+        1000,
+        1,
+        "invoke",
+        "timing"
+      ],
+      [
+        1000,
+        1,
+        "invoke",
+        "diagnostic"
+      ],
+      [
+        1000,
+        1,
+        "stream",
+        "timing"
+      ],
+      [
+        1000,
+        1,
+        "stream",
+        "diagnostic"
+      ],
+      [
+        10000,
+        1,
+        "invoke",
+        "timing"
+      ],
+      [
+        10000,
+        1,
+        "invoke",
+        "diagnostic"
+      ],
+      [
+        10000,
+        1,
+        "stream",
+        "timing"
+      ],
+      [
+        10000,
+        1,
+        "stream",
+        "diagnostic"
+      ],
+      [
+        1000,
+        4,
+        "stream",
+        "timing"
+      ],
+      [
+        1000,
+        4,
+        "stream",
+        "diagnostic"
+      ]
+    ],
+    "source_hashes": {
+      "scripts/validate_history_workload.py": "86358b674720a6cdf8a1a8312ee28d3099b4096b6ede73587f5cc54c5e94ab15",
+      "docs/validation/stage-e-workload.md": "a7107b726e6d733a057e812290138f640bee53a85cff2d1af1ca33dd0bcba9e9",
+      "validation/workloads/workload.py": "e1a9da831699e0756dc98756af3b3b46de97005f7e35e7242d4d04257bc8a7e5",
+      "validation/history_workload/history_workload.py": "f78ade2c7c570ad48c6e6ce9effdfe3b9a607e11516894aaf076064ed6d2f72f",
+      "validation/history_workload/tests/conftest.py": "e4e7ec2e85674c62df7f527e13cb91a4d1443304ed0a4ef4840f757ef9d81d42",
+      "validation/history_workload/tests/test_history_workload.py": "6ea159f820a0136fd3a68e6a4c7305f8ba9f9c17bc2a4bc56a6ca6cab7b8715a",
+      "validation/history_workload/pyproject.toml": "b5d7605f914c8009a8e4f950c53ed50d43564c4c5cd483638143fea7423db6bb",
+      "validation/history_workload/uv.lock": "570242626db2faf6a21eb6868dff8f2daccfd9fe602a74f22ee96373009fbeee",
+      "applications/release_desk/src/release_desk/__init__.py": "9765fb05f5c7299500fe3a4751fe7613d4ce2a195937d5b3cfd567011a35ee5f",
+      "applications/release_desk/src/release_desk/application.py": "b12cd82beaf57ab4be70bbd9325e561b5245eddb900a44095e86761c77ba6288",
+      "applications/release_desk/src/release_desk/cli.py": "ac54ee2ee0d0aa97199643e2f1eefc70a0292a8229d184c4d64886459ccc9273",
+      "applications/release_desk/src/release_desk/review.py": "8c506aec6c1ecffda562442f4365c8ac39f5c4bf1ffc3bd881b1633ee2f1b1a4"
+    },
+    "status": "passed"
+  },
+  "installed": {
+    "version": "0.6.0",
+    "source": {
+      "url": "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.6.0/agent_runtime_kit-0.6.0-py3-none-any.whl",
+      "archive_info": {}
+    },
+    "packages": {
+      "agent-runtime-kit": "0.6.0",
+      "alembic": "1.20.1",
+      "annotated-types": "0.8.0",
+      "colorama": "0.4.6",
+      "greenlet": "3.5.6",
+      "iniconfig": "2.3.1",
+      "Mako": "1.4.3",
+      "MarkupSafe": "3.0.4",
+      "opentelemetry-api": "1.45.2",
+      "packaging": "26.3",
+      "pluggy": "1.7.0",
+      "psutil": "7.2.2",
+      "psycopg": "3.3.8",
+      "psycopg-binary": "3.3.8",
+      "pydantic": "2.14.3",
+      "pydantic_core": "2.50.4",
+      "pydantic-settings": "2.16.2",
+      "Pygments": "2.21.0",
+      "pytest": "8.4.2",
+      "pytest-asyncio": "0.26.0",
+      "python-dotenv": "1.2.4",
+      "SQLAlchemy": "2.1.8",
+      "typing_extensions": "4.16.0",
+      "typing-inspection": "0.4.5",
+      "tzdata": "2026.6"
+    }
+  },
+  "profiles": [
+    {
+      "profile": {
+        "history_turns": 100,
+        "concurrency": 1,
+        "mode": "invoke",
+        "lane": "timing",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 60,
+      "raw": [
+        {
+          "file": "r1-h100-c1-invoke-timing.json",
+          "sha256": "b467c83ecb6252f5b0a69bd2db99b25874a8866280f7b24a54d9e7b7464ec9f9",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h100-c1-invoke-timing.json",
+          "sha256": "bfe982b11708a772f4aa5016ffd7a1dc743896d695f383b239449613be1d32bf",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h100-c1-invoke-timing.json",
+          "sha256": "bc396438fcb0be74061baf71bb2b48068285fd27fa935990f49e06c57bbbad5f",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 400,
+              "content_json_text_bytes": 248104,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 480,
+              "content_json_text_bytes": 297804,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 400,
+              "content_json_text_bytes": 248104,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 480,
+              "content_json_text_bytes": 297804,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 400,
+              "content_json_text_bytes": 248104,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 480,
+              "content_json_text_bytes": 297804,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "end_to_end_seconds": {
+          "p50": 0.03855230000044685,
+          "p95": 0.05055230000289157,
+          "max": 0.05301889999827836
+        },
+        "service_seconds": {
+          "p50": 0.03854470000078436,
+          "p95": 0.050544099998660386,
+          "max": 0.05301109999709297
+        },
+        "queue_seconds": {
+          "p50": 7.90000194683671e-06,
+          "p95": 1.1099997209385037e-05,
+          "max": 1.170000177808106e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 82903040,
+      "rss_increase_bytes": 2334720,
+      "python_peak_bytes": null,
+      "initial_context_bytes": {
+        "p50": 65439,
+        "p95": 65475,
+        "max": 65479
+      },
+      "all_host_budgets_met": true
+    },
+    {
+      "profile": {
+        "history_turns": 100,
+        "concurrency": 1,
+        "mode": "invoke",
+        "lane": "diagnostic",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 9,
+      "raw": [
+        {
+          "file": "r1-h100-c1-invoke-diagnostic.json",
+          "sha256": "f5d9bea461c5944be76dac61097c2eaea9ba8547c3fb6bb19d14389fb259abdf",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h100-c1-invoke-diagnostic.json",
+          "sha256": "5c92a16f96ee851ef10cc821d47f6f5f3179636b277f632832b09750e771d08e",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h100-c1-invoke-diagnostic.json",
+          "sha256": "08d2e1fa4367890404b8ae304913e46c95c075116a6485fe68d2e88d163f8558",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 400,
+              "content_json_text_bytes": 248104,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 412,
+              "content_json_text_bytes": 255559,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 400,
+              "content_json_text_bytes": 248104,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 412,
+              "content_json_text_bytes": 255559,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 400,
+              "content_json_text_bytes": 248104,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 412,
+              "content_json_text_bytes": 255559,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "history_read_seconds": {
+          "p50": 0.03321689999575028,
+          "p95": 0.03381200000148965,
+          "max": 0.03381200000148965
+        },
+        "canonical_conversion_seconds": {
+          "p50": 0.010541800016653724,
+          "p95": 0.010757600095530506,
+          "max": 0.010757600095530506
+        },
+        "context_selection_seconds": {
+          "p50": 0.01973300000099698,
+          "p95": 0.019889700000931043,
+          "max": 0.019889700000931043
+        },
+        "driver_json_decode_seconds": {
+          "p50": 0.008123000123305246,
+          "p95": 0.008386499677726533,
+          "max": 0.008386499677726533
+        },
+        "history_cursor_seconds": {
+          "p50": 0.015391399996588007,
+          "p95": 0.015580200000840705,
+          "max": 0.015580200000840705
+        },
+        "probe_serialization_seconds": {
+          "p50": 0.004805500007933006,
+          "p95": 0.0048929999975371175,
+          "max": 0.0048929999975371175
+        },
+        "end_to_end_seconds": {
+          "p50": 0.09381190000567585,
+          "p95": 0.10040250000020023,
+          "max": 0.10040250000020023
+        },
+        "service_seconds": {
+          "p50": 0.09379410000110511,
+          "p95": 0.10038160000112839,
+          "max": 0.10038160000112839
+        },
+        "queue_seconds": {
+          "p50": 1.7800004570744932e-05,
+          "p95": 3.300000389572233e-05,
+          "max": 3.300000389572233e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 85377024,
+      "rss_increase_bytes": 4952064,
+      "python_peak_bytes": 2453556,
+      "initial_context_bytes": {
+        "p50": 65407,
+        "p95": 65411,
+        "max": 65411
+      },
+      "all_host_budgets_met": true
+    },
+    {
+      "profile": {
+        "history_turns": 100,
+        "concurrency": 1,
+        "mode": "stream",
+        "lane": "timing",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 60,
+      "raw": [
+        {
+          "file": "r1-h100-c1-stream-timing.json",
+          "sha256": "46c067d83c50cfe2fee0f2a7fa4f421a7e8a5704aa7563bbdc5714f9dceb678d",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h100-c1-stream-timing.json",
+          "sha256": "3cfccb683dec371f729221b86d942b4e0798e0a0395e2fc9bd4eee330212be4b",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h100-c1-stream-timing.json",
+          "sha256": "699c20d883e7f6898b137dd90aeca67693ffe9d5b1347eccc2c5ceebeac0353c",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 400,
+              "content_json_text_bytes": 248104,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 480,
+              "content_json_text_bytes": 297804,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 400,
+              "content_json_text_bytes": 248104,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 480,
+              "content_json_text_bytes": 297804,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 400,
+              "content_json_text_bytes": 248104,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 480,
+              "content_json_text_bytes": 297804,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "first_text_seconds": {
+          "p50": 0.030580699996789917,
+          "p95": 0.04290749999927357,
+          "max": 0.04437189999589464
+        },
+        "end_to_end_seconds": {
+          "p50": 0.03961259999778122,
+          "p95": 0.05156079999869689,
+          "max": 0.053007000002253335
+        },
+        "service_seconds": {
+          "p50": 0.03960539999388857,
+          "p95": 0.05155389999708859,
+          "max": 0.05299870000453666
+        },
+        "queue_seconds": {
+          "p50": 7.700000423938036e-06,
+          "p95": 1.0899995686486363e-05,
+          "max": 1.4099998224992305e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 82632704,
+      "rss_increase_bytes": 2347008,
+      "python_peak_bytes": null,
+      "initial_context_bytes": {
+        "p50": 65439,
+        "p95": 65475,
+        "max": 65479
+      },
+      "all_host_budgets_met": true
+    },
+    {
+      "profile": {
+        "history_turns": 100,
+        "concurrency": 1,
+        "mode": "stream",
+        "lane": "diagnostic",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 9,
+      "raw": [
+        {
+          "file": "r1-h100-c1-stream-diagnostic.json",
+          "sha256": "d5d0a81be2843400ee5799b5893847f12a91dcbada63d03ac2e744340e27e59f",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h100-c1-stream-diagnostic.json",
+          "sha256": "d5c39a5d4552bd4cad3def861a6506672d5931ebbd5b1f5e1e177a8599228ec6",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h100-c1-stream-diagnostic.json",
+          "sha256": "eb28c3e41dcaebf755c4734ec7d956d42a69098d901d0c38b17ca7a0213d0490",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 400,
+              "content_json_text_bytes": 248104,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 412,
+              "content_json_text_bytes": 255559,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 400,
+              "content_json_text_bytes": 248104,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 412,
+              "content_json_text_bytes": 255559,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 400,
+              "content_json_text_bytes": 248104,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 412,
+              "content_json_text_bytes": 255559,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "first_text_seconds": {
+          "p50": 0.08188760000484763,
+          "p95": 0.09120419999817386,
+          "max": 0.09120419999817386
+        },
+        "history_read_seconds": {
+          "p50": 0.03328469999541994,
+          "p95": 0.041748800002096687,
+          "max": 0.041748800002096687
+        },
+        "canonical_conversion_seconds": {
+          "p50": 0.010545100063609425,
+          "p95": 0.011023900042346213,
+          "max": 0.011023900042346213
+        },
+        "context_selection_seconds": {
+          "p50": 0.019589099996665027,
+          "p95": 0.021072900002764072,
+          "max": 0.021072900002764072
+        },
+        "driver_json_decode_seconds": {
+          "p50": 0.008192900029825978,
+          "p95": 0.012873599960585125,
+          "max": 0.012873599960585125
+        },
+        "history_cursor_seconds": {
+          "p50": 0.015196200001810212,
+          "p95": 0.023581200002809055,
+          "max": 0.023581200002809055
+        },
+        "probe_serialization_seconds": {
+          "p50": 0.00495480000245152,
+          "p95": 0.005107800003315788,
+          "max": 0.005107800003315788
+        },
+        "end_to_end_seconds": {
+          "p50": 0.09707120000530267,
+          "p95": 0.10576269999728538,
+          "max": 0.10576269999728538
+        },
+        "service_seconds": {
+          "p50": 0.0970556000029319,
+          "p95": 0.10574169999745209,
+          "max": 0.10574169999745209
+        },
+        "queue_seconds": {
+          "p50": 2.0200001017656177e-05,
+          "p95": 2.269999822601676e-05,
+          "max": 2.269999822601676e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 85782528,
+      "rss_increase_bytes": 5251072,
+      "python_peak_bytes": 2456052,
+      "initial_context_bytes": {
+        "p50": 65407,
+        "p95": 65411,
+        "max": 65411
+      },
+      "all_host_budgets_met": true
+    },
+    {
+      "profile": {
+        "history_turns": 1000,
+        "concurrency": 1,
+        "mode": "invoke",
+        "lane": "timing",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 60,
+      "raw": [
+        {
+          "file": "r1-h1000-c1-invoke-timing.json",
+          "sha256": "95d8779e69f24af29007ecaaa72163bf81f3da81fe717a53c796a78f36778ae8",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h1000-c1-invoke-timing.json",
+          "sha256": "0cc7d48593b4ef110034cf014dc4309cf5e1cc9ba25d7a32e59dad1fc110ca0d",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h1000-c1-invoke-timing.json",
+          "sha256": "45d67505095920624ce3a9d00459a6efa7edb551ed7234298564b60b2179860a",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4080,
+              "content_json_text_bytes": 2530704,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4080,
+              "content_json_text_bytes": 2530704,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4080,
+              "content_json_text_bytes": 2530704,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "end_to_end_seconds": {
+          "p50": 0.16083789999538567,
+          "p95": 0.1841158999959589,
+          "max": 0.19947169999795733
+        },
+        "service_seconds": {
+          "p50": 0.16082399999868358,
+          "p95": 0.1841050999937579,
+          "max": 0.1994572000039625
+        },
+        "queue_seconds": {
+          "p50": 9.900002623908222e-06,
+          "p95": 1.3600001693703234e-05,
+          "max": 1.4800003555137664e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 108457984,
+      "rss_increase_bytes": 27865088,
+      "python_peak_bytes": null,
+      "initial_context_bytes": {
+        "p50": 65439,
+        "p95": 65475,
+        "max": 65479
+      },
+      "all_host_budgets_met": true
+    },
+    {
+      "profile": {
+        "history_turns": 1000,
+        "concurrency": 1,
+        "mode": "invoke",
+        "lane": "diagnostic",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 9,
+      "raw": [
+        {
+          "file": "r1-h1000-c1-invoke-diagnostic.json",
+          "sha256": "90db64720d909d7835d4e23e407e832da1a7f562babbadc97e97bfa4b4e88dc6",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h1000-c1-invoke-diagnostic.json",
+          "sha256": "e9db3fb259a5440f6f49cd5d48a60436ae5b8255493a327aaa08cd1571c06686",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h1000-c1-invoke-diagnostic.json",
+          "sha256": "ebc89092e3c80d5c490eda234986f1f709fe87a3406f69eef2fcdadf6cba0d51",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "history_read_seconds": {
+          "p50": 0.3583195999963209,
+          "p95": 0.36141359999601264,
+          "max": 0.36141359999601264
+        },
+        "canonical_conversion_seconds": {
+          "p50": 0.12998850028088782,
+          "p95": 0.14773709990549833,
+          "max": 0.14773709990549833
+        },
+        "context_selection_seconds": {
+          "p50": 0.15344249999907333,
+          "p95": 0.1708887999993749,
+          "max": 0.1708887999993749
+        },
+        "driver_json_decode_seconds": {
+          "p50": 0.08734010040643625,
+          "p95": 0.10069910015590722,
+          "max": 0.10069910015590722
+        },
+        "history_cursor_seconds": {
+          "p50": 0.1577532000010251,
+          "p95": 0.1707070999982534,
+          "max": 0.1707070999982534
+        },
+        "probe_serialization_seconds": {
+          "p50": 0.005054900007962715,
+          "p95": 0.005404199997428805,
+          "max": 0.005404199997428805
+        },
+        "end_to_end_seconds": {
+          "p50": 0.5782268999973894,
+          "p95": 0.6071942999988096,
+          "max": 0.6071942999988096
+        },
+        "service_seconds": {
+          "p50": 0.5782079999989946,
+          "p95": 0.6071740999977919,
+          "max": 0.6071740999977919
+        },
+        "queue_seconds": {
+          "p50": 2.1100000594742596e-05,
+          "p95": 3.0200004403013736e-05,
+          "max": 3.0200004403013736e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 129982464,
+      "rss_increase_bytes": 49496064,
+      "python_peak_bytes": 21909234,
+      "initial_context_bytes": {
+        "p50": 65407,
+        "p95": 65411,
+        "max": 65411
+      },
+      "all_host_budgets_met": true
+    },
+    {
+      "profile": {
+        "history_turns": 1000,
+        "concurrency": 1,
+        "mode": "stream",
+        "lane": "timing",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 60,
+      "raw": [
+        {
+          "file": "r1-h1000-c1-stream-timing.json",
+          "sha256": "7e934a49ecbc7c3bd4ae85ae6788e8fc21f64ea0d9ecf9150570b36be93d7c72",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h1000-c1-stream-timing.json",
+          "sha256": "063debe6d9bdc59abf3865e33d7ed54d13375606f71767266f3880a414687fe0",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h1000-c1-stream-timing.json",
+          "sha256": "9f0757daa204b5fb4ac3be7ed21d914afbda977e1effd9105bae4a516a86f084",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4080,
+              "content_json_text_bytes": 2530704,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4080,
+              "content_json_text_bytes": 2530704,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4080,
+              "content_json_text_bytes": 2530704,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "first_text_seconds": {
+          "p50": 0.14519779999682214,
+          "p95": 0.1605185000007623,
+          "max": 0.18460919999779435
+        },
+        "end_to_end_seconds": {
+          "p50": 0.15878430000157095,
+          "p95": 0.17435950000071898,
+          "max": 0.19932719999633264
+        },
+        "service_seconds": {
+          "p50": 0.15877519999776268,
+          "p95": 0.1743505999984336,
+          "max": 0.19931419999920763
+        },
+        "queue_seconds": {
+          "p50": 9.200004569720477e-06,
+          "p95": 1.2799995602108538e-05,
+          "max": 1.3700002455152571e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 108326912,
+      "rss_increase_bytes": 27586560,
+      "python_peak_bytes": null,
+      "initial_context_bytes": {
+        "p50": 65439,
+        "p95": 65475,
+        "max": 65479
+      },
+      "all_host_budgets_met": true
+    },
+    {
+      "profile": {
+        "history_turns": 1000,
+        "concurrency": 1,
+        "mode": "stream",
+        "lane": "diagnostic",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 9,
+      "raw": [
+        {
+          "file": "r1-h1000-c1-stream-diagnostic.json",
+          "sha256": "99205460d7fb9020cd6397895af63c8c3ae09164b0baa1184811d042476e15b7",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h1000-c1-stream-diagnostic.json",
+          "sha256": "0bbfb6975c2af8ea154498c3d919ae3a0ceb0d5693cc61c89d0c552ebc280423",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h1000-c1-stream-diagnostic.json",
+          "sha256": "bae3906551a37f44b16041c5c92082ad28d86e2612965504f287079fbcf2b8d7",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "first_text_seconds": {
+          "p50": 0.538270700002613,
+          "p95": 0.5956224000037764,
+          "max": 0.5956224000037764
+        },
+        "history_read_seconds": {
+          "p50": 0.35210080000251764,
+          "p95": 0.3812028000029386,
+          "max": 0.3812028000029386
+        },
+        "canonical_conversion_seconds": {
+          "p50": 0.1311804000142729,
+          "p95": 0.15094560007855762,
+          "max": 0.15094560007855762
+        },
+        "context_selection_seconds": {
+          "p50": 0.15529809999861754,
+          "p95": 0.1776979999995092,
+          "max": 0.1776979999995092
+        },
+        "driver_json_decode_seconds": {
+          "p50": 0.08862899983068928,
+          "p95": 0.10054600013245363,
+          "max": 0.10054600013245363
+        },
+        "history_cursor_seconds": {
+          "p50": 0.16002240000671009,
+          "p95": 0.17003119999571936,
+          "max": 0.17003119999571936
+        },
+        "probe_serialization_seconds": {
+          "p50": 0.0052247999992687255,
+          "p95": 0.008484999998472631,
+          "max": 0.008484999998472631
+        },
+        "end_to_end_seconds": {
+          "p50": 0.5770575999995344,
+          "p95": 0.6437705999996979,
+          "max": 0.6437705999996979
+        },
+        "service_seconds": {
+          "p50": 0.5770370000027469,
+          "p95": 0.6437508999952115,
+          "max": 0.6437508999952115
+        },
+        "queue_seconds": {
+          "p50": 2.099999983329326e-05,
+          "p95": 3.149999974993989e-05,
+          "max": 3.149999974993989e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 130093056,
+      "rss_increase_bytes": 49332224,
+      "python_peak_bytes": 21911395,
+      "initial_context_bytes": {
+        "p50": 65407,
+        "p95": 65411,
+        "max": 65411
+      },
+      "all_host_budgets_met": true
+    },
+    {
+      "profile": {
+        "history_turns": 10000,
+        "concurrency": 1,
+        "mode": "invoke",
+        "lane": "timing",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 60,
+      "raw": [
+        {
+          "file": "r1-h10000-c1-invoke-timing.json",
+          "sha256": "c4e909a29cc902b794d9a09743e1e5e810ca83209b4188ede6cd0565ce2935bd",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": false,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h10000-c1-invoke-timing.json",
+          "sha256": "e4b23bce2a1bb1aebb10bf76df917526d359c6f893a0db25643e32cd546dc6fb",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": false,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h10000-c1-invoke-timing.json",
+          "sha256": "8733bceefea05936a92e06b9d8f09ec8dc2dfdc99b6708f27f21ed17216b14b2",
+          "host_budgets": {
+            "responsiveness": false,
+            "rss_increase": false,
+            "python_peak": true,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 40000,
+              "content_json_text_bytes": 24810004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 40080,
+              "content_json_text_bytes": 24859704,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 40000,
+              "content_json_text_bytes": 24810004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 40080,
+              "content_json_text_bytes": 24859704,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 40000,
+              "content_json_text_bytes": 24810004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 40080,
+              "content_json_text_bytes": 24859704,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "end_to_end_seconds": {
+          "p50": 1.8307407000029343,
+          "p95": 2.0756516000037664,
+          "max": 2.186607299998286
+        },
+        "service_seconds": {
+          "p50": 1.8307147000014083,
+          "p95": 2.0756292000005487,
+          "max": 2.186585899995407
+        },
+        "queue_seconds": {
+          "p50": 1.750000228639692e-05,
+          "p95": 2.4599998141638935e-05,
+          "max": 2.8899994504172355e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 352718848,
+      "rss_increase_bytes": 271773696,
+      "python_peak_bytes": null,
+      "initial_context_bytes": {
+        "p50": 65439,
+        "p95": 65475,
+        "max": 65479
+      },
+      "all_host_budgets_met": false
+    },
+    {
+      "profile": {
+        "history_turns": 10000,
+        "concurrency": 1,
+        "mode": "invoke",
+        "lane": "diagnostic",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 9,
+      "raw": [
+        {
+          "file": "r1-h10000-c1-invoke-diagnostic.json",
+          "sha256": "dbe2d56b032168279988319b18b1844b81df62881cb6069fb3b86611e39d5d07",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": false,
+            "python_peak": false,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h10000-c1-invoke-diagnostic.json",
+          "sha256": "4062e4d348db32dbef23810d70048cb32a4cf51d71cbeca69333d323ea910458",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": false,
+            "python_peak": false,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h10000-c1-invoke-diagnostic.json",
+          "sha256": "51bd334bed5a2fbb12b6d62288cf199e9ecf1e8c3ab899704430f818bfdcb690",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": false,
+            "python_peak": false,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 40000,
+              "content_json_text_bytes": 24810004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 40012,
+              "content_json_text_bytes": 24817459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 40000,
+              "content_json_text_bytes": 24810004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 40012,
+              "content_json_text_bytes": 24817459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 40000,
+              "content_json_text_bytes": 24810004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 40012,
+              "content_json_text_bytes": 24817459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "history_read_seconds": {
+          "p50": 4.058325900005002,
+          "p95": 4.57857089999743,
+          "max": 4.57857089999743
+        },
+        "canonical_conversion_seconds": {
+          "p50": 1.5104367002568324,
+          "p95": 1.6677941999441828,
+          "max": 1.6677941999441828
+        },
+        "context_selection_seconds": {
+          "p50": 1.5406417999984114,
+          "p95": 1.6462212999977055,
+          "max": 1.6462212999977055
+        },
+        "driver_json_decode_seconds": {
+          "p50": 1.0171575995045714,
+          "p95": 1.2633029002245166,
+          "max": 1.2633029002245166
+        },
+        "history_cursor_seconds": {
+          "p50": 1.767455199995311,
+          "p95": 2.1874018000016804,
+          "max": 2.1874018000016804
+        },
+        "probe_serialization_seconds": {
+          "p50": 0.00531040000350913,
+          "p95": 0.007678099995246157,
+          "max": 0.007678099995246157
+        },
+        "end_to_end_seconds": {
+          "p50": 5.990555000003951,
+          "p95": 6.452871800000139,
+          "max": 6.452871800000139
+        },
+        "service_seconds": {
+          "p50": 5.990518300000986,
+          "p95": 6.452838099998189,
+          "max": 6.452838099998189
+        },
+        "queue_seconds": {
+          "p50": 3.120000474154949e-05,
+          "p95": 3.670000296551734e-05,
+          "max": 3.670000296551734e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 607219712,
+      "rss_increase_bytes": 526360576,
+      "python_peak_bytes": 215100325,
+      "initial_context_bytes": {
+        "p50": 65407,
+        "p95": 65411,
+        "max": 65411
+      },
+      "all_host_budgets_met": false
+    },
+    {
+      "profile": {
+        "history_turns": 10000,
+        "concurrency": 1,
+        "mode": "stream",
+        "lane": "timing",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 60,
+      "raw": [
+        {
+          "file": "r1-h10000-c1-stream-timing.json",
+          "sha256": "886c3b08078af62ddbf0bf3b4728c98dbc3c7dd84079b7e8b01711a157e563b2",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": false,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h10000-c1-stream-timing.json",
+          "sha256": "e67fe3dd78aaff0d3ccd8414ff23088d3fe0f39f98762f6eabdbff583b673e0d",
+          "host_budgets": {
+            "responsiveness": false,
+            "rss_increase": false,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h10000-c1-stream-timing.json",
+          "sha256": "41375f652720dd8f55d376fa2a587cb7aeeff3af6a8f814380758645aa32ac5a",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": false,
+            "python_peak": true,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 40000,
+              "content_json_text_bytes": 24810004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 40080,
+              "content_json_text_bytes": 24859704,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 40000,
+              "content_json_text_bytes": 24810004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 40080,
+              "content_json_text_bytes": 24859704,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 40000,
+              "content_json_text_bytes": 24810004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 40080,
+              "content_json_text_bytes": 24859704,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "first_text_seconds": {
+          "p50": 1.7576121999954921,
+          "p95": 1.9592239999983576,
+          "max": 2.0805989999935264
+        },
+        "end_to_end_seconds": {
+          "p50": 1.8231749999977183,
+          "p95": 2.040939200000139,
+          "max": 2.1509299999961513
+        },
+        "service_seconds": {
+          "p50": 1.8231554999947548,
+          "p95": 2.040925600005721,
+          "max": 2.1509159999986878
+        },
+        "queue_seconds": {
+          "p50": 1.4700002793688327e-05,
+          "p95": 2.0899999071843922e-05,
+          "max": 2.3099993995856494e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 352509952,
+      "rss_increase_bytes": 271273984,
+      "python_peak_bytes": null,
+      "initial_context_bytes": {
+        "p50": 65439,
+        "p95": 65475,
+        "max": 65479
+      },
+      "all_host_budgets_met": false
+    },
+    {
+      "profile": {
+        "history_turns": 10000,
+        "concurrency": 1,
+        "mode": "stream",
+        "lane": "diagnostic",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 9,
+      "raw": [
+        {
+          "file": "r1-h10000-c1-stream-diagnostic.json",
+          "sha256": "b5c8595752a199e0e9e635ac4277f82eb6065dfa0099a7c19ad4e5cc4f640324",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": false,
+            "python_peak": false,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h10000-c1-stream-diagnostic.json",
+          "sha256": "0371dfc5d9a345e4194ca850fc697759fd2108bebf76de9c11de7c598504b295",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": false,
+            "python_peak": false,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h10000-c1-stream-diagnostic.json",
+          "sha256": "a37786d8c74560004808083aa810b8cb5be0bcbf1fe4df37759a71f0d300a2e1",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": false,
+            "python_peak": false,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 40000,
+              "content_json_text_bytes": 24810004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 40012,
+              "content_json_text_bytes": 24817459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 40000,
+              "content_json_text_bytes": 24810004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 40012,
+              "content_json_text_bytes": 24817459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 40000,
+              "content_json_text_bytes": 24810004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 40012,
+              "content_json_text_bytes": 24817459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "first_text_seconds": {
+          "p50": 5.660270500004117,
+          "p95": 6.356514900006005,
+          "max": 6.356514900006005
+        },
+        "history_read_seconds": {
+          "p50": 4.068164099997375,
+          "p95": 4.568291600000521,
+          "max": 4.568291600000521
+        },
+        "canonical_conversion_seconds": {
+          "p50": 1.514513500063913,
+          "p95": 1.7345338998566149,
+          "max": 1.7345338998566149
+        },
+        "context_selection_seconds": {
+          "p50": 1.5591839000044274,
+          "p95": 1.7389120000007097,
+          "max": 1.7389120000007097
+        },
+        "driver_json_decode_seconds": {
+          "p50": 1.0063095008590608,
+          "p95": 1.137385300535243,
+          "max": 1.137385300535243
+        },
+        "history_cursor_seconds": {
+          "p50": 1.7222310000070138,
+          "p95": 1.9573601000010967,
+          "max": 1.9573601000010967
+        },
+        "probe_serialization_seconds": {
+          "p50": 0.00538570000207983,
+          "p95": 0.00601230000029318,
+          "max": 0.00601230000029318
+        },
+        "end_to_end_seconds": {
+          "p50": 6.014255800000683,
+          "p95": 6.664989000004425,
+          "max": 6.664989000004425
+        },
+        "service_seconds": {
+          "p50": 6.014228499996534,
+          "p95": 6.664957799999684,
+          "max": 6.664957799999684
+        },
+        "queue_seconds": {
+          "p50": 2.540000423323363e-05,
+          "p95": 3.809999907389283e-05,
+          "max": 3.809999907389283e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 607490048,
+      "rss_increase_bytes": 526258176,
+      "python_peak_bytes": 215102135,
+      "initial_context_bytes": {
+        "p50": 65407,
+        "p95": 65411,
+        "max": 65411
+      },
+      "all_host_budgets_met": false
+    },
+    {
+      "profile": {
+        "history_turns": 1000,
+        "concurrency": 4,
+        "mode": "stream",
+        "lane": "timing",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 60,
+      "raw": [
+        {
+          "file": "r1-h1000-c4-stream-timing.json",
+          "sha256": "13b401371939e25f8b8f3447fc6bb3b7be5e3fb228b160df0002f609f50a26b4",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h1000-c4-stream-timing.json",
+          "sha256": "5bf04b514d42fc2f4369068d006079497bdbd816a0db8261bf66938baee4cc31",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h1000-c4-stream-timing.json",
+          "sha256": "f54db7d8a58164b2e29090a255e9ebe2a3c00a98ac5f7d07c73aa61d2f48da6b",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4020,
+              "content_json_text_bytes": 2493429,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4020,
+              "content_json_text_bytes": 2493429,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4020,
+              "content_json_text_bytes": 2493429,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4020,
+              "content_json_text_bytes": 2493429,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4020,
+              "content_json_text_bytes": 2493429,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4020,
+              "content_json_text_bytes": 2493429,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4020,
+              "content_json_text_bytes": 2493429,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4020,
+              "content_json_text_bytes": 2493429,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4020,
+              "content_json_text_bytes": 2493429,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4020,
+              "content_json_text_bytes": 2493429,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4020,
+              "content_json_text_bytes": 2493429,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4020,
+              "content_json_text_bytes": 2493429,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "first_text_seconds": {
+          "p50": 0.4901073000000906,
+          "p95": 0.6688044999973499,
+          "max": 0.8357547000050545
+        },
+        "end_to_end_seconds": {
+          "p50": 0.5883403000043472,
+          "p95": 0.8141373000034946,
+          "max": 1.037709600001108
+        },
+        "service_seconds": {
+          "p50": 0.5883315000028233,
+          "p95": 0.8141242999990936,
+          "max": 1.0377053999982309
+        },
+        "queue_seconds": {
+          "p50": 8.900002285372466e-06,
+          "p95": 1.2299999070819467e-05,
+          "max": 1.630000042496249e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 139763712,
+      "rss_increase_bytes": 58949632,
+      "python_peak_bytes": null,
+      "initial_context_bytes": {
+        "p50": 65411,
+        "p95": 65419,
+        "max": 65419
+      },
+      "all_host_budgets_met": true
+    },
+    {
+      "profile": {
+        "history_turns": 1000,
+        "concurrency": 4,
+        "mode": "stream",
+        "lane": "diagnostic",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "postgres_version": "16.15"
+      },
+      "samples": 36,
+      "raw": [
+        {
+          "file": "r1-h1000-c4-stream-diagnostic.json",
+          "sha256": "720d43d23d6499cab6fbb84240d875d0e810601c622a7cb610e9c7fafe97263b",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r2-h1000-c4-stream-diagnostic.json",
+          "sha256": "d8c6d4a7b17cb751b1788f20c95ea57b2795fdba3ab30949778a0058c96015ad",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        },
+        {
+          "file": "r3-h1000-c4-stream-diagnostic.json",
+          "sha256": "74d0c461889fc8e5d2f3bbcfb4bd7d47cedf009ec3b813716836097749e4a67d",
+          "host_budgets": {
+            "responsiveness": true,
+            "rss_increase": true,
+            "python_peak": true,
+            "initial_context": true
+          }
+        }
+      ],
+      "history_shapes": [
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        },
+        {
+          "seeded_history": [
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4000,
+              "content_json_text_bytes": 2481004,
+              "largest_content_bytes": 1723
+            }
+          ],
+          "final_history": [
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            },
+            {
+              "rows": 4012,
+              "content_json_text_bytes": 2488459,
+              "largest_content_bytes": 1723
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "first_text_seconds": {
+          "p50": 1.738297000003513,
+          "p95": 2.46896530000231,
+          "max": 2.593143800004327
+        },
+        "history_read_seconds": {
+          "p50": 0.8918553999974392,
+          "p95": 2.0627470999970683,
+          "max": 2.0794497999959276
+        },
+        "canonical_conversion_seconds": {
+          "p50": 0.13406360022054287,
+          "p95": 0.17689420014357893,
+          "max": 0.1794355002057273
+        },
+        "context_selection_seconds": {
+          "p50": 0.15505799999664305,
+          "p95": 0.1935825000036857,
+          "max": 0.19469089999620337
+        },
+        "driver_json_decode_seconds": {
+          "p50": 0.09589839972613845,
+          "p95": 0.12767299984261626,
+          "max": 0.12992800003121374
+        },
+        "history_cursor_seconds": {
+          "p50": 0.6637735999975121,
+          "p95": 0.781606999997166,
+          "max": 0.8422294999982114
+        },
+        "probe_serialization_seconds": {
+          "p50": 0.005256399999780115,
+          "p95": 0.009459699998842552,
+          "max": 0.00984309999330435
+        },
+        "end_to_end_seconds": {
+          "p50": 2.328807500001858,
+          "p95": 2.870988999995461,
+          "max": 3.1623084000020754
+        },
+        "service_seconds": {
+          "p50": 2.3287953000035486,
+          "p95": 2.8709722999992664,
+          "max": 3.162288300001819
+        },
+        "queue_seconds": {
+          "p50": 1.870000414783135e-05,
+          "p95": 2.6699999580159783e-05,
+          "max": 3.2199997804127634e-05
+        }
+      },
+      "rss_absolute_peak_bytes": 224903168,
+      "rss_increase_bytes": 144334848,
+      "python_peak_bytes": 66756097,
+      "initial_context_bytes": {
+        "p50": 65407,
+        "p95": 65411,
+        "max": 65411
+      },
+      "all_host_budgets_met": true
+    }
+  ]
+}

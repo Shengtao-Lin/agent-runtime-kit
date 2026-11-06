@@ -84,6 +84,29 @@ async def main() -> None:
                     "lease_expires_at": record.lease_expires_at.isoformat(),
                 }
             )
+        if source_version == "0.6.0":
+            context_identity = identity + "-context"
+            async with application(
+                os.environ["AGENT_RUNTIME_TEST_DATABASE_URL"],
+                context_identity,
+                context_max_bytes=1024,
+            ) as selected:
+                thread = await selected.memory.create_thread(namespace=context_identity)
+                for index in range(3):
+                    context_request = request("double 7", thread_id=thread.id)
+                    context_response = await selected.runtime.invoke(
+                        context_identity, context_request, idempotency_key=f"context-{index}"
+                    )
+                assert len(selected.model.calls[-2]) < 9
+                state["context_window"] = {
+                    "identity": context_identity,
+                    "request": context_request.model_dump(mode="json"),
+                    "response": context_response.model_dump(mode="json"),
+                    "messages": [
+                        item.model_dump(mode="json")
+                        for item in await selected.memory.get_messages(thread.id)
+                    ],
+                }
         await asyncio.to_thread(
             Path(os.environ["CONSUMER_UPGRADE_STATE"]).write_text,
             json.dumps(state),

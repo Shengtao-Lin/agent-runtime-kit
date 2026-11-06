@@ -45,8 +45,11 @@ def main() -> None:
     parser.add_argument("--expected-version", default=BASELINE_VERSION)
     parser.add_argument("--repetitions", type=int, choices=range(1, 6), default=3)
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--stream-history", action="store_true")
     parser.add_argument("--report-dir", type=Path, required=True)
     args = parser.parse_args()
+    if args.stream_history and not args.wheel:
+        parser.error("--stream-history requires a candidate wheel with that explicit capability")
     if not os.environ.get("WORKLOAD_DATABASE_URL"):
         parser.error("Set WORKLOAD_DATABASE_URL to a dedicated disposable PostgreSQL database")
     repository = Path(__file__).resolve().parents[1]
@@ -75,6 +78,7 @@ def main() -> None:
         "repetitions": args.repetitions,
         "smoke": args.smoke,
         "context_max_bytes": 65536,
+        "stream_history": args.stream_history,
         "specification_commit": "d587d1f",
         "profiles": profiles(args.smoke),
         "source_hashes": {
@@ -187,6 +191,8 @@ def main() -> None:
                     ]
                     if args.smoke:
                         command.append("--smoke")
+                    if args.stream_history:
+                        command.append("--stream-history")
                     run(command)
             manifest["status"] = "passed"
         except BaseException as exc:

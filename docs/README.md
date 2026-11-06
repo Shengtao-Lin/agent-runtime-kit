@@ -16,6 +16,7 @@ sample service is not required for application integration.
 | Upgrade to the current release | [v0.6.0 upgrade guide](upgrading-to-v0.6.0.md) |
 | Review v0.6.0 pre-publication checks | [v0.6.0 readiness](validation/v0.6.0-readiness.md) |
 | Inspect the independent host workload comparison | [Stage D context acceptance](validation/stage-d-context-window.md) |
+| Inspect long-history resource acceptance | [Stage E incremental history comparison](validation/stage-e-incremental-history.md) |
 | Inspect actual publication and adoption evidence | [v0.6.0 evidence](validation/v0.6.0-publication.md) |
 | Review the pre-publication candidate checks | [v0.5.0 readiness](validation/v0.5.0-readiness.md) |
 

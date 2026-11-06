@@ -2,13 +2,26 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import AsyncGenerator, Sequence
 from datetime import datetime
-from typing import Any, Protocol
+from typing import Any, Protocol, runtime_checkable
 from uuid import UUID
 
 from agent_runtime.memory.models import MemoryPage, MemoryRecord, StoredMessage, ThreadRecord
 from agent_runtime.models import Message
+
+
+@runtime_checkable
+class StreamingMemoryStore(Protocol):
+    """Optional complete-history cursor capability, separate from the legacy MemoryStore.
+
+    A stream preserves one ordered read snapshot and supports explicit asynchronous closure.
+    The consumer owns closing it; implementations must release resources on cancellation/failure.
+    """
+
+    def stream_messages(
+        self, thread_id: UUID, *, namespace: str | None = None
+    ) -> AsyncGenerator[StoredMessage, None]: ...
 
 
 class MemoryStore(Protocol):

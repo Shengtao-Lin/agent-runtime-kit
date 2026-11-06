@@ -215,5 +215,6 @@ verified backup, an exact database target, and an approved retention policy.
 
 - [User Runbook](../user-runbook.md)
 - [Runtime](runtime.md)
+- [Incremental history reading](history-reading.md)
 - [Feedback](feedback.md)
 - [Architecture Decision 0002](../adr/0002-postgresql-only-memory.md)

@@ -55,7 +55,7 @@ async def main(payload):
     registry.register(NoExecution())
     runtime = AgentRuntime(agents=registry, memory=PostgresMemoryStore(engine),
         runs=PostgresRunStore(engine), namespace=payload['namespace'],
-        context_window=ContextWindow(2))
+        context_window=ContextWindow(2), stream_history=payload.get("stream_history", False))
     try:
         async with runtime.lifespan():
             request = RuntimeRequest.model_validate(payload['request'])
@@ -137,6 +137,7 @@ class Host:
     invoker: Invoker
     observer: Observer
     namespace: str
+    stream_history: bool = False
 
     def runtime(self, budget: int | None) -> AgentRuntime:
         return AgentRuntime(
@@ -146,11 +147,12 @@ class Host:
             hooks=HookManager([self.observer]),
             namespace=self.namespace,
             context_window=ContextWindow(budget) if budget is not None else None,
+            stream_history=self.stream_history if budget is not None else False,
         )
 
 
 @asynccontextmanager
-async def host() -> AsyncGenerator[Host]:
+async def host(*, stream_history: bool = False) -> AsyncGenerator[Host]:
     url = os.getenv("AGENT_RUNTIME_TEST_DATABASE_URL")
     if not url:
         pytest.skip("AGENT_RUNTIME_TEST_DATABASE_URL is not configured")
@@ -166,6 +168,7 @@ async def host() -> AsyncGenerator[Host]:
         invoker,
         Observer(),
         str(uuid4()),
+        stream_history=stream_history,
     )
     try:
         yield value
@@ -176,10 +179,11 @@ async def host() -> AsyncGenerator[Host]:
 
 @pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("enabled", [False, True])
+@pytest.mark.parametrize("stream_history", [False, True])
 async def test_selected_hook_input_full_history_and_replay_after_policy_change(
-    streaming: bool, enabled: bool
+    streaming: bool, enabled: bool, stream_history: bool
 ) -> None:
-    async with host() as h:
+    async with host(stream_history=stream_history) as h:
         thread = await h.memory.create_thread(namespace=h.namespace)
         history = [text("historical system", system=True), text("old" * 1000)]
         await h.memory.append_messages(thread.id, history)
@@ -220,7 +224,11 @@ async def test_selected_hook_input_full_history_and_replay_after_policy_change(
         assert len(h.invoker.inputs) == 1 and len(h.observer.events) == 2
         if enabled and not streaming:
             payload = json.dumps(
-                {"namespace": h.namespace, "request": request.model_dump(mode="json")}
+                {
+                    "namespace": h.namespace,
+                    "request": request.model_dump(mode="json"),
+                    "stream_history": stream_history,
+                }
             )
             process = await asyncio.to_thread(
                 subprocess.run,
@@ -236,10 +244,11 @@ async def test_selected_hook_input_full_history_and_replay_after_policy_change(
 
 @pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("malformed", [False, True])
+@pytest.mark.parametrize("stream_history", [False, True])
 async def test_selection_failure_is_durable_without_dispatch_or_history_append(
-    streaming: bool, malformed: bool
+    streaming: bool, malformed: bool, stream_history: bool
 ) -> None:
-    async with host() as h:
+    async with host(stream_history=stream_history) as h:
         thread = await h.memory.create_thread(namespace=h.namespace)
         history = (
             [Message(role="tool", content=[ToolResultContent(tool_call_id="orphan", result={})])]
@@ -273,8 +282,11 @@ async def test_selection_failure_is_durable_without_dispatch_or_history_append(
 
 
 @pytest.mark.parametrize("behavior", ["wait", "error"])
-async def test_selected_failure_cancellation_and_thread_exclusion(behavior: str) -> None:
-    async with host() as h:
+@pytest.mark.parametrize("stream_history", [False, True])
+async def test_selected_failure_cancellation_and_thread_exclusion(
+    behavior: str, stream_history: bool
+) -> None:
+    async with host(stream_history=stream_history) as h:
         thread = await h.memory.create_thread(namespace=h.namespace)
         history = [text("old" * 1000)]
         await h.memory.append_messages(thread.id, history)
@@ -313,8 +325,11 @@ async def test_selected_failure_cancellation_and_thread_exclusion(behavior: str)
                 await runtime.invoke("context", request, idempotency_key=h.namespace)
 
 
-async def test_closing_selected_stream_releases_producer_and_preserves_history() -> None:
-    async with host() as h:
+@pytest.mark.parametrize("stream_history", [False, True])
+async def test_closing_selected_stream_releases_producer_and_preserves_history(
+    stream_history: bool,
+) -> None:
+    async with host(stream_history=stream_history) as h:
         thread = await h.memory.create_thread(namespace=h.namespace)
         history = [text("old" * 1000)]
         await h.memory.append_messages(thread.id, history)

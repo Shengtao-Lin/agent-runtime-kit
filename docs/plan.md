@@ -220,6 +220,19 @@ All three 10,000-turn timing repetitions exceed the memory-increase budget; stre
 also misses the frozen requirement. Shorter profiles pass. Evaluate client materialization first,
 then retain the smallest candidate that meets the complete correctness and resource acceptance.
 
+Development implementation follows [ADR 0016](adr/0016-history-materialization-and-validation.md).
+The batching-only and first incremental candidates failed frozen gates; both remain in the evidence.
+The accepted column-row implementation preserves complete validation while avoiding full transcript
+materialization and per-row ORM construction. Default reads remain unchanged.
+
+[Final repeated acceptance](validation/stage-e-incremental-history.md) passes every applicable
+absolute budget and short-history regression gate across three repetitions, 42 processes and 510
+continuations. Source CI passes 758 tests. The installed actual-v0.6.0 upgrade consumer passes 176
+cases (four historical readiness probes deselected, no skips), plus a 30-second shared-engine soak.
+Final report-head/main checks, actual publication and independently locked Release Desk adoption
+remain outstanding; Stage E is not yet delivered. The [history reading runbook](runbooks/history-reading.md)
+documents configuration, snapshot/cleanup ownership, full-scan costs and rollback.
+
 ## Deferred until justified
 
 - Distributed workers, resumable workflows, human-approval queues or exactly-once tools need a

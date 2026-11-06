@@ -61,6 +61,26 @@ def host_budgets(report):
 
 
 class DiagnosticMemory(PostgresMemoryStore):
+    async def stream_messages(self, thread_id, *, namespace=None):
+        source = super().stream_messages(thread_id, namespace=namespace)
+        try:
+            while True:
+                token = READING.set(True)
+                start = time.perf_counter()
+                try:
+                    item = await anext(source)
+                except StopAsyncIteration:
+                    return
+                finally:
+                    if (sample := ACTIVE.get()) is not None:
+                        sample["history_read_seconds"] += time.perf_counter() - start
+                    READING.reset(token)
+                if (sample := ACTIVE.get()) is not None:
+                    sample["history_rows"] += 1
+                yield item
+        finally:
+            await source.aclose()
+
     async def get_messages(self, thread_id, *, namespace=None):
         token = READING.set(True)
         start = time.perf_counter()
@@ -86,6 +106,20 @@ class DiagnosticMemory(PostgresMemoryStore):
 
 
 class DiagnosticWindow(ContextWindow):
+    async def select_stream(self, history, current):
+        sample = ACTIVE.get()
+        before = sample["history_read_seconds"] if sample is not None else 0
+        start = time.perf_counter()
+        try:
+            return await super().select_stream(history, current)
+        finally:
+            if sample is not None:
+                # Streaming selection encloses the awaited read. Report its exclusive remainder,
+                # not an additive claim that the two overlapping wall intervals are independent.
+                sample["context_selection_seconds"] += max(
+                    0, time.perf_counter() - start - (sample["history_read_seconds"] - before)
+                )
+
     def select(self, history, current):
         start = time.perf_counter()
         try:
@@ -271,6 +305,7 @@ async def experiment(args, report):
         namespace=identity,
         invocation_timeout_seconds=30,
         context_window=(DiagnosticWindow if diagnostic else ContextWindow)(65536),
+        **({"stream_history": True} if getattr(args, "stream_history", False) else {}),
     )
     review = ReviewInput(repository="synthetic/project", tag="v0.5.0")
 
@@ -447,6 +482,7 @@ async def experiment(args, report):
 async def main(args):
     report = {
         "version": agent_runtime.__version__,
+        "stream_history": getattr(args, "stream_history", False),
         "python": platform.python_version(),
         "platform": platform.platform(),
         "profile": {
@@ -523,6 +559,7 @@ if __name__ == "__main__":
     parser.add_argument("--mode", choices=("invoke", "stream"), required=True)
     parser.add_argument("--lane", choices=("timing", "diagnostic"), required=True)
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--stream-history", action="store_true")
     parser.add_argument("--report", type=Path, required=True)
     if os.name == "nt":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
