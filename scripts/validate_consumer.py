@@ -153,6 +153,11 @@ def main() -> None:
             consumer,
             ignore=shutil.ignore_patterns(".venv", "__pycache__", ".pytest_cache"),
         )
+        if args.wheel:
+            shutil.copy2(repository / "tests/unit/test_extension_api.py", consumer / "tests")
+            snapshots = consumer / "snapshots"
+            snapshots.mkdir()
+            shutil.copy2(repository / "tests/snapshots/public_surface.json", snapshots)
         if args.frameworks:
             framework_source = repository / "validation" / "frameworks"
             shutil.copy2(framework_source / "framework_app.py", consumer)

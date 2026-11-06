@@ -7,6 +7,7 @@ sample service is not required for application integration.
 | --- | --- |
 | Embed the library in an independent application | [Library integration](library-integration.md) |
 | Understand ownership, guarantees and limits | [Architecture](architecture.md) |
+| Review supported entry points and compatibility checks | [Public API inventory](public-api.md) |
 | Decide what to build next and how to accept it | [Development plan](plan.md) |
 | Understand why a design was chosen | [ADR index](adr/README.md) |
 | Operate or troubleshoot one component | [Component runbooks](runbooks/README.md) |

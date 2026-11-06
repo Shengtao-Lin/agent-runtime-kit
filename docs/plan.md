@@ -123,8 +123,16 @@ adapter exports now resolve implementations lazily while preserving their public
 See [boundary evidence](validation/library-boundaries-2026-11-05.md). Documentation guards now
 check linked local evidence, heading anchors and canonical ADR identity; CI and release verification
 run the guards, with negative fixtures for broken links/anchors and duplicate decisions.
-PR acceptance is still required for that change. Public-surface inventory and compatibility-trigger
-expansion remain outstanding; the complete list below is not yet delivered.
+PR #40 merged after final-commit CI and release rehearsal passed. The [public API inventory](public-api.md), focused
+export/protocol checks and expanded compatibility triggers are now implemented in a separate
+working change. The target-wheel consumer runs those checks outside the checkout. Stage C remains
+open until these changes pass final-commit CI and merge.
+
+Local public-surface evidence: 575 unit tests passed (72 integration cases deselected), Ruff and
+strict Pyright passed, and the external candidate-wheel consumer passed 75 cases with one
+upgrade-only skip and four readiness probes deselected. This fresh-consumer result is not a
+preserved-state upgrade claim. The report and dependency/provenance inventories are retained under
+`build/public-api-consumer`; final-commit compatibility CI remains required.
 
 | Invariant | Planned automated evidence |
 | --- | --- |
