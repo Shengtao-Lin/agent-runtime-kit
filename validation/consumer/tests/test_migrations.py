@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 from consumer_app import application, request
 
-from agent_runtime import RuntimeResponse
+from agent_runtime import RuntimeRequest, RuntimeResponse
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("CONSUMER_PACKAGED_MIGRATIONS") != "1",
@@ -86,3 +86,35 @@ async def test_upgrade_preserves_published_records(database_url: str) -> None:
         assert continued.thread_id == first.thread_id
         assert len(app.model.calls[-1]) == 5
         assert len(await app.memory.get_messages(first.thread_id)) == 6
+    if "context_window" in state:
+        from agent_runtime.errors import ContextBudgetExceededError
+
+        selected = state["context_window"]
+        original = RuntimeResponse.model_validate(selected["response"])
+        original_request = RuntimeRequest.model_validate(selected["request"])
+        async with application(
+            database_url, selected["identity"], context_max_bytes=2, stream_history=True
+        ) as app:
+            replay = await app.runtime.invoke(
+                app.agent_id, original_request, idempotency_key="context-2"
+            )
+            assert replay == original
+            with pytest.raises(ContextBudgetExceededError):
+                await app.runtime.invoke(
+                    app.agent_id, original_request, idempotency_key="too-small"
+                )
+            assert app.model.calls == []
+            assert [
+                item.model_dump(mode="json")
+                for item in await app.memory.get_messages(original.thread_id)
+            ] == selected["messages"]
+        async with application(
+            database_url, selected["identity"], context_max_bytes=2048, stream_history=True
+        ) as app:
+            await app.runtime.invoke(
+                app.agent_id, request("continue", thread_id=original.thread_id)
+            )
+            assert len(app.model.calls[-1]) < len(selected["messages"]) + 1
+            history = await app.memory.get_messages(original.thread_id)
+            assert [item.model_dump(mode="json") for item in history[:-2]] == selected["messages"]
+            assert len(history) == len(selected["messages"]) + 2

@@ -120,6 +120,8 @@ async def application(
     invocation_deadline_seconds: float = 2.0,
     hooks: HookManager | None = None,
     engine: AsyncEngine | None = None,
+    context_max_bytes: int | None = None,
+    stream_history: bool = False,
 ) -> AsyncIterator[ConsumerApplication]:
     """Own the model, engine, and telemetry for one application lifetime."""
     owns_engine = engine is None
@@ -151,6 +153,13 @@ async def application(
                 telemetry=telemetry.telemetry,
             )
         )
+        context_options = {}
+        if context_max_bytes is not None:
+            from agent_runtime.context import ContextWindow
+
+            context_options["context_window"] = ContextWindow(context_max_bytes)
+        if stream_history:
+            context_options["stream_history"] = True
         runtime = AgentRuntime(
             agents=agents,
             memory=memory,
@@ -159,6 +168,7 @@ async def application(
             hooks=hooks,
             invocation_timeout_seconds=invocation_deadline_seconds,
             telemetry=telemetry.telemetry,
+            **context_options,
         )
         yield ConsumerApplication(
             identity, runtime, memory, runs, feedback, model, engine, telemetry
