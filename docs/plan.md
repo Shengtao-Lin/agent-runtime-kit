@@ -215,6 +215,11 @@ Keep the complete goal: evidence-led design, any necessary minimal implementatio
 correctness and resource acceptance, final-head/main delivery, and actual publication/adoption if
 library behavior changes. Do not infer a storage API or production SLO from the experiment alone.
 
+The [completed baseline](validation/stage-e-baseline.md) retains 42 processes and 510 continuations.
+All three 10,000-turn timing repetitions exceed the memory-increase budget; stream responsiveness
+also misses the frozen requirement. Shorter profiles pass. Evaluate client materialization first,
+then retain the smallest candidate that meets the complete correctness and resource acceptance.
+
 ## Deferred until justified
 
 - Distributed workers, resumable workflows, human-approval queues or exactly-once tools need a

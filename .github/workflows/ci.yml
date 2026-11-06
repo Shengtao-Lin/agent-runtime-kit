@@ -332,6 +332,51 @@ jobs:
           path: build/workload-smoke/
           if-no-files-found: warn
 
+  history-workload:
+    name: Long-history lane smoke (${{ matrix.source }})
+    needs: quality
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        source: [baseline, candidate]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: workload
+          POSTGRES_USER: agent_runtime
+          POSTGRES_PASSWORD: agent_runtime
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U agent_runtime -d workload"
+          --health-interval 2s --health-timeout 3s --health-retries 20
+    env:
+      WORKLOAD_DATABASE_URL: postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/workload
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Validate frozen actual v0.6.0 history baseline
+        if: matrix.source == 'baseline'
+        run: uv run --no-project python scripts/validate_history_workload.py --smoke --repetitions 1 --report-dir build/history-smoke
+      - name: Validate built wheel through the same host workload
+        if: matrix.source == 'candidate'
+        run: |
+          uv build --wheel
+          VERSION=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          uv run --no-project python scripts/validate_history_workload.py \
+            --wheel "dist/agent_runtime_kit-$VERSION-py3-none-any.whl" \
+            --expected-version "$VERSION" --smoke --repetitions 1 --report-dir build/history-smoke
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: history-smoke-${{ matrix.source }}
+          path: build/history-smoke/
+          if-no-files-found: warn
+
   container:
     name: Container smoke test
     needs: [integration, package]

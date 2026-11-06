@@ -12,6 +12,10 @@ python scripts/validate_history_workload.py --smoke --repetitions 1 --report-dir
 python scripts/validate_history_workload.py --repetitions 3 --report-dir build/history-v060-baseline
 python scripts/validate_history_workload.py --wheel dist/agent_runtime_kit-VERSION-py3-none-any.whl \
   --expected-version VERSION --repetitions 3 --report-dir build/history-candidate
+python scripts/compare_history_workloads.py build/history-v060-baseline \
+  --output build/history-v060-baseline/summary.json
+python scripts/compare_history_workloads.py build/history-v060-baseline build/history-candidate \
+  --output build/history-candidate/comparison.json
 ```
 
 Every profile/lane/repetition starts a fresh process. Timing runs omit tracemalloc, full-history
