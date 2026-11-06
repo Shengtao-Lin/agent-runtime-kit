@@ -76,6 +76,27 @@ individual message or mandatory context can still exceed host limits. This polic
 release safety or production capacity. See the [context runbook](../../docs/runbooks/context-window.md)
 and [history reading runbook](../../docs/runbooks/history-reading.md).
 
+## Per-model input policy
+
+The application also explicitly wraps its router before every actual generate or
+stream call. Its independent allowances are 65536 canonical message bytes and 8192
+tool-definition bytes, including post-tool input. This uses existing library model
+protocols; it is application policy, not a new library default or provider token limit.
+
+```powershell
+$env:RELEASE_DESK_MODEL_INPUT_MAX_BYTES="65536"
+$env:RELEASE_DESK_MODEL_TOOLS_MAX_BYTES="8192"
+```
+
+Equality passes and overflow fails with `host_model_input_exceeded` before the
+affected router dispatch. Earlier metadata reads and provisional output remain;
+no successful turn is appended and failed keys do not automatically rerun. Exact
+successful replay bypasses the new checks even after both limits are lowered.
+Set `RELEASE_DESK_MODEL_INPUT_MAX_BYTES=none` to disable both dispatch checks.
+Initial context and history-reading settings are independent and retain their
+configured behavior. See the [runbook](../../docs/runbooks/model-input-budgets.md)
+and [adoption guide](../../docs/adopting-model-input-budgets.md).
+
 ## Daily workflows
 
 ```bash

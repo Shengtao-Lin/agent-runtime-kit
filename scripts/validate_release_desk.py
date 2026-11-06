@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -26,6 +27,35 @@ def main() -> None:
     repository = Path(__file__).resolve().parents[1]
     reports = args.report_dir.resolve()
     reports.mkdir(parents=True, exist_ok=True)
+    if (reports / "source-manifest.json").exists():
+        parser.error("Choose a new report directory; existing adoption evidence must be preserved")
+    source_root = repository / "applications/release_desk"
+    sources = [
+        Path(__file__).resolve(),
+        source_root / "pyproject.toml",
+        source_root / "uv.lock",
+        *sorted((source_root / "src").rglob("*.py")),
+        *sorted((source_root / "tests").rglob("*.py")),
+    ]
+    hashes = {}
+    for source in sources:
+        relative = source.relative_to(repository)
+        hashes[relative.as_posix()] = hashlib.sha256(source.read_bytes()).hexdigest()
+        target = reports / "sources" / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+    (reports / "source-manifest.json").write_text(
+        json.dumps(
+            {
+                "source_hashes": hashes,
+                "live_canary": args.live,
+                "library_source": "candidate" if args.wheel else "published",
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     environment = dict(os.environ)
     environment.pop("PYTHONPATH", None)
     environment.pop("PYTHONHOME", None)
@@ -33,6 +63,8 @@ def main() -> None:
     environment["RELEASE_DESK_LIBRARY_SOURCE"] = "candidate" if args.wheel else "published"
     environment["RELEASE_DESK_CONTEXT_MAX_BYTES"] = "65536"
     environment["RELEASE_DESK_STREAM_HISTORY"] = "true"
+    environment["RELEASE_DESK_MODEL_INPUT_MAX_BYTES"] = "65536"
+    environment["RELEASE_DESK_MODEL_TOOLS_MAX_BYTES"] = "8192"
     with tempfile.TemporaryDirectory(prefix="release-desk-") as temporary:
         app = Path(temporary) / "application"
         shutil.copytree(
@@ -117,11 +149,15 @@ def main() -> None:
             assert review["tag"] == command[3]
             environment["RELEASE_DESK_CONTEXT_MAX_BYTES"] = "2"
             environment["RELEASE_DESK_STREAM_HISTORY"] = "false"
+            environment["RELEASE_DESK_MODEL_INPUT_MAX_BYTES"] = "2"
+            environment["RELEASE_DESK_MODEL_TOOLS_MAX_BYTES"] = "2"
             try:
                 replay = json.loads(run(command, capture=True).stdout)
             finally:
                 environment["RELEASE_DESK_CONTEXT_MAX_BYTES"] = "65536"
                 environment["RELEASE_DESK_STREAM_HISTORY"] = "true"
+                environment["RELEASE_DESK_MODEL_INPUT_MAX_BYTES"] = "65536"
+                environment["RELEASE_DESK_MODEL_TOOLS_MAX_BYTES"] = "8192"
             assert replay == response
             history = json.loads(
                 run([str(cli), "history", response["thread_id"]], capture=True).stdout
@@ -154,6 +190,10 @@ def main() -> None:
                         "replay_context_max_bytes": 2,
                         "stream_history": True,
                         "replay_stream_history": False,
+                        "model_input_max_bytes": 65536,
+                        "model_tools_max_bytes": 8192,
+                        "replay_model_input_max_bytes": 2,
+                        "replay_model_tools_max_bytes": 2,
                     },
                     indent=2,
                 )

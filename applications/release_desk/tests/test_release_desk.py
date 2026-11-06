@@ -14,10 +14,11 @@ from uuid import uuid4
 import pytest
 from pydantic import SecretStr, ValidationError
 from release_desk.application import ReviewRouter, Settings, application
+from release_desk.model_inputs import ModelInputExceeded, canonical_size
 from release_desk.review import Release, ReviewInput, review_release
 
 import agent_runtime
-from agent_runtime.errors import ContextBudgetExceededError
+from agent_runtime.errors import ContextBudgetExceededError, IdempotentRunUnavailableError
 from agent_runtime.feedback import FeedbackSubmission
 from agent_runtime.memory import PostgresMemoryStore
 
@@ -202,6 +203,7 @@ async def test_repeated_reviews_bound_initial_context_without_losing_history(
     monkeypatch, streaming, stream_history
 ):
     observed = []
+    all_inputs = []
     original = ReviewRouter.generate
     reads = {"materialized": 0, "incremental": 0}
     original_get = PostgresMemoryStore.get_messages
@@ -224,6 +226,7 @@ async def test_repeated_reviews_bound_initial_context_without_losing_history(
     monkeypatch.setattr(PostgresMemoryStore, "stream_messages", stream_messages)
 
     async def record(self, messages, **kwargs):
+        all_inputs.append((canonical_size(messages), canonical_size(kwargs.get("tools", ()))))
         if messages[-1].role == "user":
             byte_count = len(
                 json.dumps(
@@ -266,6 +269,8 @@ async def test_repeated_reviews_bound_initial_context_without_losing_history(
             assert response.tool_results[0].output["metadata_ready"]
             thread_id = response.thread_id
         assert source.calls == 60 and len(observed) == 60
+        assert len(all_inputs) == 120
+        assert all(messages <= 65536 and tools <= 8192 for messages, tools in all_inputs)
         assert reads == {
             "materialized": 0 if stream_history else 60,
             "incremental": 60 if stream_history else 0,
@@ -282,12 +287,20 @@ async def test_repeated_reviews_bound_initial_context_without_losing_history(
         ] * 60
     # Changing both the window and read mode does not reexecute the successful key.
     async with application(
-        settings.model_copy(update={"context_max_bytes": 2, "stream_history": not stream_history}),
+        settings.model_copy(
+            update={
+                "context_max_bytes": 2,
+                "stream_history": not stream_history,
+                "model_input_max_bytes": 2,
+                "model_tools_max_bytes": 2,
+            }
+        ),
         source=source,
     ) as app:
         before_replay = reads.copy()
         replay = await app.runtime.invoke(app.agent_id, current, idempotency_key="59")
         assert replay == response and source.calls == 60
+        assert len(all_inputs) == 120
         assert reads == before_replay
         with pytest.raises(ContextBudgetExceededError):
             await app.runtime.invoke(
@@ -298,6 +311,76 @@ async def test_repeated_reviews_bound_initial_context_without_losing_history(
         expected_reads["materialized" if stream_history else "incremental"] += 1
         assert reads == expected_reads
         assert len(await app.memory.get_messages(thread_id, namespace=settings.namespace)) == 240
+
+
+def test_model_input_configuration_and_disable(monkeypatch):
+    monkeypatch.delenv("RELEASE_DESK_MODEL_INPUT_MAX_BYTES", raising=False)
+    monkeypatch.delenv("RELEASE_DESK_MODEL_TOOLS_MAX_BYTES", raising=False)
+    settings = Settings(database_url=SecretStr("synthetic"))
+    assert settings.model_input_max_bytes == 65536 and settings.model_tools_max_bytes == 8192
+    monkeypatch.setenv("RELEASE_DESK_MODEL_INPUT_MAX_BYTES", "none")
+    assert Settings(database_url=SecretStr("synthetic")).model_input_max_bytes is None
+    for name in ("RELEASE_DESK_MODEL_INPUT_MAX_BYTES", "RELEASE_DESK_MODEL_TOOLS_MAX_BYTES"):
+        for value in ("1", "0", "-1"):
+            monkeypatch.setenv(name, value)
+            with pytest.raises(ValidationError):
+                Settings(database_url=SecretStr("synthetic"))
+        monkeypatch.delenv(name)
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize(
+    "message_budget,tool_budget,expected_calls",
+    [(2, 8192, 0), (500, 8192, 1), (65536, 2, 0), (None, 2, 2)],
+)
+async def test_application_dispatch_budget_and_deliberate_disable(
+    monkeypatch, streaming, message_budget, tool_budget, expected_calls
+):
+    calls = []
+    original = ReviewRouter.generate
+
+    async def record(self, messages, **kwargs):
+        calls.append(canonical_size(messages))
+        return await original(self, messages, **kwargs)
+
+    monkeypatch.setattr(ReviewRouter, "generate", record)
+    settings = Settings(
+        database_url=SecretStr(os.environ["RELEASE_DESK_DATABASE_URL"]),
+        namespace=f"release-desk-model-budget-{uuid4()}",
+        model_input_max_bytes=message_budget,
+        model_tools_max_bytes=tool_budget,
+    )
+    source = Snapshot()
+    async with application(settings, source=source) as app:
+        thread = await app.memory.create_thread(namespace=settings.namespace)
+        request = app.request(
+            ReviewInput(repository="synthetic/project", tag="v0.3.0"), thread_id=thread.id
+        )
+
+        async def execute():
+            if streaming:
+                return [
+                    event
+                    async for event in app.runtime.stream(
+                        app.agent_id, request, idempotency_key="guard"
+                    )
+                ][-1].response
+            return await app.runtime.invoke(app.agent_id, request, idempotency_key="guard")
+
+        if message_budget is None:
+            response = await execute()
+            assert (
+                await app.runtime.invoke(app.agent_id, request, idempotency_key="guard") == response
+            )
+            assert len(await app.memory.get_messages(thread.id, namespace=settings.namespace)) == 4
+        else:
+            with pytest.raises(ModelInputExceeded):
+                await execute()
+            assert not await app.memory.get_messages(thread.id, namespace=settings.namespace)
+            with pytest.raises(IdempotentRunUnavailableError):
+                await app.runtime.invoke(app.agent_id, request, idempotency_key="guard")
+        assert len(calls) == expected_calls
+        assert source.calls == (1 if expected_calls else 0)
 
 
 @pytest.mark.asyncio
