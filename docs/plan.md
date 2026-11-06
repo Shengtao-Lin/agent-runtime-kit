@@ -36,6 +36,7 @@ optional integrations and host-owned resources. See [architecture](architecture.
 | B. Enforce extension contracts | Shipped in v0.5.0 | Terminal/canonical/policy acceptance |
 | C. Guard library boundaries | Shipped in v0.5.0 | Import, packaging, API, documentation and compatibility guards |
 | D. Validate one host workload | Delivered in v0.6.0; actual assets and independent adoption verified | Matched workload, correctness and final-head delivery gates |
+| E. Establish long-history resource boundaries | In progress; pre-measurement requirements frozen | Actual v0.6.0 baseline, separated timing/diagnostic evidence and justified minimal design |
 
 A-D now have implementation and independent acceptance evidence. Keep final-head/main promotion
 checks for the adoption revision. A new stage needs an explicit host requirement and bounded
@@ -203,6 +204,16 @@ host workload, required context semantics and operational limits before choosing
 
 Each option needs its own evidence, ADR where contracts change, rollback and independent acceptance.
 No Stage E implementation is implicitly included in this completed Stage D scope.
+
+## E. Establish long-history resource boundaries
+
+Execution authorized and started on 2026-11-06. The separate
+[Stage E workload specification](validation/stage-e-workload.md) freezes the actual v0.6.0 baseline,
+100/1,000/10,000-turn staged profiles, synthetic host budgets and experiment safety ceilings before
+measurement. Separate low-interference timing from diagnostic allocations, query and decode probes.
+Keep the complete goal: evidence-led design, any necessary minimal implementation, independent
+correctness and resource acceptance, final-head/main delivery, and actual publication/adoption if
+library behavior changes. Do not infer a storage API or production SLO from the experiment alone.
 
 ## Deferred until justified
 
