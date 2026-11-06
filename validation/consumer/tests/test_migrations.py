@@ -101,7 +101,9 @@ async def test_upgrade_preserves_published_records(database_url: str) -> None:
             assert replay == original
             with pytest.raises(ContextBudgetExceededError):
                 await app.runtime.invoke(
-                    app.agent_id, original_request, idempotency_key="too-small"
+                    app.agent_id,
+                    request("double 7", thread_id=original.thread_id),
+                    idempotency_key="too-small",
                 )
             assert app.model.calls == []
             assert [
