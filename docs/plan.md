@@ -241,13 +241,15 @@ tracks the complete scope without replacing the frozen comparison.
 The [history reading runbook](runbooks/history-reading.md)
 documents configuration, snapshot/cleanup ownership, full-scan costs and rollback.
 
-## Deferred until justified
+## F. Validate every protected model input
 
 Stage F execution starts with the [frozen model-input workload](validation/stage-f-workload.md).
 Observe actual Release Desk model calls and focused tool-growth/hook cases before selecting an API.
 Compare a host wrapper with native integration; retain framework-owned execution and explicit
 coverage limits. Complete independent correctness/resource/performance acceptance and delivery;
 do not require a library release if existing public extension points satisfy the host requirement.
+
+## Deferred until justified
 
 - Distributed workers, resumable workflows, human-approval queues or exactly-once tools need a
   separate execution/side-effect model, not merely longer run leases.
