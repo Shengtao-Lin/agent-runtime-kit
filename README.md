@@ -12,6 +12,11 @@ PostgreSQL-backed memory.
 > example are runnable. Authentication and production deployment controls remain application
 > concerns.
 
+Source is preparing v0.7.0 with explicit incremental history reads. The
+[Stage E comparison](docs/validation/stage-e-incremental-history.md) passes the frozen long-history
+requirements; the [candidate upgrade guide](docs/upgrading-to-v0.7.0.md) describes opt-in and rollback.
+Actual publication and independent application adoption are still pending.
+
 The optional context window bounds initial canonical input while preserving the complete durable
 transcript. It does not bound every model call, full-history database reads or process memory.
 See the [context runbook](docs/runbooks/context-window.md) and
