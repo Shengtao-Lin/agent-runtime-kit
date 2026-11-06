@@ -39,7 +39,8 @@ class WaitingModel:
 
 @pytest.mark.parametrize("mode", ["invoke", "stream", "fallback"])
 @pytest.mark.parametrize("stop", ["timeout", "cancel"])
-async def test_runtime_deadline_and_cancellation_close_protected_source(mode, stop):
+@pytest.mark.parametrize("framework", [None, "langchain", "langgraph"])
+async def test_runtime_deadline_and_cancellation_close_protected_source(mode, stop, framework):
     tasks_before = set(asyncio.all_tasks())
     delegate = WaitingModel()
     async with growth_host(
@@ -48,6 +49,8 @@ async def test_runtime_deadline_and_cancellation_close_protected_source(mode, st
         protected=True,
         generate_only=mode == "fallback",
         model_override=delegate,
+        framework=framework,
+        model_stream=mode == "stream",
         invocation_seconds=0.3 if stop == "timeout" else 30,
     ) as app:
         events = []
