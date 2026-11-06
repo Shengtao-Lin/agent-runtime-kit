@@ -25,12 +25,14 @@ BASELINE_URL = (
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report-dir", type=Path, required=True)
+    parser.add_argument("--benchmark", action="store_true")
     args = parser.parse_args()
     if not os.environ.get("MODEL_INPUT_DATABASE_URL"):
         parser.error("Set MODEL_INPUT_DATABASE_URL to an owned disposable PostgreSQL database")
     repository = Path(__file__).resolve().parents[1]
     source = repository / "validation/model_inputs"
     app_source = source / "release_desk_source"
+    host_policy = repository / "applications/release_desk/src/release_desk/model_inputs.py"
     host_identity = json.loads((source / "host-source.json").read_text(encoding="utf-8"))
     assert host_identity["commit"] == "4b896d7708431e90013f482ec2a82777c671f730"
     for name, digest in host_identity["files"].items():
@@ -54,6 +56,7 @@ def main() -> None:
         source / "pyproject.toml",
         source / "uv.lock",
         source / "host-source.json",
+        host_policy,
         *sorted(source.rglob("*.py")),
     ]
     manifest = {
@@ -66,7 +69,7 @@ def main() -> None:
         "tool_budget_bytes": 8192,
         "turns_per_mode": 60,
         "modes": ["invoke", "stream"],
-        "measurement_kind": "unprotected baseline; passing tests do not imply budgets satisfied",
+        "measurement_kind": "unprotected baseline and explicitly protected host candidate",
         "focused_cases": [
             "oversized_tool",
             "multiple_tools",
@@ -74,6 +77,7 @@ def main() -> None:
             "hook_growth",
             "tool_definitions",
         ],
+        "benchmark": args.benchmark,
         "source_hashes": {
             path.relative_to(repository).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
             for path in paths
@@ -103,6 +107,7 @@ def main() -> None:
             shutil.copytree(
                 app_source, consumer / "release_desk", ignore=shutil.ignore_patterns("__pycache__")
             )
+            shutil.copy2(host_policy, consumer / "host_policy.py")
             python = (
                 consumer / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
             )
@@ -171,8 +176,19 @@ def main() -> None:
                     "error::pytest.PytestUnraisableExceptionWarning",
                     f"--basetemp={root / 'pytest-temp'}",
                     f"--junitxml={reports / 'tests.xml'}",
+                    "--ignore=tests/test_overhead.py",
                 ]
             )
+            if args.benchmark:
+                # Sequential fresh processes; allocation instrumentation never contaminates timing.
+                for kind in ("timing", "allocation"):
+                    for repeat in range(3 if kind == "timing" else 1):
+                        for candidate in (False, True):
+                            environment["MODEL_INPUT_BENCHMARK"] = json.dumps(
+                                {"kind": kind, "repeat": repeat, "candidate": candidate}
+                            )
+                            run([str(python), "-m", "pytest", "-q", "tests/test_overhead.py"])
+                run([str(python), "summarize_overhead.py"])
         manifest["status"] = "passed"
     except Exception as exc:
         manifest["status"] = "failed"

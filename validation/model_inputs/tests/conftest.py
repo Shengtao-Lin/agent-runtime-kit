@@ -1,6 +1,7 @@
 """Run the external host probe under Windows-compatible asyncio and an RSS safety ceiling."""
 
 import asyncio
+import hashlib
 import json
 import os
 import sys
@@ -21,7 +22,9 @@ def rss_safety(request):
     stopped = threading.Event()
     process = psutil.Process()
     peak = 0
-    path = Path(os.environ["MODEL_INPUT_REPORTS"]) / f"safety-{request.node.callspec.id}.json"
+    label = request.node.nodeid + os.environ.get("MODEL_INPUT_BENCHMARK", "")
+    identity = hashlib.sha256(label.encode("utf-8")).hexdigest()[:20]
+    path = Path(os.environ["MODEL_INPUT_REPORTS"]) / f"safety-{identity}.json"
 
     def sample():
         nonlocal peak

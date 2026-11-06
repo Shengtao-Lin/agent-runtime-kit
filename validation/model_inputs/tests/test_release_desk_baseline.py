@@ -8,6 +8,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
+from host_policy import ModelInputBudget, budget_model
 from pydantic import SecretStr
 from sqlalchemy import text
 
@@ -49,11 +50,27 @@ class Snapshot:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("mode", ["invoke", "stream"])
-async def test_every_release_desk_model_call(monkeypatch, mode):
+@pytest.mark.parametrize("protected", [False, True])
+async def test_every_release_desk_model_call(monkeypatch, mode, protected):
     calls, engines = [], []
     namespace = f"stage-f-{uuid4()}"
     original_generate = host.ReviewRouter.generate
     original_engine = host.create_async_engine
+    original_invoker = host.NativeAgentInvoker
+    checks = []
+    replay_budget = [65536, 8192]
+
+    class CountedBudget:
+        def check(self, messages, tools):
+            checks.append((canonical_bytes(messages), canonical_bytes(tools)))
+            ModelInputBudget(*replay_budget).check(messages, tools)
+
+    def invoker(**kwargs):
+        kwargs["model_client"] = budget_model(kwargs["model_client"], CountedBudget())
+        return original_invoker(**kwargs)
+
+    if protected:
+        monkeypatch.setattr(host, "NativeAgentInvoker", invoker)
 
     async def record(self, messages, *, tools=(), context):
         calls.append(
@@ -109,8 +126,10 @@ async def test_every_release_desk_model_call(monkeypatch, mode):
         assert all(c["tool_bytes"] <= 8192 for c in calls)
         history = await app.memory.get_messages(thread_id, namespace=namespace)
         assert len(history) == 240
+        replay_budget[:] = [2, 2]  # Saved replay must bypass even a newly restrictive policy.
         replay = await app.runtime.invoke(app.agent_id, request, idempotency_key="59")
         assert replay == response and len(calls) == 120 and source.calls == 60
+        assert len(checks) == (120 if protected else 0)
         assert engines[0].pool.checkedout() == 0
     assert engines[0].pool.checkedout() == 0
     control = original_engine(os.environ["DATABASE_URL"])
@@ -128,6 +147,7 @@ async def test_every_release_desk_model_call(monkeypatch, mode):
     assert not (set(asyncio.all_tasks()) - tasks_before)
     report = {
         "status": "passed",
+        "protected": protected,
         "mode": mode,
         "turns": 60,
         "calls": calls,
@@ -138,7 +158,8 @@ async def test_every_release_desk_model_call(monkeypatch, mode):
         "remaining_database_sessions": remaining,
         "postgres_version": postgres,
     }
-    (Path(os.environ["MODEL_INPUT_REPORTS"]) / f"baseline-{mode}.json").write_text(
+    label = "protected-host" if protected else "baseline"
+    (Path(os.environ["MODEL_INPUT_REPORTS"]) / f"{label}-{mode}.json").write_text(
         json.dumps(report, indent=2) + "\n", encoding="utf-8"
     )
     print(json.dumps({key: value for key, value in report.items() if key != "calls"}))
