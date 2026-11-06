@@ -16,6 +16,7 @@ application source hashes; the package audit records every installed dependency.
 Checked-in [summary and provenance](evidence/stage-d-v050-baseline/summary.json) and adjacent raw
 profile JSON preserve all 45 processes (15 profiles, three repetitions), totaling 972 measured
 continuations. Each profile ran in a fresh process. The summary records raw-file SHA-256 digests.
+Evidence JSON preserves its original bytes through Git attributes so those digests survive checkout.
 The source hashes describe the measured local files, including their original line endings;
 a later Git checkout may normalize line endings without changing the algorithm.
 
