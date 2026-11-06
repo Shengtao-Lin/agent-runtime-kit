@@ -23,7 +23,7 @@ BASELINE_URL = (
 
 def profiles(smoke: bool) -> list[tuple[int, int, int, str]]:
     if smoke:
-        return [(10, 1, 1, "invoke"), (10, 4, 1, "stream")]
+        return [(100, 1, 1, "invoke"), (10, 4, 1, "stream")]
     sizes = [(turns, 1, 1) for turns in (10, 100, 1000)]
     sizes += [(10, concurrency, 1) for concurrency in (4, 16)]
     sizes += [(10, 1, padding) for padding in (16, 256)]

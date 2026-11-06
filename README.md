@@ -12,7 +12,13 @@ PostgreSQL-backed memory.
 > example are runnable. Authentication and production deployment controls remain application
 > concerns.
 
-Current compatibility axes are package v0.5.0, canonical contract `v1` and PostgreSQL schema `0002`.
+Development metadata is v0.6.0 for the opt-in initial-context window. Publication and independent
+application adoption are pending; see the [candidate upgrade guide](docs/upgrading-to-v0.6.0.md)
+and [Stage D acceptance](docs/validation/stage-d-context-window.md). The latest published release
+and Release Desk lock remain v0.5.0 until actual assets are verified.
+
+The published v0.5.0 baseline uses canonical contract `v1` and PostgreSQL schema `0002`; the
+v0.6.0 candidate retains both contracts.
 Review the [public API inventory](docs/public-api.md) before adopting stricter custom
 stream/model/tool contracts.
 Read the [current upgrade guide](docs/upgrading-to-v0.5.0.md); upgrades from v0.1.1 additionally

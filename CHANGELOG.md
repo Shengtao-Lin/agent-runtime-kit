@@ -2,6 +2,20 @@
 
 All notable changes to Agent Runtime Kit are documented here.
 
+## 0.6.0 - Release candidate
+
+- Add an explicit initial `ContextWindow` for runtime invocation while retaining full-history
+  behavior by default. Preserve current requests, system messages and complete tool exchanges;
+  fail mandatory overflow durably and expose content-free omission/byte counts.
+- Keep durable history, successful replay, failed-key behavior and fencing independent of selected
+  context. No storage schema change, automatic truncation, summarization or per-model token cap.
+- Establish a frozen actual-v0.5.0 Release Desk workload and matched installed-wheel comparisons.
+  Candidate initial contexts fit the 64 KiB experiment allowance; full history reads remain and
+  some short workloads incur extra latency. Retain raw evidence, provenance and explicit limits.
+- Add native/real-framework context acceptance, process-restart replay and baseline/candidate CI
+  smoke gates. Preserve all previous upgrade lanes and add checksum-pinned actual v0.5.0 state.
+- Publication and Release Desk's actual v0.6.0 adoption remain pending.
+
 ## 0.5.0 - 2026-11-06
 
 - Publish verified GitHub wheel/source assets and GHCR image. Adopt actual v0.5.0 in Release Desk's

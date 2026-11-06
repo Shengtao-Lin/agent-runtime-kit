@@ -34,7 +34,7 @@ optional integrations and host-owned resources. See [architecture](architecture.
 | A. Close release adoption | Completed for v0.4.2; repeated for actual v0.5.0 below | Verified assets and application acceptance |
 | B. Enforce extension contracts | Shipped in v0.5.0 | Terminal/canonical/policy acceptance |
 | C. Guard library boundaries | Shipped in v0.5.0 | Import, packaging, API, documentation and compatibility guards |
-| D. Validate one host workload | Next design phase; not part of v0.5.0 | A named host scenario and operating envelope |
+| D. Validate one host workload | Context-window candidate validated; v0.6.0 publication/adoption pending | Matched workload, correctness and final-head delivery gates |
 
 A and B can be prepared independently; keep separate PRs and acceptance evidence. Documentation
 clarification does not implement B/C/D. Do not promise a version or feature release before its
@@ -162,7 +162,9 @@ PR #44 merged after final-head CI passed, including actual-baseline and candidat
 smokes. [ADR 0015](adr/0015-opt-in-initial-context-window.md) chooses an optional initial-context
 window. Its [implementation and independent comparison](validation/stage-d-context-window.md) passed:
 all 972 candidate inputs fit, with full durable history preserved; 681 root tests and 111 installed
-consumer cases passed. Final-head promotion and the resulting minor release/adoption remain pending;
+consumer cases passed. PR #45 merged after final-head CI, application and lower/latest compatibility
+gates passed. The resulting [v0.6.0 release preparation](validation/v0.6.0-readiness.md) and adoption
+remain pending;
 full history materialization is explicitly outside the new byte guarantee.
 The full Stage D goal includes any justified fix, independent acceptance and publication
 when library behavior changes, not just the measurement report.
