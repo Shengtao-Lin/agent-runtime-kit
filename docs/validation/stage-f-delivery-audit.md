@@ -37,6 +37,16 @@ The final audit revision also requires CI before merge and applicable main check
 afterward; this document does not substitute for those authoritative run states.
 No immutable library tag or asset publication is part of a host-only delivery.
 
+The adoption head `54cc1f2777eff2570b258b0950fd0d930af234d2` passed
+[CI](https://github.com/Shengtao-Lin/agent-runtime-kit/actions/runs/42250459786) and
+[the application matrix](https://github.com/Shengtao-Lin/agent-runtime-kit/actions/runs/42250459796)
+before [PR #57](https://github.com/Shengtao-Lin/agent-runtime-kit/pull/57) merged as
+`fa52cffd4c6511b90bf158b74d1c401fd0b818b3`. The preceding framework main
+`6b8eadf404923ab4fae54116b1e408acee555ff5` also passed
+[its CI](https://github.com/Shengtao-Lin/agent-runtime-kit/actions/runs/42250380608).
+Resulting adoption-main and final-audit-main checks are verified through GitHub
+before goal completion; final audit promotion does not modify measured code.
+
 ## Preserved limitations
 
 The check bounds complete canonical lists only. It is not a provider token/wire limit,
