@@ -13,6 +13,9 @@ PostgreSQL-backed memory.
 > concerns.
 
 Current compatibility axes are package v0.4.2, canonical contract `v1` and PostgreSQL schema `0002`.
+Development metadata targets v0.5.0; it is not yet a verified published release. Review its
+[candidate upgrade guide](docs/upgrading-to-v0.5.0.md) and [public API inventory](docs/public-api.md)
+before adopting stricter custom stream/model/tool contracts.
 Read the [current upgrade guide](docs/upgrading-to-v0.4.2.md); upgrades from v0.1.1 additionally
 require the drained-worker [schema upgrade procedure](docs/upgrading-to-v0.2.0.md).
 See [actual publication evidence](docs/validation/v0.4.2-publication.md) for tested scope,
