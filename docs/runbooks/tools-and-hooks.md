@@ -67,6 +67,35 @@ other components automatically. Framework-native tools bypass this registry unle
 them through it. Output hooks run before persistence but may run after provisional stream output
 has already reached the consumer; they are not pre-disclosure moderation.
 
+### Composition acceptance
+
+The independent installed-wheel suite exercises shared runtime/registry hooks through native,
+LangChain and LangGraph execution. A two-model-call tool loop emits the four lifecycle phases once
+each, in order; model hooks bracket the complete invocation. Both a configured manager and runtime
+context are required for registry hooks. Hosts can deliberately use separate managers.
+
+| Blocking phase | Work already performed | Durable outcome |
+| --- | --- | --- |
+| `before_model` | No agent execution | `blocked`, no new history or response |
+| `before_tool` | Model may have produced a tool call | Handler does not execute |
+| `after_tool` | Handler has completed its effect | Result is withheld; effect is not rolled back |
+| `after_model` | Agent has finished; stream output may be visible | Successful finalization is prevented |
+
+`GuardrailBlockedError` stops later hooks and settles the run as blocked. Unexpected native hook
+exceptions settle as failed; direct Python callers may receive the original exception. Framework
+wrappers translate unexpected errors inside framework execution according to their adapter contract.
+Cancellation remains cancellation and uses bounded runtime cleanup. A successfully settled blocked
+or failed key cannot reexecute hooks/tools; successful replay also bypasses all lifecycle hooks.
+
+Framework-native tools receive no registry policy unless the application explicitly invokes the
+configured registry with context. Message guardrails only support the two model phases; implement
+a `LifecycleHook` for tool policy. These checks do not add per-model-round or per-token hooks.
+
+Run `scripts/validate_consumer.py` with a candidate `--wheel`, `--expected-version`,
+`--acceptance-only` and `--frameworks` against a migrated disposable PostgreSQL database to exercise
+the matrix. Results include native streaming and framework terminal fallback. Incremental framework
+stream translation has its separate suite; this matrix does not claim token-level policy coverage.
+
 Synchronous handlers execute in threads. A timeout/cancellation stops awaiting a result, not the
 underlying thread or its external side effects. Bounded JSON-compatible output is a host obligation;
 development source adds JSON-value validation below, but still imposes no universal byte limit.

@@ -1,6 +1,6 @@
 # Development Plan
 
-Reviewed on 2026-10-28 against v0.4.2; extension-contract progress updated on 2026-10-29.
+Reviewed on 2026-10-28 against v0.4.2; execution status updated on 2026-11-05.
 This is the living implementation queue, not a release log
 or authorization to spend money, select credentials or change production systems. Historical
 execution records are [archived separately](validation/iteration-history-through-v0.4.2.md).
@@ -79,11 +79,12 @@ intercepted by the library. Document safe errors; no blanket retry policy change
 
 ### B2. One unambiguous model/tool result
 
-Implemented in development source on 2026-10-29; complete PR checks are required for promotion.
+Implemented in development source on 2026-10-29 and merged in PR #37 after complete PR checks.
+Main CI and the 2026-11-02 lower/latest dependency matrix passed at `bc3f59e`.
 [ADR 0014](adr/0014-model-result-and-tool-payload-contracts.md) records the retained fields, native
 snapshot boundary, finite JSON payload rules, error timing and compatibility implications.
 The initial public-model reproducer had 48 failing cases. No version/tag or schema change is made.
-After this iteration's checks pass, B3 is the next implementation task.
+C follows B3 acceptance. B2 behavior is not in published v0.4.2.
 
 - Specify correspondence between assistant tool-call parts and `ModelResult.tool_calls`: identity,
   order, name and arguments. Add mismatched-list, duplicate-ID and invalid-role regressions first.
@@ -100,6 +101,11 @@ After this iteration's checks pass, B3 is the next implementation task.
 arguments, fragmented provider arguments and explicit zero/unknown usage retain documented meaning.
 
 ### B3. Explicit policy coverage
+
+Implemented as acceptance coverage on 2026-11-05. Native and real framework consumers exercise
+phase ordering, explicit registry composition, blocked/failed outcomes, cancellation and replay;
+framework-native tool bypass is tested explicitly. See
+[the policy evidence](validation/policy-coverage-2026-11-05.md). PR checks must pass before merging.
 
 Keep existing hook names compatible while documenting invocation-level semantics. Test deliberate
 runtime/tool hook composition; framework-native operations bypass the registry unless integrated.
@@ -168,3 +174,21 @@ Promotion requires exact-head checks; tagging requires verified main and immutab
 A metadata version or checked plan box is not completion. Python API, canonical contract and schema
 changes each need compatibility review. Do not promise 1.0 until public-surface coverage and
 independent-host evidence support it.
+
+## v0.5.0 delivery scope (2026-11-05)
+
+Complete B3 and C in focused PRs, then prepare the stricter extension contracts for release.
+Keep Stage D workload/context design separate from this delivery. The current release remains
+v0.4.2 until a new immutable tag and its actual artifacts pass verification.
+
+1. Verify runtime/tool policy composition, framework boundaries and durable blocked/failed replay.
+2. Add automated import, distribution, dependency-direction and documentation fitness checks.
+3. Inventory the supported public surface, protect important contracts and expand compatibility triggers.
+4. Add checksum-pinned actual v0.4.2 preserved-state upgrades while retaining earlier source paths;
+   prepare v0.5.0 migration/release documentation and run all candidate checks.
+5. Publish verified artifacts, validate their actual bytes from an independent venv, then update
+   Release Desk's independent lock/provenance and verify published-version adoption.
+
+Evidence belongs with each PR and the final publication report. Completion requires merged changes,
+passing final-commit checks and main/release verification, actual wheel installation/upgrades and
+successful independent application adoption. Repository text remains English; tests use venv/pytest.
