@@ -393,7 +393,7 @@ jobs:
           if-no-files-found: warn
 
   model-input-baseline:
-    name: Published model-input host baseline
+    name: Published model-input baseline and host guard
     needs: quality
     runs-on: ubuntu-latest
     services:
@@ -415,7 +415,7 @@ jobs:
         with:
           python-version: "3.12"
           enable-cache: true
-      - name: Observe the frozen actual v0.7.0 host
+      - name: Validate the frozen actual v0.7.0 host and opt-in guard
         run: uv run --no-project python scripts/validate_model_inputs.py --report-dir build/model-input-baseline
       - if: always()
         uses: actions/upload-artifact@v4

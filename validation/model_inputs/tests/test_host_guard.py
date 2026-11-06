@@ -101,6 +101,42 @@ class StreamingEcho(Echo):
         yield ModelCompleted(result=await self.generate(messages, tools=tools, context=context))
 
 
+@pytest.mark.parametrize("extra", [0, 1])
+@pytest.mark.parametrize("dimension", ["messages", "tools"])
+@pytest.mark.parametrize("mode", ["generate", "stream"])
+async def test_frozen_host_limits(dimension, extra, mode):
+    messages = [Message(role="user", content=[TextContent(text="x") for _ in range(3)])]
+    tools = [ToolDefinition(name="emit", description="emit", input_schema={"description": ""})]
+    if dimension == "messages":
+        remaining = 65536 + extra - canonical_size(messages)
+        for index in range(3):
+            amount = remaining // (3 - index)
+            messages[0].content[index].text += "x" * amount
+            remaining -= amount
+        assert canonical_size(messages) == 65536 + extra
+    else:
+        tools[0].input_schema["description"] = "x" * (8192 + extra - canonical_size(tools))
+        assert canonical_size(tools) == 8192 + extra
+    delegate = StreamingEcho() if mode == "stream" else Echo()
+    wrapped = budget_model(delegate, ModelInputBudget(65536, 8192))
+    context = RuntimeContext(run_id=uuid4(), thread_id=uuid4())
+
+    async def execute():
+        if mode == "generate":
+            await wrapped.generate(messages, tools=tools, context=context)
+        else:
+            async for _ in wrapped.stream(messages, tools=tools, context=context):
+                pass
+
+    if extra:
+        with pytest.raises(ModelInputExceeded):
+            await execute()
+        assert delegate.calls == 0
+    else:
+        await execute()
+        assert delegate.calls == 1
+
+
 @pytest.mark.parametrize("offset", [-1, 0, 1])
 @pytest.mark.parametrize("dimension", ["messages", "tools"])
 @pytest.mark.parametrize("mode", ["generate", "stream"])
