@@ -1,4 +1,4 @@
-"""Observe the frozen published model-input baseline in an external installed-wheel venv."""
+"""Observe the frozen published host and focused input-growth baseline in an external venv."""
 
 from __future__ import annotations
 
@@ -66,6 +66,14 @@ def main() -> None:
         "tool_budget_bytes": 8192,
         "turns_per_mode": 60,
         "modes": ["invoke", "stream"],
+        "measurement_kind": "unprotected baseline; passing tests do not imply budgets satisfied",
+        "focused_cases": [
+            "oversized_tool",
+            "multiple_tools",
+            "multiple_rounds",
+            "hook_growth",
+            "tool_definitions",
+        ],
         "source_hashes": {
             path.relative_to(repository).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
             for path in paths
