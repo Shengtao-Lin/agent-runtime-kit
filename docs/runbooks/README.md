@@ -18,6 +18,7 @@ integration example and is not included in the wheel.
 | Initial context window | `agent_runtime.context` | [Byte budgets, mandatory input, omitted history and failure recovery](context-window.md) |
 | Incremental history reading | `agent_runtime.memory`, `agent_runtime.context` | [Explicit opt-in, cursor ownership, resource boundaries and rollback](history-reading.md) |
 | Model providers | `agent_runtime.models_clients` | [Provider setup, canaries, tool translation, and provider failures](model-providers.md) |
+| Host model input budgets | Application-owned model wrapper | [Dispatch checks, overflow, framework placement and rollback](model-input-budgets.md) |
 | Framework adapters | `agent_runtime.adapters` | [Native, LangChain, and LangGraph mapping boundaries](framework-adapters.md) |
 | PostgreSQL memory and runs | `agent_runtime.memory`, `agent_runtime.runs` | [Connectivity, migrations, pools, sequencing, and cleanup](postgres.md) |
 | Tools and lifecycle policy | `agent_runtime.tools`, `agent_runtime.hooks` | [Schema validation, execution, deadlines, hooks, and guardrails](tools-and-hooks.md) |
@@ -34,6 +35,7 @@ integration example and is not included in the wheel.
 | Import or first-time setup problem | [User Runbook](../user-runbook.md) |
 | `unknown_agent`, `run_in_progress`, or replay conflict | [Runtime](runtime.md) |
 | Context budget overflow or unexpected history omissions | [Initial Context Window](context-window.md) |
+| Input growth after tools or hooks | [Host Model Input Budgets](model-input-budgets.md) |
 | Fake mode works but a real model fails | [Model Providers](model-providers.md) |
 | Duplicate history or framework output mismatch | [Framework Adapters](framework-adapters.md) |
 | `/readyz` fails or pool acquisition times out | [PostgreSQL](postgres.md) |

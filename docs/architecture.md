@@ -251,6 +251,13 @@ separate system using an explicit privacy-reviewed read/export boundary, not an 
 
 ## Evolution and evidence
 
+Stage F's every-model-call input requirement is satisfied by an explicit host-owned
+wrapper using existing model protocols. Canonical messages and tool definitions are
+checked after host mapping and before each protected delegate call. Framework internals
+remain framework/host-owned; no universal runtime interception is claimed. This
+adds no core dependency or library API. See [ADR 0017](adr/0017-host-owned-model-input-budgets.md)
+and the [operator runbook](runbooks/model-input-budgets.md).
+
 Strengthen extension contracts and host adoption before adding an orchestrator, database, scheduler
 or provider abstraction. Keep protocols at demonstrated replacement boundaries, prefer explicit
 composition, and extract private helpers only for concrete invariants. No microservice split or

@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     namespace: str = Field(default="release-desk", min_length=1, max_length=128)
     context_max_bytes: int | None = Field(default=65_536, ge=2)
     stream_history: bool = True
+    model_input_max_bytes: int | None = Field(default=65_536, ge=2)
+    model_tools_max_bytes: int = Field(default=8_192, ge=2)
 
 
 class ReviewRouter:
@@ -117,6 +119,7 @@ async def application(
 ) -> AsyncGenerator[Application, None]:
     # The frozen v0.5.0 workload imports only ReviewRouter, not this newer host composition.
     from agent_runtime.context import ContextWindow
+    from release_desk.model_inputs import ModelInputBudget, budget_model
 
     engine = create_async_engine(
         settings.database_url.get_secret_value(),
@@ -156,7 +159,16 @@ async def application(
             NativeAgentInvoker(
                 agent_id=agent_id,
                 version="0.1.0",
-                model_client=ReviewRouter(),
+                model_client=(
+                    budget_model(
+                        ReviewRouter(),
+                        ModelInputBudget(
+                            settings.model_input_max_bytes, settings.model_tools_max_bytes
+                        ),
+                    )
+                    if settings.model_input_max_bytes is not None
+                    else ReviewRouter()
+                ),
                 tools=tools,
                 max_tool_iterations=1,
                 capabilities={"release-review", "tools", "streaming"},

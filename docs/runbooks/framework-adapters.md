@@ -234,6 +234,7 @@ upgrades. Framework-native persistence must not compete with runtime-owned Postg
 
 ## Related Documentation
 
+- [Explicit per-model input boundaries](model-input-budgets.md)
 - [User Runbook](../user-runbook.md)
 - [Runtime](runtime.md)
 - [PostgreSQL](postgres.md)

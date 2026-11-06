@@ -56,6 +56,12 @@ non-editable provenance, dependency inventories and pytest reports.
 
 ## Reviewing changes
 
+Stage F uses existing public `ModelClient`, optional `StreamingModelClient` and
+`RuntimeKitError` extension points. Its budget classes are application-owned reference
+code, not new `agent_runtime` exports. No signature or canonical contract snapshot
+changes are expected. See [ADR 0017](adr/0017-host-owned-model-input-budgets.md) and
+[host adoption](adopting-model-input-budgets.md) for the tested boundary.
+
 1. Identify the affected Python call shape, canonical payload/behavior, storage semantics and
    resource ownership. State which previously valid host operation changes.
 2. Add a regression or consumer scenario for the intended behavior. Compare the inventory and

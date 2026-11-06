@@ -22,6 +22,11 @@ transcript. It does not bound every model call, full-history database reads or p
 See the [context runbook](docs/runbooks/context-window.md) and
 [Stage D acceptance](docs/validation/stage-d-context-window.md) for the measured limits.
 
+Stage F validates a separate [host-owned model input policy](docs/runbooks/model-input-budgets.md)
+for every explicitly protected dispatch, using existing public model protocols.
+Release Desk adopts it without adding a library API or changing library defaults.
+See [host adoption and rollback](docs/adopting-model-input-budgets.md).
+
 Published v0.7.0 retains canonical contract `v1` and PostgreSQL schema `0002`.
 Review the [public API inventory](docs/public-api.md) before adopting stricter custom
 stream/model/tool contracts.

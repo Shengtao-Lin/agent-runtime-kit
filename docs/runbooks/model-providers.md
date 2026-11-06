@@ -258,6 +258,7 @@ does not choose models or implement cost budgets.
 
 ## Related Documentation
 
+- [Host canonical input budgets](model-input-budgets.md), separate from provider tokens and wire limits
 - [User Runbook](../user-runbook.md)
 - [Runtime](runtime.md)
 - [Tools and Hooks](tools-and-hooks.md)
