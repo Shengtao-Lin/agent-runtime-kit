@@ -221,19 +221,17 @@ also misses the frozen requirement. Shorter profiles pass. Evaluate client mater
 then retain the smallest candidate that meets the complete correctness and resource acceptance.
 
 Development implementation follows [ADR 0016](adr/0016-history-materialization-and-validation.md).
-The batching-only candidate failed the frozen budgets; an explicitly enabled incremental read and
-selector passed one exploratory repetition. Default reads remain unchanged. Source acceptance has
-758 passing tests, and the independent candidate-wheel consumer has 175 passing cases, one
-upgrade-only skip and four readiness probes deselected. These are not preserved-state upgrade or
-publication claims. Three matched final repetitions, final-head/main checks and actual release/host
-adoption remain outstanding. The [history reading runbook](runbooks/history-reading.md) documents
-configuration, snapshot/cleanup ownership, remaining full-scan costs and rollback.
+The batching-only and first incremental candidates failed frozen gates; both remain in the evidence.
+The accepted column-row implementation preserves complete validation while avoiding full transcript
+materialization and per-row ORM construction. Default reads remain unchanged.
 
-The first three-repeat incremental comparison subsequently failed one per-repetition stream latency
-gate despite passing every memory and short-history gate. Its failed evidence is retained in ADR
-0016. A column-row read candidate removes per-row ORM construction without skipping any fields or
-validation; a separate profile and 33 database cases support proceeding to independent acceptance.
-Do not treat the pooled latency or the earlier exploratory pass as completion.
+[Final repeated acceptance](validation/stage-e-incremental-history.md) passes every applicable
+absolute budget and short-history regression gate across three repetitions, 42 processes and 510
+continuations. Source CI passes 758 tests. The installed actual-v0.6.0 upgrade consumer passes 176
+cases (four historical readiness probes deselected, no skips), plus a 30-second shared-engine soak.
+Final report-head/main checks, actual publication and independently locked Release Desk adoption
+remain outstanding; Stage E is not yet delivered. The [history reading runbook](runbooks/history-reading.md)
+documents configuration, snapshot/cleanup ownership, full-scan costs and rollback.
 
 ## Deferred until justified
 

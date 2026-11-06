@@ -140,8 +140,9 @@ and exact replay remain unchanged. No schema migration is required.
 
 Database scanning/transfer remain complete. Fetch batches cap rows, not bytes; individual payloads,
 pending tool IDs and server work remain workload-dependent. There is no universal RSS or per-model
-input guarantee. This capability is not in published v0.6.0; repeated acceptance and publication are
-pending. See the [history reading runbook](runbooks/history-reading.md).
+input guarantee. This capability is not in published v0.6.0;
+[repeated independent acceptance](validation/stage-e-incremental-history.md) passed and publication
+is pending. See the [history reading runbook](runbooks/history-reading.md).
 
 ## Persistence and concurrency invariants
 

@@ -1,6 +1,6 @@
 # ADR 0016: History Materialization and Complete Validation
 
-Status: implemented in development; final repeated acceptance and publication pending.
+Status: accepted in development after repeated independent acceptance; publication pending.
 
 ## Evidence and alternatives
 
@@ -15,7 +15,7 @@ and cost, not missing context selection.
 | Keep v0.6.0 unchanged | Fails the frozen 10,000-turn host requirement; remains the comparison baseline |
 | Rotate host conversations | Useful when the host allows independent conversations, but changes the requested continuous audit-thread workflow |
 | Batch the existing complete-history read | Tested and rejected: a complete returned tuple still exceeds frozen memory and responsiveness budgets |
-| Optional incremental history consumption and selection | Selected for acceptance: retain complete validation while avoiding a complete canonical transcript in memory |
+| Optional incremental history consumption and selection | Accepted with column-row reads: retain complete validation while avoiding a complete canonical transcript in memory |
 | Selective latest-history reads | Cannot simply omit old rows: global system retention and malformed-exchange validation must remain correct |
 | Metadata/index maintenance | Consider only with evidence; adds writer consistency, migration/backfill and recovery obligations, and does not by itself remove Python materialization |
 
@@ -86,7 +86,7 @@ one repetition. At 10,000 turns, timing invoke p95 was 1.617 seconds and stream 
 This was evidence to proceed, not final acceptance. Its candidate wheel carries development metadata
 0.6.0 but is distinguished by its manifest hash; it is not the immutable published v0.6.0 artifact.
 
-Final acceptance still requires three matching baseline/candidate repetitions, short-history
+At the exploratory stage, acceptance still required three matching baseline/candidate repetitions, short-history
 regression checks, real-database failure/cancellation/snapshot coverage, installed native/real
 framework consumers, final-head/main checks and actual release/adoption. The public additions
 require a compatible minor release after acceptance; version selection/publication is a separate step.
@@ -132,4 +132,9 @@ incremental continuation preserving every original record. Initial fixture mista
 ID and an allowance too large to force omission) were corrected; no library invariant was weakened.
 [Consumer evidence](../validation/evidence/stage-e-column-consumer/raw.tar.gz) and its
 [checksum](../validation/evidence/stage-e-column-consumer/checksums.json) retain the successful run.
-Three-repeat matched resource acceptance and final-head/main gates remain required before promotion.
+The subsequent [three-repeat matched acceptance](../validation/stage-e-incremental-history.md)
+passes all frozen budgets and short-history gates across 42 processes and 510 continuations.
+All 10,000-turn timing p95 values are below 1.48 seconds; measurement RSS increases are about one
+MiB, with absolute peaks and diagnostic overhead recorded separately. Full scanning/transfer and
+individual payload/tool-state limits remain as described above. Retain the column-row implementation;
+final report-head/main checks, actual publication and independent host adoption still gate delivery.
