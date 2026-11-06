@@ -117,12 +117,14 @@ output guardrail. Do not claim a universal framework safety interceptor.
 
 ## C. Add architectural fitness checks
 
-Import, dependency-direction and wheel-content guards are implemented in the current working
-change, including an external core-only wheel probe. The probe reproduced eager adapter loading;
+Import, dependency-direction and wheel-content guards merged in PR #39 after CI and independent
+application checks passed, including an external core-only wheel probe. The probe reproduced eager adapter loading;
 adapter exports now resolve implementations lazily while preserving their public import paths.
-See [boundary evidence](validation/library-boundaries-2026-11-05.md). PR acceptance is still
-required. Public-surface, compatibility-trigger and documentation guards remain outstanding;
-current CI does not implement the complete list below.
+See [boundary evidence](validation/library-boundaries-2026-11-05.md). Documentation guards now
+check linked local evidence, heading anchors and canonical ADR identity; CI and release verification
+run the guards, with negative fixtures for broken links/anchors and duplicate decisions.
+PR acceptance is still required for that change. Public-surface inventory and compatibility-trigger
+expansion remain outstanding; the complete list below is not yet delivered.
 
 | Invariant | Planned automated evidence |
 | --- | --- |

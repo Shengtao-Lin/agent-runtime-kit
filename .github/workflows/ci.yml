@@ -27,6 +27,7 @@ jobs:
       - run: uv run ruff check .
       - run: uv run pyright
       - run: uv run python scripts/check_library.py
+      - run: uv run python scripts/check_docs.py
 
   unit:
     name: Pytest unit (${{ matrix.os }}, Python ${{ matrix.python }})
