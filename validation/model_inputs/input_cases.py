@@ -53,7 +53,7 @@ class InputGrowthHook:
     async def handle(self, event):
         if event.phase == "before_model":
             # ContextWindow copies selected messages, so the original durable request stays intact.
-            event.messages[-1].content.append(TextContent(text="x" * 65536))
+            event.messages[-1].content.extend(TextContent(text="x" * 24000) for _ in range(3))
 
 
 class ProbeModel:
