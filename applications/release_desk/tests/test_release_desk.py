@@ -67,16 +67,16 @@ def test_consumes_installed_release_not_source_checkout():
     assert provenance["url"].endswith(".whl")
     assert not provenance.get("dir_info", {}).get("editable", False)
     if os.environ.get("RELEASE_DESK_LIBRARY_SOURCE") == "published":
-        assert distribution.version == "0.6.0"
+        assert distribution.version == "0.7.0"
         assert provenance["url"] == (
-            "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.6.0/"
-            "agent_runtime_kit-0.6.0-py3-none-any.whl"
+            "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.7.0/"
+            "agent_runtime_kit-0.7.0-py3-none-any.whl"
         )
         lock = tomllib.loads((Path(__file__).parents[1] / "uv.lock").read_text(encoding="utf-8"))
         package = next(item for item in lock["package"] if item["name"] == "agent-runtime-kit")
         assert package["source"]["url"] == provenance["url"]
         assert package["wheels"][0]["hash"] == (
-            "sha256:abe01feae67feab23f5a5625a3a19f99914bd24e10d87da711f14a119e027798"
+            "sha256:17464f89c4516b9fc3ef706db54c7b69ea5de4d6dfc67049f650d449464b39cd"
         )
     assert importlib.util.find_spec("examples") is None
     assert importlib.util.find_spec("langchain_core") is None

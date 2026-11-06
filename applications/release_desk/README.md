@@ -3,7 +3,7 @@
 A separately packaged, read-only CLI for reviewing public Python release metadata. It consumes
 the published Agent Runtime Kit wheel; the application is not part of the runtime distribution.
 The application owns its GitHub reader, checklist, routing, configuration and resource lifecycle.
-Its own lock pins the actual v0.6.0 wheel and digest, not an editable checkout. It adopts the public
+Its own lock pins the actual v0.7.0 wheel and digest, not an editable checkout. It adopts the public
 checked runtime lifetime while retaining ownership of its engine and business logic.
 
 This is a deliberately deterministic operational tool, not an LLM-quality demonstration. It needs
@@ -45,12 +45,15 @@ auto-migrate. Secrets are read from environment settings and not printed in CLI 
 Release Desk deliberately configures a 65,536-byte initial context window. Its router requires the
 current review command, while prior reviews remain a durable audit trail. This is an application
 choice: the library itself retains full history unless the host explicitly passes a `ContextWindow`.
+The application also explicitly enables incremental history reads; the library default remains
+materialized reads. Response streaming and history streaming are independent settings.
 
 Set `RELEASE_DESK_CONTEXT_MAX_BYTES` to an integer of at least two to change the allowance, or to the
 literal `none` to disable selection. Unset means the application's 65,536-byte default. For example:
 
 ```powershell
 $env:RELEASE_DESK_CONTEXT_MAX_BYTES="65536"
+$env:RELEASE_DESK_STREAM_HISTORY="true"
 ```
 
 The selected canonical input keeps the complete current request, system messages and required tool
@@ -60,15 +63,24 @@ budget does not rerun an already failed key. Existing successful keys replay aft
 the new configured budget is smaller. Use `none` for a deliberate configuration rollback, with the
 understanding that new invocations again receive growing initial history.
 
+Set `RELEASE_DESK_STREAM_HISTORY=false` to return to full-history materialization while retaining
+the configured context window. Setting the window to `none` disables incremental selection as well,
+even if the history flag is true. Successful keys replay without reading history after either policy
+changes. Before downgrading the library to v0.6.0, also restore the earlier application composition:
+that version does not accept the new runtime keyword.
+
 The allowance is canonical UTF-8 JSON bytes, not model tokens, every later model input or a process
-memory cap. The database still returns full history before selection. This policy does not certify
-release safety or production capacity. See the [library context runbook](../../docs/runbooks/context-window.md).
+memory cap. Incremental selection still scans, transfers and validates every historical row, but
+does not materialize the complete canonical transcript. Cursor batches count rows, not bytes; a large
+individual message or mandatory context can still exceed host limits. This policy does not certify
+release safety or production capacity. See the [context runbook](../../docs/runbooks/context-window.md)
+and [history reading runbook](../../docs/runbooks/history-reading.md).
 
 ## Daily workflows
 
 ```bash
-uv run release-desk review Shengtao-Lin/agent-runtime-kit v0.6.0 --key release-review-v060-001
-uv run release-desk review Shengtao-Lin/agent-runtime-kit v0.6.0 --key release-review-v060-002 --stream
+uv run release-desk review Shengtao-Lin/agent-runtime-kit v0.7.0 --key release-review-v070-001
+uv run release-desk review Shengtao-Lin/agent-runtime-kit v0.7.0 --key release-review-v070-002 --stream
 ```
 
 Normal mode prints the canonical JSON response; stream mode prints canonical JSON events as
@@ -127,7 +139,7 @@ From repository root, point `RELEASE_DESK_DATABASE_URL` at a disposable database
 uv run python scripts/validate_release_desk.py
 ```
 
-Add `--live` for one public metadata review of this repository's v0.6.0, followed by cross-process
+Add `--live` for one public metadata review of this repository's v0.7.0, followed by cross-process
 replay, history and idempotent feedback checks. It makes no provider calls and no GitHub writes.
 The runner saves JUnit, package inventory and optional canary evidence under
 `build/release-desk-validation/`. `--wheel PATH` is an explicitly non-locked candidate override

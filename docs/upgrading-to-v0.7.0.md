@@ -2,8 +2,8 @@
 
 ## Scope and compatibility
 
-This guide describes the v0.7.0 release candidate. Actual publication and independently locked
-Release Desk adoption are pending; the latest verified published release remains v0.6.0. Track
+v0.7.0 is published through GitHub Releases and GHCR. Actual assets and independently locked
+Release Desk adoption passed [publication acceptance](validation/v0.7.0-publication.md). Retain
 [candidate readiness](validation/v0.7.0-readiness.md) and the
 [accepted Stage E comparison](validation/stage-e-incremental-history.md).
 

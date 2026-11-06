@@ -1,7 +1,8 @@
 # Stage E Delivery Audit
 
 This audit separates accepted implementation evidence from publication and host adoption.
-Updated on 2026-11-06. Delivery remains incomplete until the remaining gates below pass.
+Updated on 2026-11-06 after actual v0.7.0 publication, independent adoption acceptance and local
+service cleanup. Final-head and applicable main checks gate promotion of this adoption revision.
 
 ## Requirement evidence
 
@@ -15,9 +16,10 @@ Updated on 2026-11-06. Delivery remains incomplete until the remaining gates bel
 | Default and extension compatibility | Unchanged `get_messages` default; optional protocol and explicit opt-in; unsupported configurations rejected; custom-store/subclass boundaries documented | Passed |
 | Real persistence and resource ownership | PostgreSQL cursor snapshot/concurrent append, early close, cancellation, timeout, same-thread contention, restart, zero retained connections/sessions; installed native and real LangChain/LangGraph consumers | Passed |
 | Candidate release | [v0.7.0 readiness](v0.7.0-readiness.md): 758 source cases, 359 provider/native cases, 176 actual-v0.6.0 upgrade cases, shared-engine soak, core imports and incremental smoke | Passed |
-| CI and review promotion | PRs #49/#50 passed exact final-head gates. A main rehearsal exposed a recovery-test deadline error; [correction evidence](stage-e-recovery-probe.md) and PR #51 preserve the failure and pass the corrected final-head gates. Corrected main verification remains required | In progress |
-| Actual assets and independent adoption | Must verify downloaded wheel/sdist and GHCR identity, actual-wheel acceptance, then the application's own published lock and restart/replay/feedback behavior | Pending |
-| Final promotion and cleanup | Final adoption PR/main checks, current documentation, clean worktree and stopped owned test service with evidence/volume retained | Pending |
+| Release promotion | PRs #49/#50 passed exact final-head gates. A main rehearsal exposed a recovery-test deadline error; [correction evidence](stage-e-recovery-probe.md) and PR #51 preserve the failure. Corrected final-head/main checks and tag verification/publishing all passed | Passed |
+| Actual assets and independent adoption | [Publication evidence](v0.7.0-publication.md): downloaded wheel/sdist digests, all sixty package files matching accepted code, GHCR identity/non-root imports, actual-wheel fresh/upgrade/soak/smoke acceptance, independent published lock and fourteen app tests plus public restart/replay/feedback canary | Passed |
+| Local service cleanup | Owned `ark-stage-e-validation-postgres-1` stopped; `ark-stage-e-validation_agent-runtime-postgres` volume and all raw reports retained; no other project stopped | Passed |
+| Adoption revision promotion | Exact final-head CI/application checks before merge, applicable resulting-main checks, and clean final worktree | Required promotion gate |
 
 ## Guarantees that must remain separate
 
@@ -34,7 +36,8 @@ Updated on 2026-11-06. Delivery remains incomplete until the remaining gates bel
 
 ## Delivery sequencing
 
-Verify release-preparation main before tagging. Verify actual immutable artifacts before pinning
-the independent application to them. Candidate adoption tests are evidence of the proposed host
-composition, not proof that a published version was installed. Update this audit only from actual
-reports and authoritative GitHub run/PR state; do not infer completion from a version field.
+Release-preparation main was verified before tagging. Actual immutable artifacts were verified
+before pinning the independent application. Candidate and actual published acceptance retain separate
+reports and hashes. Promotion of this final adoption revision still requires exact-head/main checks;
+verify their authoritative GitHub run/PR state and the final clean worktree before marking the goal
+complete. Local cleanup evidence is retained in `build/stage-e-cleanup.json`.

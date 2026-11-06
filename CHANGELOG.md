@@ -2,7 +2,7 @@
 
 All notable changes to Agent Runtime Kit are documented here.
 
-## 0.7.0 - Release candidate
+## 0.7.0 - 2026-11-06
 
 - Add explicit incremental history consumption through `AgentRuntime(stream_history=True)`, the
   optional `StreamingMemoryStore` protocol and `ContextWindow.select_stream`. Existing calls and
@@ -15,8 +15,8 @@ All notable changes to Agent Runtime Kit are documented here.
   individual payload sizes and later model input remain outside the initial-context guarantee.
 - Add actual v0.6.0 preserved-state/context-policy upgrades, cursor failure/snapshot tests and
   incremental CI smoke while retaining all historical upgrade and dependency compatibility gates.
-- Keep canonical `v1`, schema `0002` and dependency ranges unchanged. Publication and independently
-  locked Release Desk adoption remain pending.
+- Keep canonical `v1`, schema `0002` and dependency ranges unchanged. Verify actual GitHub/GHCR
+  assets and independently locked Release Desk adoption, including explicit read-mode rollback.
 
 ## 0.6.0 - 2026-11-06
 

@@ -1,8 +1,9 @@
 # Stage E Incremental History Acceptance
 
 Date: 2026-11-06. The column-row candidate passes the frozen workload and independent correctness
-acceptance. This is pre-publication evidence: implementation/report PR #49 has merged, while release
-and actual Release Desk adoption remain separate gates. No production SLO or universal memory bound is claimed.
+acceptance. This report retains pre-publication artifact identities. Subsequent
+[actual v0.7.0 publication and Release Desk adoption](v0.7.0-publication.md) verify matching package
+bytes and installed behavior separately. No production SLO or universal memory bound is claimed.
 
 ## Requirement, candidates and provenance
 

@@ -5,29 +5,29 @@
 A framework-neutral Python runtime toolkit for building configurable, observable AI agents with
 PostgreSQL-backed memory.
 
-> **Project status:** latest published release v0.6.0, adding an opt-in initial-context window to
-> the extension contracts and library-boundary checks. Release Desk independently pins actual v0.6.0.
+> **Project status:** latest published release v0.7.0, adding opt-in incremental history reads with
+> complete validation. Release Desk independently pins actual v0.7.0 and explicitly enables the mode.
 > The installable library, PostgreSQL persistence,
 > provider and framework adapters, canonical streaming, feedback, telemetry, and optional HTTP
 > example are runnable. Authentication and production deployment controls remain application
 > concerns.
 
-Source is preparing v0.7.0 with explicit incremental history reads. The
+Published v0.7.0 provides explicit incremental history reads. The
 [Stage E comparison](docs/validation/stage-e-incremental-history.md) passes the frozen long-history
-requirements; the [candidate upgrade guide](docs/upgrading-to-v0.7.0.md) describes opt-in and rollback.
-Actual publication and independent application adoption are still pending.
+requirements; the [upgrade guide](docs/upgrading-to-v0.7.0.md) describes opt-in and rollback.
+See [actual asset and application acceptance](docs/validation/v0.7.0-publication.md).
 
 The optional context window bounds initial canonical input while preserving the complete durable
 transcript. It does not bound every model call, full-history database reads or process memory.
 See the [context runbook](docs/runbooks/context-window.md) and
 [Stage D acceptance](docs/validation/stage-d-context-window.md) for the measured limits.
 
-Published v0.6.0 retains canonical contract `v1` and PostgreSQL schema `0002`.
+Published v0.7.0 retains canonical contract `v1` and PostgreSQL schema `0002`.
 Review the [public API inventory](docs/public-api.md) before adopting stricter custom
 stream/model/tool contracts.
-Read the [current upgrade guide](docs/upgrading-to-v0.6.0.md); upgrades from v0.1.1 additionally
+Read the [current upgrade guide](docs/upgrading-to-v0.7.0.md); upgrades from v0.1.1 additionally
 require the drained-worker [schema upgrade procedure](docs/upgrading-to-v0.2.0.md).
-See [actual publication evidence](docs/validation/v0.6.0-publication.md) for tested scope,
+See [actual publication evidence](docs/validation/v0.7.0-publication.md) for tested scope,
 [the changelog](CHANGELOG.md) for release history, and [the documentation map](docs/README.md)
 for architecture, integration and operations. [The development plan](docs/plan.md) prioritizes
 extension correctness and independent-host adoption over adding platform features.
@@ -72,7 +72,7 @@ The wheel contains only `agent_runtime`; the fictional agent remains an example 
 package. Install only the extras your application needs. For the published library:
 
 ```bash
-uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.6.0"
+uv add "agent-runtime-kit[postgres,telemetry] @ git+https://github.com/Shengtao-Lin/agent-runtime-kit@v0.7.0"
 ```
 
 For checkout development:
@@ -314,7 +314,7 @@ The [independent consumer validation](validation/consumer/README.md) installs a 
 wheel into a separate application venv outside the checkout. Its
 [integration report](docs/validation/independent-consumer.md) preserves the original workflow probes
 and historical reliability gaps; current shipped acceptance is recorded in the
-[release evidence](docs/validation/v0.6.0-publication.md).
+[release evidence](docs/validation/v0.7.0-publication.md).
 
 ```bash
 make install

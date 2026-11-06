@@ -1,6 +1,6 @@
 # ADR 0016: History Materialization and Complete Validation
 
-Status: accepted in development after repeated independent acceptance; publication pending.
+Status: accepted; shipped in v0.7.0 with [actual asset and independent adoption evidence](../validation/v0.7.0-publication.md).
 
 ## Evidence and alternatives
 
@@ -137,4 +137,5 @@ passes all frozen budgets and short-history gates across 42 processes and 510 co
 All 10,000-turn timing p95 values are below 1.48 seconds; measurement RSS increases are about one
 MiB, with absolute peaks and diagnostic overhead recorded separately. Full scanning/transfer and
 individual payload/tool-state limits remain as described above. Retain the column-row implementation;
-final report-head/main checks, actual publication and independent host adoption still gate delivery.
+actual publication and independent adoption are recorded in the linked publication report, with
+final-head/main promotion and cleanup gates tracked separately.
