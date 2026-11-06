@@ -154,6 +154,13 @@ while core-only consumers remain lightweight.
 
 ## D. Choose one concrete host workload before expanding scope
 
+Execution started on 2026-11-05 with the [Release Desk workload specification](validation/stage-d-workload.md).
+The actual v0.5.0 wheel is the frozen baseline. Establish the staged history/concurrency/payload
+measurements before selecting a context or storage API. The [completed baseline](validation/stage-d-baseline.md)
+contains 45 processes and 972 samples; candidate design and implementation remain in progress.
+The full Stage D goal includes any justified fix, independent acceptance and publication
+when library behavior changes, not just the measurement report.
+
 Start with a host-owned scenario, which may be deterministic/offline. Specify concurrency/admission,
 conversation length, input/tool payload sizes, downstream timeouts, side-effect idempotency,
 restart/recovery expectations and privacy constraints. Do not infer capacity from test counts.

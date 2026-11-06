@@ -1,0 +1,112 @@
+{
+  "target": "published-baseline",
+  "expected_version": "0.5.0",
+  "wheel_sha256": "d112163a318aa280e64bd20a0d8dd1db519007db3fc5aa419f0f3d1bdb60cd59",
+  "baseline_url": "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.5.0/agent_runtime_kit-0.5.0-py3-none-any.whl",
+  "repetitions": 3,
+  "profiles": [
+    [
+      10,
+      1,
+      1,
+      "invoke"
+    ],
+    [
+      10,
+      1,
+      1,
+      "stream"
+    ],
+    [
+      100,
+      1,
+      1,
+      "invoke"
+    ],
+    [
+      100,
+      1,
+      1,
+      "stream"
+    ],
+    [
+      1000,
+      1,
+      1,
+      "invoke"
+    ],
+    [
+      1000,
+      1,
+      1,
+      "stream"
+    ],
+    [
+      10,
+      4,
+      1,
+      "invoke"
+    ],
+    [
+      10,
+      4,
+      1,
+      "stream"
+    ],
+    [
+      10,
+      16,
+      1,
+      "invoke"
+    ],
+    [
+      10,
+      16,
+      1,
+      "stream"
+    ],
+    [
+      10,
+      1,
+      16,
+      "invoke"
+    ],
+    [
+      10,
+      1,
+      16,
+      "stream"
+    ],
+    [
+      10,
+      1,
+      256,
+      "invoke"
+    ],
+    [
+      10,
+      1,
+      256,
+      "stream"
+    ],
+    [
+      10,
+      4,
+      1,
+      "slow_stream"
+    ]
+  ],
+  "source_hashes": {
+    "scripts/validate_workload.py": "e2e41775f5d79caf572dbdd40ea11d32b7f3574e13d75442a129426ad5c2a0a3",
+    "validation/workloads/tests/conftest.py": "e4e7ec2e85674c62df7f527e13cb91a4d1443304ed0a4ef4840f757ef9d81d42",
+    "validation/workloads/tests/test_workload.py": "1b7a076a507823de9afd51c35b1bfdbccd08087da0f5e6ed9fb656a6443c7556",
+    "validation/workloads/workload.py": "1cde3d9918b6349bc3027d08927cc45d7fa0d3b3ec1e0edec47cf9f850bf2550",
+    "validation/workloads/pyproject.toml": "2e54e139670fc50ef4eb38e0880ac266533ce80271f0fd2b947909c0b9720bec",
+    "validation/workloads/uv.lock": "c6c14325e6d787980edf982a8daaa5356161c3d283f41d3a3ad71d3b0245cfbf",
+    "applications/release_desk/src/release_desk/__init__.py": "9765fb05f5c7299500fe3a4751fe7613d4ce2a195937d5b3cfd567011a35ee5f",
+    "applications/release_desk/src/release_desk/application.py": "67c6783a76c83fc199f94e4cc03ac3a816acdbe99bc9ec1285e708787a280749",
+    "applications/release_desk/src/release_desk/cli.py": "ac54ee2ee0d0aa97199643e2f1eefc70a0292a8229d184c4d64886459ccc9273",
+    "applications/release_desk/src/release_desk/review.py": "8c506aec6c1ecffda562442f4365c8ac39f5c4bf1ffc3bd881b1633ee2f1b1a4"
+  },
+  "status": "passed"
+}

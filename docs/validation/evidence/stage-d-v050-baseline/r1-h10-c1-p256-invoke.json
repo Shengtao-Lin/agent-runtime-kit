@@ -1,0 +1,689 @@
+{
+  "version": "0.5.0",
+  "python": "3.12.10",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "profile": {
+    "history_turns": 10,
+    "concurrency": 1,
+    "padding_kib": 256,
+    "mode": "invoke",
+    "smoke": false
+  },
+  "clock_resolution_seconds": 1e-07,
+  "phase": "verification",
+  "samples": [
+    {
+      "turn": 0,
+      "mode": "invoke",
+      "measurement_seconds": 0.03112539998983266,
+      "history_read_seconds": 0.021511099999770522,
+      "history": [
+        {
+          "messages": 40,
+          "json_bytes": 2638375
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 41,
+          "json_bytes": 2638569
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 41,
+          "json_bytes": 2638569
+        },
+        {
+          "messages": 43,
+          "json_bytes": 2901729
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 2.2300002456177026e-05,
+      "service_seconds": 0.09705389999726322,
+      "end_to_end_seconds": 0.09707619999971939
+    },
+    {
+      "turn": 1,
+      "mode": "invoke",
+      "measurement_seconds": 0.03411350000533275,
+      "history_read_seconds": 0.32948429999669315,
+      "history": [
+        {
+          "messages": 44,
+          "json_bytes": 2902216
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 45,
+          "json_bytes": 2902410
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 45,
+          "json_bytes": 2902410
+        },
+        {
+          "messages": 47,
+          "json_bytes": 3165570
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 1.9899998733308166e-05,
+      "service_seconds": 0.40343270000448683,
+      "end_to_end_seconds": 0.40345260000322014
+    },
+    {
+      "turn": 2,
+      "mode": "invoke",
+      "measurement_seconds": 0.038553999991563614,
+      "history_read_seconds": 0.02315190000081202,
+      "history": [
+        {
+          "messages": 48,
+          "json_bytes": 3166057
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 49,
+          "json_bytes": 3166251
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 49,
+          "json_bytes": 3166251
+        },
+        {
+          "messages": 51,
+          "json_bytes": 3429411
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 1.9400002202019095e-05,
+      "service_seconds": 0.09986399999615969,
+      "end_to_end_seconds": 0.09988339999836171
+    },
+    {
+      "turn": 3,
+      "mode": "invoke",
+      "measurement_seconds": 0.04191160001209937,
+      "history_read_seconds": 0.025219199997081887,
+      "history": [
+        {
+          "messages": 52,
+          "json_bytes": 3429898
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 53,
+          "json_bytes": 3430092
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 53,
+          "json_bytes": 3430092
+        },
+        {
+          "messages": 55,
+          "json_bytes": 3693252
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 1.7899998056236655e-05,
+      "service_seconds": 0.10740200000145705,
+      "end_to_end_seconds": 0.10741989999951329
+    },
+    {
+      "turn": 4,
+      "mode": "invoke",
+      "measurement_seconds": 0.04460890001064399,
+      "history_read_seconds": 0.027074999998148996,
+      "history": [
+        {
+          "messages": 56,
+          "json_bytes": 3693739
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 57,
+          "json_bytes": 3693933
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 57,
+          "json_bytes": 3693933
+        },
+        {
+          "messages": 59,
+          "json_bytes": 3957093
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 1.930000144056976e-05,
+      "service_seconds": 0.11179559999436606,
+      "end_to_end_seconds": 0.11181489999580663
+    },
+    {
+      "turn": 5,
+      "mode": "invoke",
+      "measurement_seconds": 0.047684799996204674,
+      "history_read_seconds": 0.029313000006368384,
+      "history": [
+        {
+          "messages": 60,
+          "json_bytes": 3957580
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 61,
+          "json_bytes": 3957774
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 61,
+          "json_bytes": 3957774
+        },
+        {
+          "messages": 63,
+          "json_bytes": 4220934
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 1.8600003386382014e-05,
+      "service_seconds": 0.11849229999643285,
+      "end_to_end_seconds": 0.11851089999981923
+    },
+    {
+      "turn": 6,
+      "mode": "invoke",
+      "measurement_seconds": 0.04977239999425365,
+      "history_read_seconds": 0.031566099998599384,
+      "history": [
+        {
+          "messages": 64,
+          "json_bytes": 4221421
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 65,
+          "json_bytes": 4221615
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 65,
+          "json_bytes": 4221615
+        },
+        {
+          "messages": 67,
+          "json_bytes": 4484775
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 2.220000169472769e-05,
+      "service_seconds": 0.16510090000519995,
+      "end_to_end_seconds": 0.16512310000689467
+    },
+    {
+      "turn": 7,
+      "mode": "invoke",
+      "measurement_seconds": 0.052980899999965914,
+      "history_read_seconds": 0.03136709999671439,
+      "history": [
+        {
+          "messages": 68,
+          "json_bytes": 4485262
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 69,
+          "json_bytes": 4485456
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 69,
+          "json_bytes": 4485456
+        },
+        {
+          "messages": 71,
+          "json_bytes": 4748616
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 2.0200001017656177e-05,
+      "service_seconds": 0.1249586999983876,
+      "end_to_end_seconds": 0.12497889999940526
+    },
+    {
+      "turn": 8,
+      "mode": "invoke",
+      "measurement_seconds": 0.062488300012773834,
+      "history_read_seconds": 0.0338387999945553,
+      "history": [
+        {
+          "messages": 72,
+          "json_bytes": 4749103
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 73,
+          "json_bytes": 4749297
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 73,
+          "json_bytes": 4749297
+        },
+        {
+          "messages": 75,
+          "json_bytes": 5012457
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 1.9099999917671084e-05,
+      "service_seconds": 0.1377917999998317,
+      "end_to_end_seconds": 0.13781089999974938
+    },
+    {
+      "turn": 9,
+      "mode": "invoke",
+      "measurement_seconds": 0.060079599992604926,
+      "history_read_seconds": 0.03594620000512805,
+      "history": [
+        {
+          "messages": 76,
+          "json_bytes": 5012944
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 77,
+          "json_bytes": 5013138
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 77,
+          "json_bytes": 5013138
+        },
+        {
+          "messages": 79,
+          "json_bytes": 5276298
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 2.0699997548945248e-05,
+      "service_seconds": 0.17709499999909895,
+      "end_to_end_seconds": 0.1771156999966479
+    },
+    {
+      "turn": 10,
+      "mode": "invoke",
+      "measurement_seconds": 0.06456639999669278,
+      "history_read_seconds": 0.037650400001439266,
+      "history": [
+        {
+          "messages": 80,
+          "json_bytes": 5276785
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 81,
+          "json_bytes": 5276979
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 81,
+          "json_bytes": 5276979
+        },
+        {
+          "messages": 83,
+          "json_bytes": 5540139
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 1.9699997210409492e-05,
+      "service_seconds": 0.18882719999965047,
+      "end_to_end_seconds": 0.18884689999686088
+    },
+    {
+      "turn": 11,
+      "mode": "invoke",
+      "measurement_seconds": 0.06589420000091195,
+      "history_read_seconds": 0.038841199995658826,
+      "history": [
+        {
+          "messages": 84,
+          "json_bytes": 5540626
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 85,
+          "json_bytes": 5540820
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 85,
+          "json_bytes": 5540820
+        },
+        {
+          "messages": 87,
+          "json_bytes": 5803980
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 2.179999864893034e-05,
+      "service_seconds": 0.1858658999990439,
+      "end_to_end_seconds": 0.18588769999769283
+    },
+    {
+      "turn": 12,
+      "mode": "invoke",
+      "measurement_seconds": 0.07001360000140266,
+      "history_read_seconds": 0.04020160000072792,
+      "history": [
+        {
+          "messages": 88,
+          "json_bytes": 5804467
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 89,
+          "json_bytes": 5804661
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 89,
+          "json_bytes": 5804661
+        },
+        {
+          "messages": 91,
+          "json_bytes": 6067821
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 2.0500003302004188e-05,
+      "service_seconds": 0.19659669999964535,
+      "end_to_end_seconds": 0.19661720000294736
+    },
+    {
+      "turn": 13,
+      "mode": "invoke",
+      "measurement_seconds": 0.07441700000345008,
+      "history_read_seconds": 0.04378490000090096,
+      "history": [
+        {
+          "messages": 92,
+          "json_bytes": 6068308
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 93,
+          "json_bytes": 6068502
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 93,
+          "json_bytes": 6068502
+        },
+        {
+          "messages": 95,
+          "json_bytes": 6331662
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 3.190000279573724e-05,
+      "service_seconds": 0.20554489999631187,
+      "end_to_end_seconds": 0.2055767999991076
+    },
+    {
+      "turn": 14,
+      "mode": "invoke",
+      "measurement_seconds": 0.07691639999393374,
+      "history_read_seconds": 0.04331099999399157,
+      "history": [
+        {
+          "messages": 96,
+          "json_bytes": 6332149
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 97,
+          "json_bytes": 6332343
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 97,
+          "json_bytes": 6332343
+        },
+        {
+          "messages": 99,
+          "json_bytes": 6595503
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 2.040000254055485e-05,
+      "service_seconds": 0.25028139999631094,
+      "end_to_end_seconds": 0.2503017999988515
+    },
+    {
+      "turn": 15,
+      "mode": "invoke",
+      "measurement_seconds": 0.08174039999721572,
+      "history_read_seconds": 0.04613979999703588,
+      "history": [
+        {
+          "messages": 100,
+          "json_bytes": 6595990
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 101,
+          "json_bytes": 6596184
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 101,
+          "json_bytes": 6596184
+        },
+        {
+          "messages": 103,
+          "json_bytes": 6859344
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 2.0699997548945248e-05,
+      "service_seconds": 0.2127085000029183,
+      "end_to_end_seconds": 0.21272920000046724
+    },
+    {
+      "turn": 16,
+      "mode": "invoke",
+      "measurement_seconds": 0.08649550000700401,
+      "history_read_seconds": 0.05082039999979315,
+      "history": [
+        {
+          "messages": 104,
+          "json_bytes": 6859831
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 105,
+          "json_bytes": 6860025
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 105,
+          "json_bytes": 6860025
+        },
+        {
+          "messages": 107,
+          "json_bytes": 7123185
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 3.090000245720148e-05,
+      "service_seconds": 0.27728989999741316,
+      "end_to_end_seconds": 0.27732079999987036
+    },
+    {
+      "turn": 17,
+      "mode": "invoke",
+      "measurement_seconds": 0.09464960001059808,
+      "history_read_seconds": 0.05732549999811454,
+      "history": [
+        {
+          "messages": 108,
+          "json_bytes": 7123672
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 109,
+          "json_bytes": 7123866
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 109,
+          "json_bytes": 7123866
+        },
+        {
+          "messages": 111,
+          "json_bytes": 7387026
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 3.239999932702631e-05,
+      "service_seconds": 0.24912079999921843,
+      "end_to_end_seconds": 0.24915319999854546
+    },
+    {
+      "turn": 18,
+      "mode": "invoke",
+      "measurement_seconds": 0.09500839999236632,
+      "history_read_seconds": 0.05835989999468438,
+      "history": [
+        {
+          "messages": 112,
+          "json_bytes": 7387513
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 113,
+          "json_bytes": 7387707
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 113,
+          "json_bytes": 7387707
+        },
+        {
+          "messages": 115,
+          "json_bytes": 7650867
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 3.0800001695752144e-05,
+      "service_seconds": 0.2455065999965882,
+      "end_to_end_seconds": 0.24553739999828395
+    },
+    {
+      "turn": 19,
+      "mode": "invoke",
+      "measurement_seconds": 0.0974770000029821,
+      "history_read_seconds": 0.05113060000439873,
+      "history": [
+        {
+          "messages": 116,
+          "json_bytes": 7651354
+        }
+      ],
+      "invoker_inputs": [
+        {
+          "messages": 117,
+          "json_bytes": 7651548
+        }
+      ],
+      "model_inputs": [
+        {
+          "messages": 117,
+          "json_bytes": 7651548
+        },
+        {
+          "messages": 119,
+          "json_bytes": 7914708
+        }
+      ],
+      "first_text_from_submission_seconds": null,
+      "first_text_from_admission_seconds": null,
+      "queue_seconds": 2.9599999834317714e-05,
+      "service_seconds": 0.2369858000020031,
+      "end_to_end_seconds": 0.2370154000018374
+    }
+  ],
+  "rss_sampled_peak_bytes": 101761024,
+  "rss_measurement_peak_bytes": 101761024,
+  "rss_limit_bytes": 536870912,
+  "status": "passed",
+  "rss_before_measurement": 82378752,
+  "python_current_bytes": 518930,
+  "python_peak_bytes": 24637759,
+  "checked_out_connections": 0,
+  "exact_replay_without_work": true,
+  "surviving_async_tasks": 0,
+  "remaining_database_sessions": 0,
+  "rss_sampler_stopped": true,
+  "elapsed_seconds": 4.132479500003683
+}
