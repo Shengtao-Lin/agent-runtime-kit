@@ -136,9 +136,9 @@ Native invocation token totals are described in the [runtime runbook](runtime.md
 Provider-level usage remains per model call. These fixes are included in published v0.4.2;
 v0.4.1 does not contain them.
 
-### Custom model result contract (development)
+### Custom model result contract (v0.5.0)
 
-The following checks are in development source and are **not** in published v0.4.2. Keep
+The following checks ship in v0.5.0 and are absent from v0.4.2. Keep
 `ModelResult.message` and `ModelResult.tool_calls` consistent when implementing a custom provider:
 
 ```python
@@ -168,7 +168,7 @@ become `ProviderError(retryable=False)` with no payload in the public message. A
 call prevents earlier calls in that same result from executing; earlier completed model rounds
 and already emitted provisional text cannot be undone.
 
-Tool payloads must be finite JSON values; see the [tool payload boundary](tools-and-hooks.md#tool-payload-boundary-development).
+Tool payloads must be finite JSON values; see the [tool payload boundary](tools-and-hooks.md#tool-payload-boundary-v050).
 Convert Python objects explicitly in the adapter. These are cooperative library checks, not a
 sandbox for arbitrary extensions or a byte-size bound. Protect exception causes as internal data.
 Run the custom-provider checks in the project venv:

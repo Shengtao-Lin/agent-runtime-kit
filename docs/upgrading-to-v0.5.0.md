@@ -2,7 +2,7 @@
 
 ## Compatibility and scope
 
-This guide covers the v0.5.0 candidate until actual publication evidence is recorded. Public import
+v0.5.0 is published; see [actual-asset evidence](validation/v0.5.0-publication.md). Public import
 paths, documented call signatures, canonical contract `v1` and PostgreSQL schema `0002` are retained.
 There is no new database revision or dependency-range change. Stricter validation can reject custom
 extensions that appeared to work under v0.4.2; this is an intentional behavioral change.
