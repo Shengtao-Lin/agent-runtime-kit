@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from uuid import uuid4
 
+from host_policy import ModelInputBudget, budget_model
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -122,7 +123,15 @@ class GrowthHost:
 
 
 @asynccontextmanager
-async def growth_host(database_url, case):
+async def growth_host(
+    database_url,
+    case,
+    *,
+    protected=False,
+    generate_only=False,
+    model_override=None,
+    invocation_seconds=30,
+):
     namespace = f"stage-f-growth-{uuid4()}"
     engine = create_async_engine(
         database_url,
@@ -131,7 +140,16 @@ async def growth_host(database_url, case):
         pool_timeout=5,
         connect_args={"application_name": namespace},
     )
-    model = ProbeModel(CASES[case])
+    model = model_override or ProbeModel(CASES[case])
+    delegate = model
+    if generate_only:
+
+        class GenerateOnly:
+            generate = model.generate
+
+        delegate = GenerateOnly()
+    if protected:
+        delegate = budget_model(delegate, ModelInputBudget(65536, 8192))
     effects, cleanup = [], {}
     tools = ToolRegistry()
 
@@ -148,7 +166,11 @@ async def growth_host(database_url, case):
     agents = AgentRegistry()
     agents.register(
         NativeAgentInvoker(
-            agent_id=namespace, version="1", model_client=model, tools=tools, max_tool_iterations=3
+            agent_id=namespace,
+            version="1",
+            model_client=delegate,
+            tools=tools,
+            max_tool_iterations=3,
         )
     )
     memory, runs = PostgresMemoryStore(engine), PostgresRunStore(engine)
@@ -159,7 +181,7 @@ async def growth_host(database_url, case):
         namespace=namespace,
         context_window=ContextWindow(65536),
         stream_history=True,
-        invocation_timeout_seconds=30,
+        invocation_timeout_seconds=invocation_seconds,
         hooks=HookManager([InputGrowthHook()] if case == "hook_growth" else []),
     )
     try:
