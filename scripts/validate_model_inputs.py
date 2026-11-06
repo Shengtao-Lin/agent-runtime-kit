@@ -121,7 +121,8 @@ def main() -> None:
                 [
                     str(python),
                     "-c",
-                    "import agent_runtime,importlib.metadata as m,json,pathlib,sys,platform,zipfile; "
+                    "import agent_runtime,importlib.metadata as m,json,pathlib,sys,platform; "
+                    "import zipfile; "
                     "d=m.distribution('agent-runtime-kit'); "
                     "location=pathlib.Path(agent_runtime.__file__); "
                     "assert location.is_relative_to(pathlib.Path(sys.prefix)); "

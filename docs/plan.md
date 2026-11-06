@@ -248,6 +248,9 @@ Observe actual Release Desk model calls and focused tool-growth/hook cases befor
 Compare a host wrapper with native integration; retain framework-owned execution and explicit
 coverage limits. Complete independent correctness/resource/performance acceptance and delivery;
 do not require a library release if existing public extension points satisfy the host requirement.
+The [normal Release Desk baseline](validation/stage-f-release-desk-baseline.md) passes 240 actual
+model calls with no message-budget overflow. This is a scoped no-gap finding; execute the frozen
+large-tool, multi-round, tool-schema and hook cases before choosing a policy or new API.
 
 ## Deferred until justified
 
