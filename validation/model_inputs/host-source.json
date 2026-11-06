@@ -1,0 +1,10 @@
+{
+  "commit": "4b896d7708431e90013f482ec2a82777c671f730",
+  "directory": "applications/release_desk/src/release_desk",
+  "files": {
+    "__init__.py": "9765fb05f5c7299500fe3a4751fe7613d4ce2a195937d5b3cfd567011a35ee5f",
+    "application.py": "40360802b06ad065989bd0e10cb5ce54fb5ddea789fb715784fdf7228daaa05b",
+    "cli.py": "ac54ee2ee0d0aa97199643e2f1eefc70a0292a8229d184c4d64886459ccc9273",
+    "review.py": "8c506aec6c1ecffda562442f4365c8ac39f5c4bf1ffc3bd881b1633ee2f1b1a4"
+  }
+}
