@@ -15,6 +15,10 @@ The runner creates a fresh external venv, verifies locked/downloaded/installed w
 migrates explicitly, and uses pytest to observe sixty reviews per invoke/stream mode. It preserves
 per-call message/tool sizes, history/replay/resource assertions, RSS safety observations, dependency
 inventory and exact measured sources. A report directory containing a manifest cannot be reused.
+`release_desk_source` freezes the host from commit `4b896d7708431e90013f482ec2a82777c671f730`;
+`host-source.json` checks each source file before execution. Later changes to the real application's
+configuration cannot silently change this baseline. This fixture is validation-only and is never
+included in the library wheel.
 
 This fixture uses deterministic offline release metadata; it never calls a provider or GitHub during
 agent execution. Package installation/download is a separate setup step. Current results and their

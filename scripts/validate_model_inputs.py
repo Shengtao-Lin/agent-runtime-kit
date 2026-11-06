@@ -30,7 +30,11 @@ def main() -> None:
         parser.error("Set MODEL_INPUT_DATABASE_URL to an owned disposable PostgreSQL database")
     repository = Path(__file__).resolve().parents[1]
     source = repository / "validation/model_inputs"
-    app_source = repository / "applications/release_desk/src/release_desk"
+    app_source = source / "release_desk_source"
+    host_identity = json.loads((source / "host-source.json").read_text(encoding="utf-8"))
+    assert host_identity["commit"] == "4b896d7708431e90013f482ec2a82777c671f730"
+    for name, digest in host_identity["files"].items():
+        assert hashlib.sha256((app_source / name).read_bytes()).hexdigest() == digest
     reports = args.report_dir.resolve()
     reports.mkdir(parents=True, exist_ok=True)
     if (reports / "manifest.json").exists():
@@ -49,13 +53,14 @@ def main() -> None:
         repository / "docs/validation/stage-f-workload.md",
         source / "pyproject.toml",
         source / "uv.lock",
+        source / "host-source.json",
         *sorted(source.rglob("*.py")),
-        *sorted(app_source.glob("*.py")),
     ]
     manifest = {
         "status": "running",
         "baseline_version": BASELINE_VERSION,
         "baseline_wheel_sha256": BASELINE_SHA256,
+        "host_source": host_identity,
         "specification_commit": "51c3719",
         "message_budget_bytes": 65536,
         "tool_budget_bytes": 8192,
