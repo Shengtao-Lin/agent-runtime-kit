@@ -1,6 +1,6 @@
 # Public API Inventory and Compatibility Review
 
-This inventory describes the development surface targeted for v0.5.0. Published v0.4.2 remains
+This inventory describes the supported surface in v0.5.0. Published v0.4.2 remains
 immutable. The package version, canonical `v1` contract and PostgreSQL revision `0002` are separate
 compatibility dimensions. An unchanged field/signature does not imply unchanged validation behavior.
 

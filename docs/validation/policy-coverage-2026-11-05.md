@@ -1,7 +1,9 @@
 # Policy Composition Acceptance — 2026-11-05
 
 Stage B3 adds executable evidence for existing lifecycle semantics without changing public hook
-names or runtime execution. Base source is `bc3f59e` (PR #37); the candidate remains unreleased.
+names or runtime execution. Base source is `bc3f59e` (PR #37); the candidate was unreleased at
+this checkpoint. PR #38 subsequently merged after CI/compatibility acceptance and shipped with
+[v0.5.0](v0.5.0-publication.md).
 
 ## Coverage
 
@@ -30,7 +32,8 @@ migrations through `0002`. Tests used venv/pytest and synthetic local tools, wit
 - `package-audit.json`, dependency inventory and JUnit results are retained in the report directory.
 
 CI runs these fixtures through the existing fresh/upgrade consumer and lower/latest dependency
-paths. Passing that CI is required before merging. Published v0.4.2 artifacts are unchanged.
+paths. Final-commit CI and compatibility passed before PR #38 merged. Published v0.4.2 artifacts
+are unchanged.
 
 ## Limits
 

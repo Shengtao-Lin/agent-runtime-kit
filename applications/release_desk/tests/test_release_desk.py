@@ -7,6 +7,7 @@ import json
 import os
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 from uuid import uuid4
 
@@ -64,10 +65,16 @@ def test_consumes_installed_release_not_source_checkout():
     assert provenance["url"].endswith(".whl")
     assert not provenance.get("dir_info", {}).get("editable", False)
     if os.environ.get("RELEASE_DESK_LIBRARY_SOURCE") == "published":
-        assert distribution.version == "0.4.2"
+        assert distribution.version == "0.5.0"
         assert provenance["url"] == (
-            "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.4.2/"
-            "agent_runtime_kit-0.4.2-py3-none-any.whl"
+            "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.5.0/"
+            "agent_runtime_kit-0.5.0-py3-none-any.whl"
+        )
+        lock = tomllib.loads((Path(__file__).parents[1] / "uv.lock").read_text(encoding="utf-8"))
+        package = next(item for item in lock["package"] if item["name"] == "agent-runtime-kit")
+        assert package["source"]["url"] == provenance["url"]
+        assert package["wheels"][0]["hash"] == (
+            "sha256:d112163a318aa280e64bd20a0d8dd1db519007db3fc5aa419f0f3d1bdb60cd59"
         )
     assert importlib.util.find_spec("examples") is None
     assert importlib.util.find_spec("langchain_core") is None

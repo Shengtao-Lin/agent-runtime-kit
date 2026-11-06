@@ -1,10 +1,11 @@
 # Architecture
 
-Reviewed against v0.4.2 source on 2026-10-28. This describes implemented behavior unless marked
+Updated for v0.5.0 publication on 2026-11-06, following the v0.4.2 review on 2026-10-28.
+This describes implemented behavior unless marked
 **proposed**. [The plan](plan.md) owns future work; [ADRs](adr/README.md) explain decisions;
 [runbooks](runbooks/README.md) explain operation. Release evidence is not production certification.
-Development-source streaming changes added on 2026-10-29 are labeled below; they are not in the
-immutable v0.4.2 release.
+Streaming/result and import-boundary changes labeled below ship in v0.5.0; they are absent from
+the immutable v0.4.2 release.
 
 ## Product boundary
 
@@ -55,11 +56,11 @@ Core imports must remain usable without HTTP, database or framework extras. Pyda
 zero-dependency library. Optional implementations use explicit modules/lazy imports. Business
 logic must not flow from examples or applications into the package.
 
-**Development source:** iterator closure and terminal validation now live in private `_streams.py`.
+**Since v0.5.0:** iterator closure and terminal validation live in private `_streams.py`.
 Runtime no longer imports this utility from a framework-named module. No public API or additional
 queue is introduced. The dated review retains the original v0.4.2 layering finding.
 
-**Development source:** adapter package exports load concrete implementations only when requested.
+**Since v0.5.0:** adapter package exports load concrete implementations only when requested.
 CI checks selected core modules' static imports and probes a core-only, non-editable installed wheel
 outside the checkout. The probe rejects optional implementation imports, network connections,
 socket binding, subprocess/thread starts and `.env` reads during the selected public imports.
@@ -71,7 +72,7 @@ All registered invokers enter the same durable runtime envelope. The native path
 model client and tool registry. Framework wrappers call their supplied `ainvoke()` or opt-in
 `astream()`; the kit does not take over graph internals.
 
-| Policy / contract | Actual scope in v0.4.2 |
+| Policy / contract | Actual scope in v0.5.0 |
 | --- | --- |
 | `before_model` / `after_model` | Once around the complete invoker, despite the historical names; not each native model round |
 | `before_tool` / `after_tool` | Only a configured `ToolRegistry` receiving a runtime context |
@@ -141,7 +142,7 @@ a 64-item queue for backpressure. Text/tool-result events are provisional. Repla
 stored outcome, not a saved token event log; SSE is not a resumable event service.
 
 Framework wrappers default to terminal fallback and support explicit incremental streaming.
-Built-in providers validate their supported protocols. **Development source** uses one private
+Built-in providers validate their supported protocols. **v0.5.0** uses one private
 validator for framework streams, custom model streams consumed by the native loop, and custom
 invoker streams consumed by runtime. It withholds completion until normal source exhaustion,
 rejects missing/duplicate completions and later events, and closes the source on failure,
@@ -152,12 +153,12 @@ kit boundaries. Published v0.4.2 lacks the generic model/invoker enforcement. Se
 
 Canonical content is text, tool calls and tool results, not a universal multimodal/reasoning/artifact
 format. `StrictModel` rejects extra fields; it is not globally strict or immutable. Text, content
-part counts and metadata have limits. **Development source** validates canonical tool payloads as
+part counts and metadata have limits. **v0.5.0** validates canonical tool payloads as
 finite JSON values on ordinary construction and at registry boundaries; their public annotations
 remain `Any`. No universal byte limit is imposed. HTTP body and provider decoder limits are not
 whole-invocation bounds, and JSON validity is not a guarantee of every storage backend's acceptance.
 
-`ModelResult` retains tool calls in `message.content` and `tool_calls`. **Development source** requires
+`ModelResult` retains tool calls in `message.content` and `tool_calls`. **v0.5.0** requires
 an assistant message, unique IDs within the result and matching ordered IDs/names/JSON arguments.
 Native execution revalidates and snapshots each complete model result before any dispatch or
 history accumulation, including generate-only stream fallback. Invalid results cannot dispatch
@@ -221,5 +222,6 @@ global dependency container is needed.
 
 Python API, canonical contract version and database schema are separate compatibility axes.
 Selected signature/OpenAPI snapshots and installed-wheel tests exist; they do not cover every
-symbol or dependency permutation. Proposed fitness checks and rollout gates are in [the plan](plan.md).
+symbol or dependency permutation. [Public API coverage](public-api.md), automated library/doc
+guards and rollout gates protect selected boundaries; [the plan](plan.md) records remaining work.
 The [dated review](validation/architecture-review-2026-10-28.md) records the evidence for these priorities.

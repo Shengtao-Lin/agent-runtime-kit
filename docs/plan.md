@@ -1,6 +1,6 @@
 # Development Plan
 
-Reviewed on 2026-10-28 against v0.4.2; execution status updated on 2026-11-05.
+Reviewed on 2026-10-28 against v0.4.2; execution status updated on 2026-11-06 for v0.5.0.
 This is the living implementation queue, not a release log
 or authorization to spend money, select credentials or change production systems. Historical
 execution records are [archived separately](validation/iteration-history-through-v0.4.2.md).
@@ -14,13 +14,15 @@ optional integrations and host-owned resources. See [architecture](architecture.
 [design review](validation/architecture-review-2026-10-28.md).
 
 - Initial capability scope is implemented; see [initial-spec closure](validation/initial-spec-closure.md).
-- v0.4.2 is published with atomic/fenced persistence, optional checked lifetime management,
-  provider validation and native whole-invocation usage. Contract is `v1`, schema `0002`.
+- v0.5.0 is published with the B/C extension and architectural contracts below, on top of v0.4.2's
+  atomic/fenced persistence, lifetime management and usage accounting. Contract is `v1`, schema `0002`.
 - The 2026-10-28 review used release commit `b4bf577` and publication documentation at `68ac428`.
   [Publication PR #33](https://github.com/Shengtao-Lin/agent-runtime-kit/pull/33) subsequently passed
   CI and merged on 2026-10-29. This revision preserves that review's evidence and current priorities.
-- Release Desk now pins actual v0.4.2. PR #35 passed the independent application's published/candidate
-  matrix; its published Python 3.12 job also verified a public metadata canary and cross-process replay.
+- Release Desk now pins actual v0.5.0 in its independent lock; local published-wheel application
+  tests and the public metadata/restart/feedback canary passed. See
+  [publication and adoption evidence](validation/v0.5.0-publication.md). PR #35's earlier v0.4.2
+  adoption remains historical evidence.
 - Existing gates cover real PostgreSQL, non-editable wheels, preserved-state upgrades, container
   shutdown and selected dependency matrices. They do not prove universal extension conformance,
   production load capacity or account-specific provider compatibility.
@@ -29,10 +31,10 @@ optional integrations and host-owned resources. See [architecture](architecture.
 
 | Stage | Outcome | Depends on |
 | --- | --- | --- |
-| A. Close release adoption | One independent application consumes actual v0.4.2 | Verified assets and passing publication-documentation checks |
-| B. Enforce extension contracts | Custom extensions obey terminal and canonical invariants | Current-state review; no paid provider needed |
-| C. Guard library boundaries | CI detects import, packaging, API and compatibility drift | Public-surface inventory and focused tests |
-| D. Validate one host workload | Resource and side-effect requirements drive API decisions | A named host scenario and operating envelope |
+| A. Close release adoption | Completed for v0.4.2; repeated for actual v0.5.0 below | Verified assets and application acceptance |
+| B. Enforce extension contracts | Shipped in v0.5.0 | Terminal/canonical/policy acceptance |
+| C. Guard library boundaries | Shipped in v0.5.0 | Import, packaging, API, documentation and compatibility guards |
+| D. Validate one host workload | Next design phase; not part of v0.5.0 | A named host scenario and operating envelope |
 
 A and B can be prepared independently; keep separate PRs and acceptance evidence. Documentation
 clarification does not implement B/C/D. Do not promise a version or feature release before its
@@ -64,7 +66,7 @@ This is the highest-priority library correctness work; do it before adding more 
 Implemented in development source on 2026-10-29: shared private terminal/closure handling, seven
 reproduced regression failures, custom-model unit fixtures and PostgreSQL failure/replay tests.
 PR #36 passed CI and the standalone application matrix, then merged; main CI also passed.
-This behavior is not in published v0.4.2.
+This behavior shipped in v0.5.0 and is absent from v0.4.2.
 
 - Write failing public-protocol fixtures for custom model/agent streams: missing/duplicate
   completion, events after completion, partial failure, cancellation and iterator closure.
@@ -84,7 +86,7 @@ Main CI and the 2026-11-02 lower/latest dependency matrix passed at `bc3f59e`.
 [ADR 0014](adr/0014-model-result-and-tool-payload-contracts.md) records the retained fields, native
 snapshot boundary, finite JSON payload rules, error timing and compatibility implications.
 The initial public-model reproducer had 48 failing cases. No version/tag or schema change is made.
-C follows B3 acceptance. B2 behavior is not in published v0.4.2.
+B2 behavior shipped in v0.5.0 and is absent from v0.4.2.
 
 - Specify correspondence between assistant tool-call parts and `ModelResult.tool_calls`: identity,
   order, name and arguments. Add mismatched-list, duplicate-ID and invalid-role regressions first.
@@ -191,11 +193,10 @@ A metadata version or checked plan box is not completion. Python API, canonical 
 changes each need compatibility review. Do not promise 1.0 until public-surface coverage and
 independent-host evidence support it.
 
-## v0.5.0 delivery scope (2026-11-05)
+## v0.5.0 delivery scope (completed implementation and publication)
 
-Complete B3 and C in focused PRs, then prepare the stricter extension contracts for release.
-Keep Stage D workload/context design separate from this delivery. The current release remains
-v0.4.2 until a new immutable tag and its actual artifacts pass verification.
+B3 and C shipped through focused PRs followed by an immutable v0.5.0 tag and verified actual assets.
+Stage D workload/context design remains separate. The original delivery sequence was:
 
 1. Verify runtime/tool policy composition, framework boundaries and durable blocked/failed replay.
 2. Add automated import, distribution, dependency-direction and documentation fitness checks.
@@ -209,8 +210,9 @@ Evidence belongs with each PR and the final publication report. Completion requi
 passing final-commit checks and main/release verification, actual wheel installation/upgrades and
 successful independent application adoption. Repository text remains English; tests use venv/pytest.
 
-The v0.5.0 candidate now has migration/release notes and a checksum-pinned actual v0.4.2 upgrade
-lane in CI and Release, retaining every earlier source path. Local full PostgreSQL pytest,
-core-only/provider wheel probes and the preserved-state upgrade/soak passed; see
-[candidate readiness](validation/v0.5.0-readiness.md). Tag publication and Release Desk adoption
-are still pending and are required to finish this delivery.
+v0.5.0 has migration/release notes and a checksum-pinned actual v0.4.2 upgrade lane in CI and Release,
+retaining every earlier source path. Final release-PR/main/tag checks passed, actual downloaded
+wheel acceptance passed, and Release Desk's independent lock adoption passed local installation,
+restart/replay and feedback checks. See [candidate readiness](validation/v0.5.0-readiness.md) and
+[actual publication/adoption](validation/v0.5.0-publication.md). Final-commit CI/application checks
+gate promotion of the adoption revision, as for every implementation change.

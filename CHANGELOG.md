@@ -2,7 +2,10 @@
 
 All notable changes to Agent Runtime Kit are documented here.
 
-## 0.5.0 - Release candidate
+## 0.5.0 - 2026-11-06
+
+- Publish verified GitHub wheel/source assets and GHCR image. Adopt actual v0.5.0 in Release Desk's
+  independent lock with its asset digest, public metadata canary, restart replay and feedback checks.
 
 - Keep core imports independent of concrete adapters with lazy public exports. Add source dependency,
   wheel resource and external core-only import guards to CI and release verification.

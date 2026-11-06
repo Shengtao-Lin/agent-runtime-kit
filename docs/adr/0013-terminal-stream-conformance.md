@@ -1,6 +1,6 @@
 # ADR 0013: Terminal Stream Conformance at Kit Boundaries
 
-- Status: Accepted; implemented in development source, not published v0.4.2.
+- Status: Accepted; shipped in v0.5.0, absent from v0.4.2.
 - Date: 2026-10-29
 
 ## Context

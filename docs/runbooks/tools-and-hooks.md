@@ -98,11 +98,11 @@ stream translation has its separate suite; this matrix does not claim token-leve
 
 Synchronous handlers execute in threads. A timeout/cancellation stops awaiting a result, not the
 underlying thread or its external side effects. Bounded JSON-compatible output is a host obligation;
-development source adds JSON-value validation below, but still imposes no universal byte limit.
+v0.5.0 adds JSON-value validation below, but still imposes no universal byte limit.
 
-## Tool Payload Boundary (Development)
+## Tool Payload Boundary (v0.5.0)
 
-These checks are in development source, **not** published v0.4.2. Canonical `ToolCall.arguments`,
+These checks ship in v0.5.0 and are absent from v0.4.2. Canonical `ToolCall.arguments`,
 `ToolResult.output` and `ToolResultContent.result` accept plain JSON values: null, booleans, strings,
 integers, finite floats, lists and dictionaries with string keys. Arguments must be an object.
 Reject NaN/infinities, cycles, tuples, sets, bytes, non-string object keys and Python objects such as
