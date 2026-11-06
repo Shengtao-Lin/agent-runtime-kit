@@ -15,7 +15,7 @@ Updated on 2026-11-06. Delivery remains incomplete until the remaining gates bel
 | Default and extension compatibility | Unchanged `get_messages` default; optional protocol and explicit opt-in; unsupported configurations rejected; custom-store/subclass boundaries documented | Passed |
 | Real persistence and resource ownership | PostgreSQL cursor snapshot/concurrent append, early close, cancellation, timeout, same-thread contention, restart, zero retained connections/sessions; installed native and real LangChain/LangGraph consumers | Passed |
 | Candidate release | [v0.7.0 readiness](v0.7.0-readiness.md): 758 source cases, 359 provider/native cases, 176 actual-v0.6.0 upgrade cases, shared-engine soak, core imports and incremental smoke | Passed |
-| CI and review promotion | Implementation PR #49 and release-preparation PR #50 passed their exact final-head gates before merge; release-preparation main still requires its own completed checks | In progress |
+| CI and review promotion | PRs #49/#50 passed exact final-head gates. A main rehearsal exposed a recovery-test deadline error; [correction evidence](stage-e-recovery-probe.md) and PR #51 preserve the failure and pass the corrected final-head gates. Corrected main verification remains required | In progress |
 | Actual assets and independent adoption | Must verify downloaded wheel/sdist and GHCR identity, actual-wheel acceptance, then the application's own published lock and restart/replay/feedback behavior | Pending |
 | Final promotion and cleanup | Final adoption PR/main checks, current documentation, clean worktree and stopped owned test service with evidence/volume retained | Pending |
 
