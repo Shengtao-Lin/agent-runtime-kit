@@ -1,0 +1,1262 @@
+{
+  "exports": {
+    "agent_runtime": [
+      "AgentDescriptor",
+      "AgentRegistry",
+      "AgentRuntime",
+      "ContentPart",
+      "InvocationInput",
+      "InvocationOutput",
+      "Message",
+      "RuntimeContext",
+      "RuntimeRequest",
+      "RuntimeResponse",
+      "RuntimeStreamEvent",
+      "StreamCompleted",
+      "StreamStarted",
+      "StreamTextDelta",
+      "StreamToolResult",
+      "TextContent",
+      "ToolCall",
+      "ToolCallContent",
+      "ToolResult",
+      "ToolResultContent",
+      "Usage",
+      "__version__"
+    ],
+    "agent_runtime.adapters": [
+      "AgentInvoker",
+      "LangChainRunnableAdapter",
+      "LangGraphAdapter",
+      "NativeAgentInvoker",
+      "StreamingAgentInvoker"
+    ],
+    "agent_runtime.feedback": [
+      "FeedbackPage",
+      "FeedbackRecord",
+      "FeedbackStore",
+      "FeedbackSubmission",
+      "PostgresFeedbackStore"
+    ],
+    "agent_runtime.hooks": [
+      "Guardrail",
+      "GuardrailBlockedError",
+      "GuardrailDecision",
+      "GuardrailHook",
+      "HookEvent",
+      "HookManager",
+      "HookPhase",
+      "LifecycleHook",
+      "MessageLengthGuardrail",
+      "PhraseBlockGuardrail"
+    ],
+    "agent_runtime.memory": [
+      "MemoryPage",
+      "MemoryRecord",
+      "MemoryStore",
+      "PostgresMemoryStore",
+      "StoredMessage",
+      "ThreadNotFoundError",
+      "ThreadRecord"
+    ],
+    "agent_runtime.models_clients": [
+      "DeterministicModelClient",
+      "ModelClient",
+      "ModelCompleted",
+      "ModelResult",
+      "ModelStreamEvent",
+      "ModelTextDelta",
+      "StreamingModelClient"
+    ],
+    "agent_runtime.runs": [
+      "PostgresRunStore",
+      "RunClaim",
+      "RunRecord",
+      "RunStatus",
+      "RunStore"
+    ],
+    "agent_runtime.telemetry": [
+      "RuntimeTelemetry",
+      "TelemetryHandle",
+      "configure_telemetry"
+    ],
+    "agent_runtime.tools": [
+      "ToolDefinition",
+      "ToolRegistry"
+    ]
+  },
+  "extension_members": {
+    "agent_runtime.adapters.LangChainRunnableAdapter": {
+      "__init__": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "agent_id"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "version"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "runnable"
+          },
+          {
+            "default": "<callable>",
+            "kind": "KEYWORD_ONLY",
+            "name": "input_mapper"
+          },
+          {
+            "default": "<callable>",
+            "kind": "KEYWORD_ONLY",
+            "name": "output_mapper"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "capabilities"
+          },
+          {
+            "default": false,
+            "kind": "KEYWORD_ONLY",
+            "name": "streaming"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "stream_mapper"
+          }
+        ]
+      },
+      "descriptor": {
+        "kind": "property",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          }
+        ]
+      },
+      "invoke": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "request"
+          }
+        ]
+      },
+      "stream": {
+        "kind": "async_iterator",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "request"
+          }
+        ]
+      }
+    },
+    "agent_runtime.adapters.LangGraphAdapter": {
+      "__init__": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "agent_id"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "version"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "graph"
+          },
+          {
+            "default": "<callable>",
+            "kind": "KEYWORD_ONLY",
+            "name": "state_input_mapper"
+          },
+          {
+            "default": "<callable>",
+            "kind": "KEYWORD_ONLY",
+            "name": "state_output_mapper"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "capabilities"
+          },
+          {
+            "default": false,
+            "kind": "KEYWORD_ONLY",
+            "name": "streaming"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "stream_mapper"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "stream_message_filter"
+          }
+        ]
+      },
+      "descriptor": {
+        "kind": "property",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          }
+        ]
+      },
+      "invoke": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "request"
+          }
+        ]
+      },
+      "stream": {
+        "kind": "async_iterator",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "request"
+          }
+        ]
+      }
+    },
+    "agent_runtime.adapters.NativeAgentInvoker": {
+      "__init__": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "agent_id"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "version"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "model_client"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "tools"
+          },
+          {
+            "default": 3,
+            "kind": "KEYWORD_ONLY",
+            "name": "max_tool_iterations"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "capabilities"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "telemetry"
+          }
+        ]
+      },
+      "descriptor": {
+        "kind": "property",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          }
+        ]
+      },
+      "invoke": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "request"
+          }
+        ]
+      },
+      "stream": {
+        "kind": "async_iterator",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "request"
+          }
+        ]
+      }
+    },
+    "agent_runtime.adapters.base.AgentInvoker": {
+      "descriptor": {
+        "kind": "property",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          }
+        ]
+      },
+      "invoke": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "request"
+          }
+        ]
+      }
+    },
+    "agent_runtime.adapters.base.StreamingAgentInvoker": {
+      "stream": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "request"
+          }
+        ]
+      }
+    },
+    "agent_runtime.feedback.base.FeedbackStore": {
+      "record": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "submission"
+          }
+        ]
+      },
+      "search": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "run_id"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "target_type"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "target_id"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "source"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "feedback_type"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "created_from"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "created_to"
+          },
+          {
+            "default": 50,
+            "kind": "KEYWORD_ONLY",
+            "name": "limit"
+          },
+          {
+            "default": 0,
+            "kind": "KEYWORD_ONLY",
+            "name": "offset"
+          }
+        ]
+      }
+    },
+    "agent_runtime.hooks.base.HookManager": {
+      "__init__": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": null,
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "hooks"
+          }
+        ]
+      },
+      "register": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "hook"
+          }
+        ]
+      },
+      "run": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "event"
+          }
+        ]
+      }
+    },
+    "agent_runtime.hooks.base.LifecycleHook": {
+      "handle": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "event"
+          }
+        ]
+      },
+      "name": {
+        "kind": "property",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          }
+        ]
+      }
+    },
+    "agent_runtime.hooks.guardrails.Guardrail": {
+      "evaluate": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "messages"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "context"
+          }
+        ]
+      },
+      "name": {
+        "kind": "property",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          }
+        ]
+      }
+    },
+    "agent_runtime.hooks.guardrails.GuardrailHook": {
+      "__init__": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "guardrail"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "phases"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "telemetry"
+          }
+        ]
+      },
+      "handle": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "event"
+          }
+        ]
+      },
+      "name": {
+        "kind": "property",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          }
+        ]
+      }
+    },
+    "agent_runtime.memory.base.MemoryStore": {
+      "append_messages": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "thread_id"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "messages"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "namespace"
+          }
+        ]
+      },
+      "create_thread": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "namespace"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "external_key"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "user_key"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "metadata"
+          }
+        ]
+      },
+      "delete": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "namespace"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "user_key"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "memory_key"
+          }
+        ]
+      },
+      "get": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "namespace"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "user_key"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "memory_key"
+          }
+        ]
+      },
+      "get_messages": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "thread_id"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "namespace"
+          }
+        ]
+      },
+      "get_thread": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "thread_id"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "namespace"
+          }
+        ]
+      },
+      "put": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "namespace"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "user_key"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "memory_key"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "value"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "tags"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "expires_at"
+          }
+        ]
+      },
+      "search": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "namespace"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "user_key"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "tags"
+          },
+          {
+            "default": 50,
+            "kind": "KEYWORD_ONLY",
+            "name": "limit"
+          },
+          {
+            "default": 0,
+            "kind": "KEYWORD_ONLY",
+            "name": "offset"
+          }
+        ]
+      }
+    },
+    "agent_runtime.models_clients.base.ModelClient": {
+      "generate": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "messages"
+          },
+          {
+            "default": [],
+            "kind": "KEYWORD_ONLY",
+            "name": "tools"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "context"
+          }
+        ]
+      }
+    },
+    "agent_runtime.models_clients.base.StreamingModelClient": {
+      "stream": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "messages"
+          },
+          {
+            "default": [],
+            "kind": "KEYWORD_ONLY",
+            "name": "tools"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "context"
+          }
+        ]
+      }
+    },
+    "agent_runtime.registry.AgentRegistry": {
+      "__init__": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          }
+        ]
+      },
+      "get": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "agent_id"
+          }
+        ]
+      },
+      "list_descriptors": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          }
+        ]
+      },
+      "register": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "invoker"
+          }
+        ]
+      }
+    },
+    "agent_runtime.runs.base.RunStore": {
+      "claim": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "run_id"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "request_id"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "agent"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "thread_id"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "idempotency_key"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "request_hash"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "owner_token"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "lease_seconds"
+          }
+        ]
+      },
+      "complete": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "run_id"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "owner_token"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "messages"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "response"
+          }
+        ]
+      },
+      "fail_if_running": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "run_id"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "owner_token"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "error_code"
+          },
+          {
+            "default": "failed",
+            "kind": "KEYWORD_ONLY",
+            "name": "status"
+          }
+        ]
+      },
+      "get": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "run_id"
+          }
+        ]
+      },
+      "get_by_idempotency": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "agent_id"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "idempotency_key"
+          }
+        ]
+      },
+      "recover": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "run_id"
+          }
+        ]
+      },
+      "transition": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "run_id"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "status"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "owner_token"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "response"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "error_code"
+          }
+        ]
+      }
+    },
+    "agent_runtime.tools.registry.ToolRegistry": {
+      "__init__": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": null,
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "hooks"
+          },
+          {
+            "default": null,
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "telemetry"
+          }
+        ]
+      },
+      "definitions": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          }
+        ]
+      },
+      "invoke": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "name"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "arguments"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "tool_call_id"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "context"
+          }
+        ]
+      },
+      "register": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "name"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "description"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "input_model"
+          },
+          {
+            "default": "<required>",
+            "kind": "KEYWORD_ONLY",
+            "name": "handler"
+          },
+          {
+            "default": 10.0,
+            "kind": "KEYWORD_ONLY",
+            "name": "timeout_seconds"
+          }
+        ]
+      }
+    }
+  }
+}

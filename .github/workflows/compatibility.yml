@@ -7,10 +7,14 @@ on:
   pull_request:
     paths:
       - ".github/workflows/compatibility.yml"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "src/agent_runtime/**"
       - "scripts/validate_consumer.py"
-      - "validation/consumer/benchmark.py"
-      - "validation/consumer/soak.py"
-      - "validation/consumer/tests/test_database_faults.py"
+      - "validation/consumer/**"
+      - "validation/frameworks/**"
+      - "tests/unit/test_extension_api.py"
+      - "tests/snapshots/public_surface.json"
 
 permissions:
   contents: read
