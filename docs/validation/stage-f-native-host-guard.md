@@ -1,9 +1,10 @@
 # Stage F native host guard evidence
 
-Status: native candidate validated; framework integration and final application
-adoption remain separate Stage F acceptance items. The library stays at actual
+Status at the native acceptance revision: native candidate validated; framework integration and
+final application adoption remained separate Stage F acceptance items. Their subsequent results are linked from
+the [delivery audit](stage-f-delivery-audit.md). The library stays at actual
 published v0.7.0. The host module is not exported from `agent_runtime` and is not
-yet enabled by Release Desk composition.
+enabled by Release Desk composition at that measurement revision.
 
 ## Boundary and observed behavior
 
@@ -73,7 +74,7 @@ bound. These observations cover this local deterministic host, not provider
 latency, token limits, wire payload sizes or arbitrary oversized input allocation.
 CI runs correctness; the local performance gate is not imposed on shared runners.
 
-## Decision still pending
+## Decision at this measurement revision
 
 The existing public boundaries suffice for native protection in this evidence.
 Before accepting a host-only design for all Stage F scope, validate explicitly

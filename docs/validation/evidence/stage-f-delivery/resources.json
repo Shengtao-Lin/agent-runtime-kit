@@ -1,0 +1,38 @@
+[
+  {
+    "report": "stage-f-v070-baseline-2",
+    "safety_samples": 2,
+    "max_sampled_rss_bytes": 90193920,
+    "all_passed": true
+  },
+  {
+    "report": "stage-f-v070-baseline-3",
+    "safety_samples": 2,
+    "max_sampled_rss_bytes": 90316800,
+    "all_passed": true
+  },
+  {
+    "report": "stage-f-v070-growth-2",
+    "safety_samples": 12,
+    "max_sampled_rss_bytes": 92082176,
+    "all_passed": true
+  },
+  {
+    "report": "stage-f-host-guard-3",
+    "safety_samples": 64,
+    "max_sampled_rss_bytes": 96337920,
+    "all_passed": true
+  },
+  {
+    "report": "stage-f-host-overhead-1",
+    "safety_samples": 104,
+    "max_sampled_rss_bytes": 96243712,
+    "all_passed": true
+  },
+  {
+    "report": "stage-f-frameworks-1",
+    "safety_samples": 112,
+    "max_sampled_rss_bytes": 137809920,
+    "all_passed": true
+  }
+]
