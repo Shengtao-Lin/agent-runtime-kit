@@ -25,6 +25,9 @@ history/concurrency/payload combinations in invoke and stream modes, plus a smal
 Every profile/repetition starts a new Python process; warmup/seeding and the measurement window are
 separate. The runner bounds each subprocess to 210 seconds, while the experiment uses a 180-second
 cooperative deadline and sampled RSS abort guard. It records failures without overwriting evidence.
+Release-candidate smoke seeds 100 turns for the invoke profile so the 64 KiB window actually omits
+history; its four-conversation stream profile retains the smaller ten-turn control. This changes
+only smoke mode, not the recorded fifteen-profile full comparison.
 
 `manifest.json` records profiles, source hashes and the exact wheel digest; `package-audit.json`
 records installed provenance and resolved dependencies; `tests.xml` records fixture/measurement

@@ -23,7 +23,7 @@ Normal CI uses locked venv environments and pytest for Linux/Windows unit tests,
 integration, wheel imports, independent baseline/fresh/upgrade consumers, and container smoke.
 The Release workflow repeats quality/full pytest, builds distributions once, and passes that exact
 wheel artifact to a separate independent-consumer job. Fresh installation and upgrades from
-v0.1.1/v0.2.0/v0.3.0/v0.3.1/v0.4.0/v0.4.1/v0.4.2
+v0.1.1/v0.2.0/v0.3.0/v0.3.1/v0.4.0/v0.4.1/v0.4.2/v0.5.0
 must pass, alongside the release container smoke job, before either publishing job can run.
 Provider acceptance installs that wheel with only provider extras into another external venv.
 Source dependency, documentation navigation and core-only wheel import guards also run before
