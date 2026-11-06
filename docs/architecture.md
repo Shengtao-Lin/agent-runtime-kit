@@ -59,6 +59,12 @@ logic must not flow from examples or applications into the package.
 Runtime no longer imports this utility from a framework-named module. No public API or additional
 queue is introduced. The dated review retains the original v0.4.2 layering finding.
 
+**Development source:** adapter package exports load concrete implementations only when requested.
+CI checks selected core modules' static imports and probes a core-only, non-editable installed wheel
+outside the checkout. The probe rejects optional implementation imports, network connections,
+socket binding, subprocess/thread starts and `.env` reads during the selected public imports.
+It does not sandbox arbitrary extension code or prove every possible dynamic import is safe.
+
 ## Execution paths and policy coverage
 
 All registered invokers enter the same durable runtime envelope. The native path calls the kit's

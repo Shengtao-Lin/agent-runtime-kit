@@ -26,6 +26,7 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run pyright
+      - run: uv run python scripts/check_library.py
 
   unit:
     name: Pytest unit (${{ matrix.os }}, Python ${{ matrix.python }})
@@ -92,15 +93,12 @@ jobs:
           enable-cache: true
       - run: uv build
       - run: mkdir .package-check
-      - run: uv venv --python 3.12 .core-venv
-      - run: uv pip install --python .core-venv/bin/python dist/*.whl
-      - name: Verify core imports with no optional dependencies
-        working-directory: .package-check
-        run: >-
-          ../.core-venv/bin/python -c
-          "from agent_runtime import AgentRuntime, RuntimeRequest, __version__;
-          from agent_runtime.migrations import upgrade;
-          print(__version__, AgentRuntime, RuntimeRequest)"
+      - name: Verify distribution and isolated core-only imports
+        run: uv run --no-project python scripts/validate_core.py --wheel-dir dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: core-import-evidence
+          path: build/core-imports/
       - run: uv venv --python 3.12 .extras-venv
       - run: uv pip install --python .extras-venv/bin/python dist/*.whl "sqlalchemy[asyncio]" "psycopg[binary]" httpx
       - name: Verify optional component imports from the wheel
