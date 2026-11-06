@@ -39,6 +39,7 @@ optional integrations and host-owned resources. See [architecture](architecture.
 | C. Guard library boundaries | Shipped in v0.5.0 | Import, packaging, API, documentation and compatibility guards |
 | D. Validate one host workload | Delivered in v0.6.0; actual assets and independent adoption verified | Matched workload, correctness and final-head delivery gates |
 | E. Establish long-history resource boundaries | Published in v0.7.0; actual assets and host acceptance verified | Actual v0.6.0 baseline, separated timing/diagnostic evidence and justified minimal design |
+| F. Validate every protected model input | Authorized; workload requirements frozen before measurement | Actual v0.7.0 baseline, explicit host byte policy and model/framework ownership |
 
 A-E now have implementation and independent acceptance evidence. Keep final-head/main promotion
 checks for the adoption revision. A new stage needs an explicit host requirement and bounded
@@ -241,6 +242,12 @@ The [history reading runbook](runbooks/history-reading.md)
 documents configuration, snapshot/cleanup ownership, full-scan costs and rollback.
 
 ## Deferred until justified
+
+Stage F execution starts with the [frozen model-input workload](validation/stage-f-workload.md).
+Observe actual Release Desk model calls and focused tool-growth/hook cases before selecting an API.
+Compare a host wrapper with native integration; retain framework-owned execution and explicit
+coverage limits. Complete independent correctness/resource/performance acceptance and delivery;
+do not require a library release if existing public extension points satisfy the host requirement.
 
 - Distributed workers, resumable workflows, human-approval queues or exactly-once tools need a
   separate execution/side-effect model, not merely longer run leases.
