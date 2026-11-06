@@ -392,6 +392,38 @@ jobs:
           path: build/history-smoke/
           if-no-files-found: warn
 
+  model-input-baseline:
+    name: Published model-input host baseline
+    needs: quality
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: model_inputs
+          POSTGRES_USER: agent_runtime
+          POSTGRES_PASSWORD: agent_runtime
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U agent_runtime -d model_inputs"
+          --health-interval 2s --health-timeout 3s --health-retries 20
+    env:
+      MODEL_INPUT_DATABASE_URL: postgresql+psycopg://agent_runtime:agent_runtime@localhost:5432/model_inputs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Observe the frozen actual v0.7.0 host
+        run: uv run --no-project python scripts/validate_model_inputs.py --report-dir build/model-input-baseline
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-input-baseline
+          path: build/model-input-baseline/
+          if-no-files-found: warn
+
   container:
     name: Container smoke test
     needs: [integration, package]

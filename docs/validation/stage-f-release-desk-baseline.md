@@ -54,3 +54,14 @@ Retain [raw reports and exact measured sources](evidence/stage-f-v070-release-de
 `build/stage-f-v070-baseline-1` (pre-test verifier failure) and `build/stage-f-v070-baseline-2`
 (successful normal-host measurement). The Stage F service remains owned by the active goal and
 must be stopped with evidence preserved at completion.
+
+## Frozen-host harness confirmation
+
+To keep future application adoption separate, `42d4ed5` vendors the four host source files with
+their original commit and hashes under `validation/model_inputs/release_desk_source`. The runner
+verifies those hashes before copying into the external consumer. A repeat in
+`build/stage-f-v070-baseline-3` passed both pytest cases with the same 240 calls, zero overflows and
+65,190-byte maximum. This confirms the changed source-loading boundary; it is not a three-repeat
+performance comparison. [Confirmation evidence](evidence/stage-f-v070-frozen-host/raw.tar.gz) and
+[checksum](evidence/stage-f-v070-frozen-host/checksums.json) retain that run separately.
+CI now runs the frozen actual-wheel/host probe with real PostgreSQL and uploads its raw reports.
