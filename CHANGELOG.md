@@ -2,6 +2,22 @@
 
 All notable changes to Agent Runtime Kit are documented here.
 
+## 0.7.0 - Release candidate
+
+- Add explicit incremental history consumption through `AgentRuntime(stream_history=True)`, the
+  optional `StreamingMemoryStore` protocol and `ContextWindow.select_stream`. Existing calls and
+  custom stores retain the default complete-materialization path.
+- Read every PostgreSQL history row through one ordered cursor snapshot while retaining only
+  potentially selected context. Preserve all historical validation, current/system content, whole
+  tool exchanges, durable history and exact replay; close cursors before hooks and agent execution.
+- Pass the frozen long-history workload across three repetitions, 42 processes and 510 continuations.
+  Retain rejected candidates, raw measurements and dependency/source provenance. Full scans,
+  individual payload sizes and later model input remain outside the initial-context guarantee.
+- Add actual v0.6.0 preserved-state/context-policy upgrades, cursor failure/snapshot tests and
+  incremental CI smoke while retaining all historical upgrade and dependency compatibility gates.
+- Keep canonical `v1`, schema `0002` and dependency ranges unchanged. Publication and independently
+  locked Release Desk adoption remain pending.
+
 ## 0.6.0 - 2026-11-06
 
 - Add an explicit initial `ContextWindow` for runtime invocation while retaining full-history

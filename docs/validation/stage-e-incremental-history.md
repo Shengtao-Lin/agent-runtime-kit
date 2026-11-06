@@ -1,8 +1,8 @@
 # Stage E Incremental History Acceptance
 
 Date: 2026-11-06. The column-row candidate passes the frozen workload and independent correctness
-acceptance. This is pre-publication evidence: final report-commit checks, merge, release and actual
-Release Desk adoption remain separate gates. No production SLO or universal memory bound is claimed.
+acceptance. This is pre-publication evidence: implementation/report PR #49 has merged, while release
+and actual Release Desk adoption remain separate gates. No production SLO or universal memory bound is claimed.
 
 ## Requirement, candidates and provenance
 
@@ -111,7 +111,14 @@ At source `cf81e9e8d361b56302ba232a5794a6eb6f7951dc`,
 [compatibility](https://github.com/Shengtao-Lin/agent-runtime-kit/actions/runs/42177498101),
 [application](https://github.com/Shengtao-Lin/agent-runtime-kit/actions/runs/42177498150) and
 [release rehearsal](https://github.com/Shengtao-Lin/agent-runtime-kit/actions/runs/42177498170) passed.
-The report/evidence commit still requires its own final-head checks before merge.
+The final report/evidence head `ffe88fae8b943d7296b63766a173828470c9c81b` then passed
+[CI](https://github.com/Shengtao-Lin/agent-runtime-kit/actions/runs/42179378351),
+[compatibility](https://github.com/Shengtao-Lin/agent-runtime-kit/actions/runs/42179378352),
+[application](https://github.com/Shengtao-Lin/agent-runtime-kit/actions/runs/42179378369) and
+[release rehearsal](https://github.com/Shengtao-Lin/agent-runtime-kit/actions/runs/42179378347).
+[PR #49](https://github.com/Shengtao-Lin/agent-runtime-kit/pull/49) merged at
+`b83b95933632cbdccb704cdac4fc3ab6e0fabb22`. Main verification and version promotion are tracked
+separately in [v0.7.0 readiness](v0.7.0-readiness.md).
 
 ## Retained evidence and promotion
 

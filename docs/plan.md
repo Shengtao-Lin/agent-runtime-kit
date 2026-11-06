@@ -229,8 +229,10 @@ materialization and per-row ORM construction. Default reads remain unchanged.
 absolute budget and short-history regression gate across three repetitions, 42 processes and 510
 continuations. Source CI passes 758 tests. The installed actual-v0.6.0 upgrade consumer passes 176
 cases (four historical readiness probes deselected, no skips), plus a 30-second shared-engine soak.
-Final report-head/main checks, actual publication and independently locked Release Desk adoption
-remain outstanding; Stage E is not yet delivered. The [history reading runbook](runbooks/history-reading.md)
+[PR #49](https://github.com/Shengtao-Lin/agent-runtime-kit/pull/49) merged after all final-head checks.
+[v0.7.0 release preparation](validation/v0.7.0-readiness.md), verified main, actual publication and
+independently locked Release Desk adoption remain delivery gates; Stage E is not yet delivered.
+The [history reading runbook](runbooks/history-reading.md)
 documents configuration, snapshot/cleanup ownership, full-scan costs and rollback.
 
 ## Deferred until justified
