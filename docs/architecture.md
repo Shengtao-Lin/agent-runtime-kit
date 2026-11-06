@@ -127,6 +127,22 @@ claimed. Native tool rounds, framework mappers/checkpoints and trusted host hook
 context after selection. Per-model token/byte policy requires a separate explicit contract. See
 the [component runbook](runbooks/context-window.md) for configuration, observation and rollback.
 
+### Incremental history consumption (development)
+
+Stage E's [baseline](validation/stage-e-baseline.md) reproduces full-history materialization cost.
+[ADR 0016](adr/0016-history-materialization-and-validation.md) adds explicit
+`AgentRuntime(stream_history=True, context_window=...)` and optional `StreamingMemoryStore`.
+Default reads and custom `MemoryStore` implementations remain compatible. Opt-in PostgreSQL reads
+use one ordered server-cursor snapshot; incremental selection preserves every historical canonical
+and tool-relationship check while retaining only potentially selected payloads. Runtime closes the
+cursor before hooks and agent dispatch, including on errors or cancellation. Complete durable history
+and exact replay remain unchanged. No schema migration is required.
+
+Database scanning/transfer remain complete. Fetch batches cap rows, not bytes; individual payloads,
+pending tool IDs and server work remain workload-dependent. There is no universal RSS or per-model
+input guarantee. This capability is not in published v0.6.0; repeated acceptance and publication are
+pending. See the [history reading runbook](runbooks/history-reading.md).
+
 ## Persistence and concurrency invariants
 
 PostgreSQL is the only shipped persistence backend. Memory is independently importable; runtime
@@ -206,9 +222,9 @@ injected clients remain caller-owned. `PostgresMemoryStore.close()` disposes eve
 engine, so it is not an isolated per-store close. See the [ownership guide](library-integration.md)
 and [ADR 0011](adr/0011-managed-runtime-lifetime.md).
 
-History loading reads the full conversation. Queue item count does not cap total history, tool
+History loading scans the full conversation, including with incremental selection. Queue item count does not cap total history, tool
 payloads, framework buffers or process memory. Pools and global concurrency are host-configured.
-A context/history policy needs workload evidence before API design; there is no implicit truncation
+The context/history policies follow measured Stage D/E requirements; there is no implicit truncation
 or summarization.
 
 Built-in translated failures use stable error categories, including safe provider failures.

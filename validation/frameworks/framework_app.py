@@ -61,6 +61,7 @@ async def application(
     hooks: HookManager | None = None,
     registry_tools: bool = True,
     context_window: ContextWindow | None = None,
+    stream_history: bool = False,
 ) -> AsyncIterator[FrameworkApplication]:
     engine = create_async_engine(database_url, pool_size=2, max_overflow=0)
     memory = PostgresMemoryStore(engine)
@@ -182,6 +183,7 @@ async def application(
         hooks=hooks,
         invocation_timeout_seconds=5,
         context_window=context_window,
+        **({"stream_history": True} if stream_history else {}),
     )
     try:
         yield FrameworkApplication(

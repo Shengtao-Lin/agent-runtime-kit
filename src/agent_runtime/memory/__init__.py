@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 from agent_runtime.errors import ThreadNotFoundError
-from agent_runtime.memory.base import MemoryStore
+from agent_runtime.memory.base import MemoryStore, StreamingMemoryStore
 from agent_runtime.memory.models import MemoryPage, MemoryRecord, StoredMessage, ThreadRecord
 
 if TYPE_CHECKING:
@@ -15,6 +15,7 @@ __all__ = [
     "MemoryStore",
     "PostgresMemoryStore",
     "StoredMessage",
+    "StreamingMemoryStore",
     "ThreadNotFoundError",
     "ThreadRecord",
 ]

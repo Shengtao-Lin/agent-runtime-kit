@@ -158,8 +158,12 @@ def main() -> None:
         if args.wheel:
             shutil.copy2(repository / "tests/unit/test_extension_api.py", consumer / "tests")
             shutil.copy2(repository / "tests/unit/test_context_window.py", consumer / "tests")
+            shutil.copy2(repository / "tests/unit/test_streaming_context.py", consumer / "tests")
             shutil.copy2(
                 repository / "tests/integration/test_context_persistence.py", consumer / "tests"
+            )
+            shutil.copy2(
+                repository / "tests/integration/test_history_stream.py", consumer / "tests"
             )
             snapshots = consumer / "snapshots"
             snapshots.mkdir()

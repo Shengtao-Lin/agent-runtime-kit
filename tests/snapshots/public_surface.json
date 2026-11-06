@@ -60,6 +60,7 @@
       "MemoryStore",
       "PostgresMemoryStore",
       "StoredMessage",
+      "StreamingMemoryStore",
       "ThreadNotFoundError",
       "ThreadRecord"
     ],
@@ -500,6 +501,26 @@
             "name": "max_bytes",
             "kind": "POSITIONAL_OR_KEYWORD",
             "default": "<required>"
+          }
+        ]
+      },
+      "select_stream": {
+        "kind": "coroutine",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "history"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "current"
           }
         ]
       }
@@ -1352,6 +1373,28 @@
             "default": 10.0,
             "kind": "KEYWORD_ONLY",
             "name": "timeout_seconds"
+          }
+        ]
+      }
+    },
+    "agent_runtime.memory.base.StreamingMemoryStore": {
+      "stream_messages": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "self"
+          },
+          {
+            "default": "<required>",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "name": "thread_id"
+          },
+          {
+            "default": null,
+            "kind": "KEYWORD_ONLY",
+            "name": "namespace"
           }
         ]
       }

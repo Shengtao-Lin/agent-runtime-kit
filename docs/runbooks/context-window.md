@@ -12,6 +12,10 @@ The host chooses the allowance and whether historical turns may be omitted. The 
 current-request boundary, selection placement, hook observation and durable failure handling. This
 component does not own model token accounting, database pagination, agent loops or summarization.
 
+The development Stage E implementation also supports incremental consumption through
+`select_stream` and explicit runtime configuration. See [history reading](history-reading.md) for
+availability, full-scan semantics and cursor ownership. The default loading path below is unchanged.
+
 ## Configure and inspect
 
 Pass an immutable window configuration when constructing the runtime:

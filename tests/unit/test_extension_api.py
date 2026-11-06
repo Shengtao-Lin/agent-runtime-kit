@@ -30,7 +30,7 @@ EXTENSIONS = {
     "agent_runtime.context": ("ContextWindow", "ContextSelection"),
     "agent_runtime.adapters.base": ("AgentInvoker", "StreamingAgentInvoker"),
     "agent_runtime.models_clients.base": ("ModelClient", "StreamingModelClient"),
-    "agent_runtime.memory.base": ("MemoryStore",),
+    "agent_runtime.memory.base": ("MemoryStore", "StreamingMemoryStore"),
     "agent_runtime.runs.base": ("RunStore",),
     "agent_runtime.feedback.base": ("FeedbackStore",),
     "agent_runtime.hooks.base": ("LifecycleHook", "HookManager"),

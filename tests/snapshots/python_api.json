@@ -44,6 +44,11 @@
       "name": "context_window",
       "kind": "KEYWORD_ONLY",
       "default": null
+    },
+    {
+      "name": "stream_history",
+      "kind": "KEYWORD_ONLY",
+      "default": false
     }
   ],
   "AgentRuntime.invoke": [

@@ -29,7 +29,7 @@ from agent_runtime.errors import (
     ThreadNotFoundError,
 )
 from agent_runtime.hooks import GuardrailBlockedError, HookEvent, HookManager
-from agent_runtime.memory.base import MemoryStore
+from agent_runtime.memory.base import MemoryStore, StreamingMemoryStore
 from agent_runtime.models import (
     InvocationInput,
     Message,
@@ -78,6 +78,7 @@ class AgentRuntime:
         cleanup_timeout_seconds: float = 5.0,
         telemetry: RuntimeTelemetry | None = None,
         context_window: ContextWindow | None = None,
+        stream_history: bool = False,
     ) -> None:
         if not isfinite(invocation_timeout_seconds) or invocation_timeout_seconds <= 0:
             raise ValueError("invocation_timeout_seconds must be finite and positive")
@@ -88,6 +89,12 @@ class AgentRuntime:
         required = ("complete", "fail_if_running", "recover")
         if not all(callable(getattr(runs, name, None)) for name in required):
             raise TypeError("RunStore must implement complete(), fail_if_running(), and recover()")
+        if type(stream_history) is not bool:
+            raise ValueError("stream_history must be a boolean")
+        if stream_history and context_window is None:
+            raise ValueError("stream_history requires an explicit context_window")
+        if stream_history and not isinstance(memory, StreamingMemoryStore):
+            raise TypeError("stream_history requires a StreamingMemoryStore")
         self._agents = agents
         self._memory = memory
         self._runs = runs
@@ -97,6 +104,7 @@ class AgentRuntime:
         self._cleanup_timeout = cleanup_timeout_seconds
         self._telemetry = telemetry or RuntimeTelemetry()
         self._context_window = context_window
+        self._stream_history = stream_history
         self._closing = False
         self._lifespan_active = False
         self._active_invocations: set[asyncio.Task[object]] = set()
@@ -408,12 +416,30 @@ class AgentRuntime:
                     agent=invoker.descriptor,
                 )
             )
-        history = await self._memory.get_messages(thread.id, namespace=self._namespace)
-        input_messages = [item.message for item in history] + list(request.messages)
+        selection = None
+        if self._stream_history:
+            assert self._context_window is not None
+            assert isinstance(self._memory, StreamingMemoryStore)
+            source = self._memory.stream_messages(thread.id, namespace=self._namespace)
+
+            async def messages() -> AsyncGenerator[Message, None]:
+                async for item in source:
+                    yield item.message
+
+            try:
+                selection = await self._context_window.select_stream(messages(), request.messages)
+            finally:
+                await source.aclose()
+            input_messages = list(selection.messages)
+        else:
+            history = await self._memory.get_messages(thread.id, namespace=self._namespace)
+            input_messages = [item.message for item in history] + list(request.messages)
+            if self._context_window is not None:
+                selection = self._context_window.select(
+                    [item.message for item in history], request.messages
+                )
         if self._context_window is not None:
-            selection = self._context_window.select(
-                [item.message for item in history], request.messages
-            )
+            assert selection is not None
             input_messages = list(selection.messages)
             summary = {**selection.summary(), "max_bytes": self._context_window.max_bytes}
             context.attributes["agent_runtime.context"] = summary

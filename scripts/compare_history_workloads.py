@@ -108,6 +108,8 @@ def summarize(directory: Path) -> dict[str, Any]:
     installed = json.loads((directory / "package-audit.json").read_text())
     if manifest["status"] != "passed" or installed["version"] != manifest["expected_version"]:
         raise ValueError("Incomplete manifest or installed version mismatch")
+    if type(manifest.get("stream_history", False)) is not bool:
+        raise ValueError("History read mode must be a boolean")
     expected_profiles = [list(item) for item in profiles(manifest["smoke"])]
     if manifest["profiles"] != expected_profiles or manifest["context_max_bytes"] != 65536:
         raise ValueError("Manifest does not match the frozen matrix")
@@ -121,6 +123,10 @@ def summarize(directory: Path) -> dict[str, Any]:
             report = json.loads(data)
             if report["profile"]["smoke"] != manifest["smoke"]:
                 raise ValueError("Smoke status mismatch")
+            if type(report.get("stream_history", False)) is not bool or report.get(
+                "stream_history", False
+            ) != manifest.get("stream_history", False):
+                raise ValueError("History read mode mismatch")
             budgets = check_report(report, (turns, concurrency, mode, lane), installed["version"])
             records.append(
                 {"file": name, "sha256": hashlib.sha256(data).hexdigest(), "host_budgets": budgets}
@@ -177,6 +183,8 @@ def compare(baseline: dict[str, Any], candidate: dict[str, Any]) -> dict[str, An
         raise ValueError("A full comparison requires three or more matched repetitions")
     if left["expected_version"] != BASELINE_VERSION or left["wheel_sha256"] != BASELINE_SHA256:
         raise ValueError("Baseline is not the frozen actual v0.6.0 wheel")
+    if left.get("stream_history", False):
+        raise ValueError("Actual v0.6.0 does not support incremental history reads")
     if left["profiles"] != right["profiles"] or left["source_hashes"] != right["source_hashes"]:
         raise ValueError("Measured sources and profiles must match")
     dependencies = [

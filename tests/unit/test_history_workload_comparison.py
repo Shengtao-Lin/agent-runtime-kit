@@ -1,11 +1,13 @@
 """Reject incomplete, contaminated or misleading Stage E acceptance evidence."""
 
+import json
 from copy import deepcopy
+from pathlib import Path
 from typing import Any
 
 import pytest
 
-from scripts.compare_history_workloads import check_report, compare
+from scripts.compare_history_workloads import check_report, compare, summarize
 from scripts.validate_history_workload import BASELINE_SHA256, profiles
 
 
@@ -119,6 +121,33 @@ def test_comparison_keeps_short_history_regression_gate():
     assert compare(baseline, candidate)["status"] == "accepted"
     candidate["profiles"][0]["timings"]["end_to_end_seconds"]["p95"] = 0.13
     assert compare(baseline, candidate)["status"] == "budget_miss"
+
+
+def test_baseline_cannot_claim_incremental_history() -> None:
+    baseline = summary()
+    candidate = deepcopy(baseline)
+    baseline["manifest"]["stream_history"] = True
+    with pytest.raises(ValueError, match="does not support"):
+        compare(baseline, candidate)
+
+
+@pytest.mark.parametrize("mode", [False, "true", 1])
+def test_summary_rejects_mismatched_read_mode(tmp_path: Path, mode: object) -> None:
+    manifest = summary()["manifest"]
+    manifest.update(
+        status="passed",
+        smoke=True,
+        profiles=profiles(True),
+        context_max_bytes=65536,
+        stream_history=True,
+    )
+    (tmp_path / "manifest.json").write_text(json.dumps(manifest))
+    (tmp_path / "package-audit.json").write_text(json.dumps({"version": "0.6.0"}))
+    report = raw_timing()
+    report["stream_history"] = mode
+    (tmp_path / "r1-h100-c1-invoke-timing.json").write_text(json.dumps(report))
+    with pytest.raises(ValueError, match="read mode"):
+        summarize(tmp_path)
 
 
 @pytest.mark.parametrize(

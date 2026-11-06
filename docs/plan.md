@@ -220,6 +220,15 @@ All three 10,000-turn timing repetitions exceed the memory-increase budget; stre
 also misses the frozen requirement. Shorter profiles pass. Evaluate client materialization first,
 then retain the smallest candidate that meets the complete correctness and resource acceptance.
 
+Development implementation follows [ADR 0016](adr/0016-history-materialization-and-validation.md).
+The batching-only candidate failed the frozen budgets; an explicitly enabled incremental read and
+selector passed one exploratory repetition. Default reads remain unchanged. Source acceptance has
+758 passing tests, and the independent candidate-wheel consumer has 175 passing cases, one
+upgrade-only skip and four readiness probes deselected. These are not preserved-state upgrade or
+publication claims. Three matched final repetitions, final-head/main checks and actual release/host
+adoption remain outstanding. The [history reading runbook](runbooks/history-reading.md) documents
+configuration, snapshot/cleanup ownership, remaining full-scan costs and rollback.
+
 ## Deferred until justified
 
 - Distributed workers, resumable workflows, human-approval queues or exactly-once tools need a
