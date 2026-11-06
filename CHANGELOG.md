@@ -2,7 +2,17 @@
 
 All notable changes to Agent Runtime Kit are documented here.
 
-## Unreleased
+## 0.5.0 - Release candidate
+
+- Keep core imports independent of concrete adapters with lazy public exports. Add source dependency,
+  wheel resource and external core-only import guards to CI and release verification.
+- Check local documentation links/anchors and canonical ADR identity, and inventory public exports
+  and extension call shapes in installed-wheel consumers. Expand lower/latest compatibility triggers
+  to manifests/locks, package code and downstream/framework fixtures.
+- Verify explicit native/framework policy composition, blocked/failed outcomes, cancellation and
+  replay. Document framework-native tool bypass and provisional output before output policy.
+- Add a checksum-pinned actual v0.4.2 preserved-state upgrade to CI and release gates while retaining
+  every earlier upgrade path. See the v0.5.0 guide for stricter custom extension requirements.
 
 - Require an assistant `ModelResult` with matching ordered message/dispatch tool calls and unique
   call IDs per result. Revalidate and snapshot custom results before native dispatch/history in

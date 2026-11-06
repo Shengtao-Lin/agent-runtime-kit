@@ -123,10 +123,10 @@ adapter exports now resolve implementations lazily while preserving their public
 See [boundary evidence](validation/library-boundaries-2026-11-05.md). Documentation guards now
 check linked local evidence, heading anchors and canonical ADR identity; CI and release verification
 run the guards, with negative fixtures for broken links/anchors and duplicate decisions.
-PR #40 merged after final-commit CI and release rehearsal passed. The [public API inventory](public-api.md), focused
-export/protocol checks and expanded compatibility triggers are now implemented in a separate
-working change. The target-wheel consumer runs those checks outside the checkout. Stage C remains
-open until these changes pass final-commit CI and merge.
+PR #40 merged after final-commit CI and release rehearsal passed. PR #41 then merged after CI and
+the Python 3.11/3.12 lower/latest dependency matrix passed. Its [public API inventory](public-api.md),
+focused export/protocol checks and expanded compatibility triggers complete Stage C's implementation.
+The target-wheel consumer runs those checks outside the checkout. Release promotion remains separate.
 
 Local public-surface evidence: 575 unit tests passed (72 integration cases deselected), Ruff and
 strict Pyright passed, and the external candidate-wheel consumer passed 75 cases with one
@@ -134,7 +134,7 @@ upgrade-only skip and four readiness probes deselected. This fresh-consumer resu
 preserved-state upgrade claim. The report and dependency/provenance inventories are retained under
 `build/public-api-consumer`; final-commit compatibility CI remains required.
 
-| Invariant | Planned automated evidence |
+| Invariant | Automated evidence |
 | --- | --- |
 | Minimal library imports | Core-only installed wheel imports without loading optional HTTP/DB/framework implementations or starting network/resource work |
 | Correct distribution | Package/types/migrations included; applications/examples excluded; non-editable external consumer |
@@ -208,3 +208,9 @@ v0.4.2 until a new immutable tag and its actual artifacts pass verification.
 Evidence belongs with each PR and the final publication report. Completion requires merged changes,
 passing final-commit checks and main/release verification, actual wheel installation/upgrades and
 successful independent application adoption. Repository text remains English; tests use venv/pytest.
+
+The v0.5.0 candidate now has migration/release notes and a checksum-pinned actual v0.4.2 upgrade
+lane in CI and Release, retaining every earlier source path. Local full PostgreSQL pytest,
+core-only/provider wheel probes and the preserved-state upgrade/soak passed; see
+[candidate readiness](validation/v0.5.0-readiness.md). Tag publication and Release Desk adoption
+are still pending and are required to finish this delivery.

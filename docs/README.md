@@ -15,6 +15,7 @@ sample service is not required for application integration.
 | Review the current design assessment | [2026-10-28 review](validation/architecture-review-2026-10-28.md) |
 | Upgrade to the current release | [v0.4.2 upgrade guide](upgrading-to-v0.4.2.md) |
 | Inspect actual publication and adoption evidence | [v0.4.2 evidence](validation/v0.4.2-publication.md) |
+| Evaluate the next release candidate | [v0.5.0 readiness](validation/v0.5.0-readiness.md) and [migration guide](upgrading-to-v0.5.0.md) |
 
 ## Which document is authoritative for what?
 
