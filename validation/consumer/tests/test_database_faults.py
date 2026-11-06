@@ -18,7 +18,20 @@ pytestmark = [
 ]
 
 
-async def test_exhausted_pool_times_out_without_work_and_recovers(database_url, identity):
+def delay_recovery_model(model, monkeypatch):
+    """Recovery is a correctness probe, not a 200 ms model/transaction latency SLO."""
+    generate = model.generate
+
+    async def delayed(*args, **kwargs):
+        await asyncio.sleep(0.25)
+        return await generate(*args, **kwargs)
+
+    monkeypatch.setattr(model, "generate", delayed)
+
+
+async def test_exhausted_pool_times_out_without_work_and_recovers(
+    database_url, identity, monkeypatch
+):
     async with application(database_url, identity, invocation_deadline_seconds=0.2) as app:
         held = [await app.engine.connect() for _ in range(4)]
         try:
@@ -31,12 +44,22 @@ async def test_exhausted_pool_times_out_without_work_and_recovers(database_url, 
                 await connection.close()
         assert await app.memory.check_ready()
         assert await app.runs.get_by_idempotency(agent_id=identity, idempotency_key="pool") is None
-        response = await app.runtime.invoke(identity, request("hello"), idempotency_key="pool")
-        assert len(app.model.calls) == 1
-        assert (await app.runs.get(response.run_id)).status == "succeeded"
+        assert app.engine.pool.checkedout() == 0
+        # Retain the exhausted pool itself, but use the normal invocation budget for recovery.
+        async with application(database_url, identity, engine=app.engine) as recovered:
+            assert recovered.engine is app.engine
+            delay_recovery_model(recovered.model, monkeypatch)
+            response = await recovered.runtime.invoke(
+                identity, request("hello"), idempotency_key="pool"
+            )
+            assert len(recovered.model.calls) == 1 and app.model.calls == []
+            assert (await app.runs.get(response.run_id)).status == "succeeded"
+        assert app.engine.pool.checkedout() == 0
 
 
-async def test_thread_lock_wait_obeys_deadline_and_releases_connection(database_url, identity):
+async def test_thread_lock_wait_obeys_deadline_and_releases_connection(
+    database_url, identity, monkeypatch
+):
     control = create_async_engine(database_url, pool_size=1, max_overflow=0)
     try:
         async with application(database_url, identity, invocation_deadline_seconds=0.2) as app:
@@ -59,10 +82,15 @@ async def test_thread_lock_wait_obeys_deadline_and_releases_connection(database_
                 is None
             )
             assert await app.memory.get_messages(thread.id, namespace=identity) == ()
-            result = await app.runtime.invoke(
-                identity, request("hello", thread_id=thread.id), idempotency_key="locked"
-            )
-            assert (await app.runs.get(result.run_id)).status == "succeeded"
+            async with application(database_url, identity, engine=app.engine) as recovered:
+                assert recovered.engine is app.engine
+                delay_recovery_model(recovered.model, monkeypatch)
+                result = await recovered.runtime.invoke(
+                    identity, request("hello", thread_id=thread.id), idempotency_key="locked"
+                )
+                assert len(recovered.model.calls) == 1 and app.model.calls == []
+                assert (await app.runs.get(result.run_id)).status == "succeeded"
+            assert app.engine.pool.checkedout() == 0
     finally:
         await control.dispose()
 

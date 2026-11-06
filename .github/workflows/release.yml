@@ -8,6 +8,8 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - "docs/releases/**"
+      - "scripts/validate_consumer.py"
+      - "validation/consumer/**"
   push:
     branches: [main]
     tags:
@@ -15,6 +17,8 @@ on:
     paths:
       - "docs/releases/**"
       - ".github/workflows/release.yml"
+      - "scripts/validate_consumer.py"
+      - "validation/consumer/**"
 
 permissions:
   contents: read
