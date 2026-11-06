@@ -25,6 +25,8 @@ def summarize(directory: Path) -> dict[str, Any]:
             data = json.loads(path.read_text(encoding="utf-8"))
             assert data["status"] == "passed"
             assert data["version"] == manifest["expected_version"]
+            assert data.get("context_max_bytes") == manifest.get("context_max_bytes")
+            assert data["profile"]["smoke"] == manifest.get("smoke", data["profile"]["smoke"])
             assert data["profile"] == {
                 "history_turns": history,
                 "concurrency": concurrency,
@@ -79,6 +81,14 @@ def summarize(directory: Path) -> dict[str, Any]:
                 "max_history_rows": max(
                     item["messages"] for sample in samples for item in sample["history"]
                 ),
+                "history_json_bytes": {
+                    "min": min(
+                        item["json_bytes"] for sample in samples for item in sample["history"]
+                    ),
+                    "max": max(
+                        item["json_bytes"] for sample in samples for item in sample["history"]
+                    ),
+                },
                 "rss_measurement_peak_bytes": {
                     "min": min(item["rss_measurement_peak_bytes"] for item in repeats),
                     "max": max(item["rss_measurement_peak_bytes"] for item in repeats),

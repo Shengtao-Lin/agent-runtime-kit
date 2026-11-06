@@ -40,8 +40,11 @@ def main() -> None:
     parser.add_argument("--expected-version", default=BASELINE_VERSION)
     parser.add_argument("--repetitions", type=int, choices=range(1, 6), default=3)
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--context-max-bytes", type=int)
     parser.add_argument("--report-dir", type=Path, required=True)
     args = parser.parse_args()
+    if args.context_max_bytes is not None and (not args.wheel or args.context_max_bytes < 2):
+        parser.error("--context-max-bytes requires a candidate wheel and a budget of at least two")
     if not os.environ.get("WORKLOAD_DATABASE_URL"):
         parser.error("Set WORKLOAD_DATABASE_URL to a dedicated disposable PostgreSQL database")
     repository = Path(__file__).resolve().parents[1]
@@ -68,6 +71,8 @@ def main() -> None:
         else BASELINE_SHA256,
         "baseline_url": BASELINE_URL,
         "repetitions": args.repetitions,
+        "smoke": args.smoke,
+        "context_max_bytes": args.context_max_bytes,
         "profiles": profiles(args.smoke),
         "source_hashes": {
             path.relative_to(repository).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
@@ -174,6 +179,8 @@ def main() -> None:
                     ]
                     if args.smoke:
                         command.append("--smoke")
+                    if args.context_max_bytes is not None:
+                        command.extend(["--context-max-bytes", str(args.context_max_bytes)])
                     run(command)
             manifest["status"] = "passed"
         except BaseException as exc:

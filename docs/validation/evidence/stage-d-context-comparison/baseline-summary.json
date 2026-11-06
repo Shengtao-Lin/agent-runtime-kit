@@ -1,0 +1,1178 @@
+{
+  "manifest": {
+    "target": "published-baseline",
+    "expected_version": "0.5.0",
+    "wheel_sha256": "d112163a318aa280e64bd20a0d8dd1db519007db3fc5aa419f0f3d1bdb60cd59",
+    "baseline_url": "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.5.0/agent_runtime_kit-0.5.0-py3-none-any.whl",
+    "repetitions": 3,
+    "smoke": false,
+    "context_max_bytes": null,
+    "profiles": [
+      [
+        10,
+        1,
+        1,
+        "invoke"
+      ],
+      [
+        10,
+        1,
+        1,
+        "stream"
+      ],
+      [
+        100,
+        1,
+        1,
+        "invoke"
+      ],
+      [
+        100,
+        1,
+        1,
+        "stream"
+      ],
+      [
+        1000,
+        1,
+        1,
+        "invoke"
+      ],
+      [
+        1000,
+        1,
+        1,
+        "stream"
+      ],
+      [
+        10,
+        4,
+        1,
+        "invoke"
+      ],
+      [
+        10,
+        4,
+        1,
+        "stream"
+      ],
+      [
+        10,
+        16,
+        1,
+        "invoke"
+      ],
+      [
+        10,
+        16,
+        1,
+        "stream"
+      ],
+      [
+        10,
+        1,
+        16,
+        "invoke"
+      ],
+      [
+        10,
+        1,
+        16,
+        "stream"
+      ],
+      [
+        10,
+        1,
+        256,
+        "invoke"
+      ],
+      [
+        10,
+        1,
+        256,
+        "stream"
+      ],
+      [
+        10,
+        4,
+        1,
+        "slow_stream"
+      ]
+    ],
+    "source_hashes": {
+      "scripts/validate_workload.py": "15109c51cf7b35cdeba49c59b2d3c98e628e4bb5585c11e4df1f54b1e91933c4",
+      "validation/workloads/tests/conftest.py": "e4e7ec2e85674c62df7f527e13cb91a4d1443304ed0a4ef4840f757ef9d81d42",
+      "validation/workloads/tests/test_workload.py": "1b7a076a507823de9afd51c35b1bfdbccd08087da0f5e6ed9fb656a6443c7556",
+      "validation/workloads/workload.py": "e1a9da831699e0756dc98756af3b3b46de97005f7e35e7242d4d04257bc8a7e5",
+      "validation/workloads/pyproject.toml": "2e54e139670fc50ef4eb38e0880ac266533ce80271f0fd2b947909c0b9720bec",
+      "validation/workloads/uv.lock": "c6c14325e6d787980edf982a8daaa5356161c3d283f41d3a3ad71d3b0245cfbf",
+      "applications/release_desk/src/release_desk/__init__.py": "9765fb05f5c7299500fe3a4751fe7613d4ce2a195937d5b3cfd567011a35ee5f",
+      "applications/release_desk/src/release_desk/application.py": "67c6783a76c83fc199f94e4cc03ac3a816acdbe99bc9ec1285e708787a280749",
+      "applications/release_desk/src/release_desk/cli.py": "ac54ee2ee0d0aa97199643e2f1eefc70a0292a8229d184c4d64886459ccc9273",
+      "applications/release_desk/src/release_desk/review.py": "8c506aec6c1ecffda562442f4365c8ac39f5c4bf1ffc3bd881b1633ee2f1b1a4"
+    },
+    "status": "passed"
+  },
+  "installed": {
+    "version": "0.5.0",
+    "source": {
+      "url": "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.5.0/agent_runtime_kit-0.5.0-py3-none-any.whl",
+      "archive_info": {}
+    },
+    "packages": {
+      "agent-runtime-kit": "0.5.0",
+      "alembic": "1.20.1",
+      "annotated-types": "0.8.0",
+      "colorama": "0.4.6",
+      "greenlet": "3.5.6",
+      "iniconfig": "2.3.1",
+      "Mako": "1.4.3",
+      "MarkupSafe": "3.0.4",
+      "opentelemetry-api": "1.45.2",
+      "packaging": "26.3",
+      "pluggy": "1.7.0",
+      "psutil": "7.2.2",
+      "psycopg": "3.3.8",
+      "psycopg-binary": "3.3.8",
+      "pydantic": "2.14.3",
+      "pydantic_core": "2.50.4",
+      "pydantic-settings": "2.16.2",
+      "Pygments": "2.21.0",
+      "pytest": "8.4.2",
+      "pytest-asyncio": "0.26.0",
+      "python-dotenv": "1.2.4",
+      "SQLAlchemy": "2.1.8",
+      "typing_extensions": "4.16.0",
+      "typing-inspection": "0.4.5",
+      "tzdata": "2026.6"
+    }
+  },
+  "profiles": [
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 1,
+        "padding_kib": 1,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 27369,
+        "max": 79068
+      },
+      "samples_over_64kib_initial_context": 15,
+      "max_model_input_bytes": 81108,
+      "max_history_rows": 116,
+      "history_json_bytes": {
+        "min": 27175,
+        "max": 78874
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 81104896,
+        "max": 81170432
+      },
+      "python_peak_bytes_max": 937022,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 53.16320000201813,
+          "p95_ms": 62.454999999317806
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.018149999959859997,
+          "p95_ms": 0.026900001103058457
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 53.14450000150828,
+          "p95_ms": 62.42589999601478
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 9.262049999961164,
+          "p95_ms": 13.00440000341041
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 7.745350005279761,
+          "p95_ms": 11.369900006684475
+        },
+        "first_text_from_submission_seconds": null,
+        "first_text_from_admission_seconds": null
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 1,
+        "padding_kib": 1,
+        "mode": "stream",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 27369,
+        "max": 79068
+      },
+      "samples_over_64kib_initial_context": 15,
+      "max_model_input_bytes": 81108,
+      "max_history_rows": 116,
+      "history_json_bytes": {
+        "min": 27175,
+        "max": 78874
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 81297408,
+        "max": 81334272
+      },
+      "python_peak_bytes_max": 944413,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 54.75325000224984,
+          "p95_ms": 62.72220000391826
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.018050002836389467,
+          "p95_ms": 0.02649999805726111
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 54.72564999945462,
+          "p95_ms": 62.70349999977043
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 9.50830000147107,
+          "p95_ms": 12.71880000422243
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 8.054899997659959,
+          "p95_ms": 12.008500008960254
+        },
+        "first_text_from_submission_seconds": {
+          "samples": 60,
+          "p50_ms": 40.86664999704226,
+          "p95_ms": 48.28249999991385
+        },
+        "first_text_from_admission_seconds": {
+          "samples": 60,
+          "p50_ms": 40.84034999686992,
+          "p95_ms": 48.26379999576602
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 100,
+        "concurrency": 1,
+        "padding_kib": 1,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 271899,
+        "max": 323598
+      },
+      "samples_over_64kib_initial_context": 60,
+      "max_model_input_bytes": 325638,
+      "max_history_rows": 476,
+      "history_json_bytes": {
+        "min": 271705,
+        "max": 323404
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 86474752,
+        "max": 86822912
+      },
+      "python_peak_bytes_max": 3134004,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 120.95090000002529,
+          "p95_ms": 136.55779999680817
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.018999999156221747,
+          "p95_ms": 0.027199996111448854
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 120.93280000044615,
+          "p95_ms": 136.53879999765195
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 35.775000003923196,
+          "p95_ms": 50.6900999971549
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 44.94859999977052,
+          "p95_ms": 56.58969999785768
+        },
+        "first_text_from_submission_seconds": null,
+        "first_text_from_admission_seconds": null
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 100,
+        "concurrency": 1,
+        "padding_kib": 1,
+        "mode": "stream",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 271899,
+        "max": 323598
+      },
+      "samples_over_64kib_initial_context": 60,
+      "max_model_input_bytes": 325638,
+      "max_history_rows": 476,
+      "history_json_bytes": {
+        "min": 271705,
+        "max": 323404
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 86589440,
+        "max": 86917120
+      },
+      "python_peak_bytes_max": 3140814,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 121.56360000153654,
+          "p95_ms": 138.9398999963305
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.018999999156221747,
+          "p95_ms": 0.027199996111448854
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 121.54075000216835,
+          "p95_ms": 138.92079999641282
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 35.781750000751344,
+          "p95_ms": 50.08050000469666
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 44.49010000098497,
+          "p95_ms": 58.528899993689265
+        },
+        "first_text_from_submission_seconds": {
+          "samples": 60,
+          "p50_ms": 105.80790000312845,
+          "p95_ms": 121.4308999988134
+        },
+        "first_text_from_admission_seconds": {
+          "samples": 60,
+          "p50_ms": 105.78795000037644,
+          "p95_ms": 121.41189999965718
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 1000,
+        "concurrency": 1,
+        "padding_kib": 1,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 2717199,
+        "max": 2768898
+      },
+      "samples_over_64kib_initial_context": 60,
+      "max_model_input_bytes": 2770938,
+      "max_history_rows": 4076,
+      "history_json_bytes": {
+        "min": 2717005,
+        "max": 2768704
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 136052736,
+        "max": 136589312
+      },
+      "python_peak_bytes_max": 24190410,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 935.1244999998016,
+          "p95_ms": 1173.247500002617
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.02814999606925994,
+          "p95_ms": 0.04550000448944047
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 935.094050000771,
+          "p95_ms": 1173.2210999980452
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 354.1162500041537,
+          "p95_ms": 432.22660000174074
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 511.97890000548796,
+          "p95_ms": 651.4769999994314
+        },
+        "first_text_from_submission_seconds": null,
+        "first_text_from_admission_seconds": null
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 1000,
+        "concurrency": 1,
+        "padding_kib": 1,
+        "mode": "stream",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 2717199,
+        "max": 2768898
+      },
+      "samples_over_64kib_initial_context": 60,
+      "max_model_input_bytes": 2770938,
+      "max_history_rows": 4076,
+      "history_json_bytes": {
+        "min": 2717005,
+        "max": 2768704
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 133459968,
+        "max": 136323072
+      },
+      "python_peak_bytes_max": 24191258,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 961.5831499977503,
+          "p95_ms": 1269.6720000021742
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.025249999453080818,
+          "p95_ms": 0.03429999924264848
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 961.5598000018508,
+          "p95_ms": 1269.6377000029315
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 355.8000999983051,
+          "p95_ms": 469.620700001542
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 525.3008999934536,
+          "p95_ms": 699.2178999935277
+        },
+        "first_text_from_submission_seconds": {
+          "samples": 60,
+          "p50_ms": 912.1689000021433,
+          "p95_ms": 1219.0811000036774
+        },
+        "first_text_from_admission_seconds": {
+          "samples": 60,
+          "p50_ms": 912.1443000040017,
+          "p95_ms": 1219.0468000044348
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 4,
+        "padding_kib": 1,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 27369,
+        "max": 38253
+      },
+      "samples_over_64kib_initial_context": 0,
+      "max_model_input_bytes": 40293,
+      "max_history_rows": 56,
+      "history_json_bytes": {
+        "min": 27175,
+        "max": 38059
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 81317888,
+        "max": 82001920
+      },
+      "python_peak_bytes_max": 1479338,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 143.65605000421056,
+          "p95_ms": 159.86820000398438
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.017400001524947584,
+          "p95_ms": 0.029100003303028643
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 143.6364000037429,
+          "p95_ms": 159.85100000398234
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 27.06045000013546,
+          "p95_ms": 40.723500002059154
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 5.089300004328834,
+          "p95_ms": 7.338600000366569
+        },
+        "first_text_from_submission_seconds": null,
+        "first_text_from_admission_seconds": null
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 4,
+        "padding_kib": 1,
+        "mode": "stream",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 27369,
+        "max": 38253
+      },
+      "samples_over_64kib_initial_context": 0,
+      "max_model_input_bytes": 40293,
+      "max_history_rows": 56,
+      "history_json_bytes": {
+        "min": 27175,
+        "max": 38059
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 81936384,
+        "max": 82067456
+      },
+      "python_peak_bytes_max": 1352419,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 138.1770999978471,
+          "p95_ms": 165.04279999935534
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.01590000101714395,
+          "p95_ms": 0.025300003471784294
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 138.157899997168,
+          "p95_ms": 165.02349999791477
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 27.575599997362588,
+          "p95_ms": 40.65199999604374
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 4.961750004440546,
+          "p95_ms": 5.774199998995755
+        },
+        "first_text_from_submission_seconds": {
+          "samples": 60,
+          "p50_ms": 102.27550000126939,
+          "p95_ms": 126.26449999515899
+        },
+        "first_text_from_admission_seconds": {
+          "samples": 60,
+          "p50_ms": 102.25445000105537,
+          "p95_ms": 126.2427999972715
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 16,
+        "padding_kib": 1,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 96,
+      "initial_context_bytes": {
+        "min": 27369,
+        "max": 30090
+      },
+      "samples_over_64kib_initial_context": 0,
+      "max_model_input_bytes": 32130,
+      "max_history_rows": 44,
+      "history_json_bytes": {
+        "min": 27175,
+        "max": 29896
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 81678336,
+        "max": 82046976
+      },
+      "python_peak_bytes_max": 1399024,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 96,
+          "p50_ms": 513.7940000022354,
+          "p95_ms": 625.1482000006945
+        },
+        "queue_seconds": {
+          "samples": 96,
+          "p50_ms": 385.14705000125105,
+          "p95_ms": 461.4856999978656
+        },
+        "service_seconds": {
+          "samples": 96,
+          "p50_ms": 135.38580000022193,
+          "p95_ms": 160.2123000047868
+        },
+        "history_read_seconds": {
+          "samples": 96,
+          "p50_ms": 23.27259999947273,
+          "p95_ms": 37.641399998392444
+        },
+        "measurement_seconds": {
+          "samples": 96,
+          "p50_ms": 4.409399993164698,
+          "p95_ms": 5.7554999948479235
+        },
+        "first_text_from_submission_seconds": null,
+        "first_text_from_admission_seconds": null
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 16,
+        "padding_kib": 1,
+        "mode": "stream",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 96,
+      "initial_context_bytes": {
+        "min": 27369,
+        "max": 30090
+      },
+      "samples_over_64kib_initial_context": 0,
+      "max_model_input_bytes": 32130,
+      "max_history_rows": 44,
+      "history_json_bytes": {
+        "min": 27175,
+        "max": 29896
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 80932864,
+        "max": 81924096
+      },
+      "python_peak_bytes_max": 1421808,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 96,
+          "p50_ms": 524.9045500022476,
+          "p95_ms": 583.5637999989558
+        },
+        "queue_seconds": {
+          "samples": 96,
+          "p50_ms": 392.0335000002524,
+          "p95_ms": 441.8108999961987
+        },
+        "service_seconds": {
+          "samples": 96,
+          "p50_ms": 136.84864999959245,
+          "p95_ms": 162.34589999658056
+        },
+        "history_read_seconds": {
+          "samples": 96,
+          "p50_ms": 26.423549999890383,
+          "p95_ms": 38.84449999895878
+        },
+        "measurement_seconds": {
+          "samples": 96,
+          "p50_ms": 4.425249997439096,
+          "p95_ms": 5.524399995920248
+        },
+        "first_text_from_submission_seconds": {
+          "samples": 96,
+          "p50_ms": 492.62659999658354,
+          "p95_ms": 553.4272000004421
+        },
+        "first_text_from_admission_seconds": {
+          "samples": 96,
+          "p50_ms": 101.20735000236891,
+          "p95_ms": 125.42779999785125
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 1,
+        "padding_kib": 16,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 180969,
+        "max": 524508
+      },
+      "samples_over_64kib_initial_context": 60,
+      "max_model_input_bytes": 541908,
+      "max_history_rows": 116,
+      "history_json_bytes": {
+        "min": 180775,
+        "max": 524314
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 83021824,
+        "max": 83668992
+      },
+      "python_peak_bytes_max": 2275234,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 147.91069999773754,
+          "p95_ms": 160.42390000075102
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.020950003090547398,
+          "p95_ms": 0.02529999619582668
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 147.8907499986235,
+          "p95_ms": 160.40179999981774
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 12.519200005044695,
+          "p95_ms": 17.213799997989554
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 10.880349997023586,
+          "p95_ms": 16.806300001917407
+        },
+        "first_text_from_submission_seconds": null,
+        "first_text_from_admission_seconds": null
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 1,
+        "padding_kib": 16,
+        "mode": "stream",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 180969,
+        "max": 524508
+      },
+      "samples_over_64kib_initial_context": 60,
+      "max_model_input_bytes": 541908,
+      "max_history_rows": 116,
+      "history_json_bytes": {
+        "min": 180775,
+        "max": 524314
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 82784256,
+        "max": 83324928
+      },
+      "python_peak_bytes_max": 2267247,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 147.9370499982906,
+          "p95_ms": 159.75320000143256
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.02059999678749591,
+          "p95_ms": 0.024400003894697875
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 147.91684999727295,
+          "p95_ms": 159.72879999753786
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 11.903699996764772,
+          "p95_ms": 16.03120000072522
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 11.118699996586656,
+          "p95_ms": 16.458800004329532
+        },
+        "first_text_from_submission_seconds": {
+          "samples": 60,
+          "p50_ms": 47.10419999901205,
+          "p95_ms": 58.01709999650484
+        },
+        "first_text_from_admission_seconds": {
+          "samples": 60,
+          "p50_ms": 47.08269999900949,
+          "p95_ms": 57.99589999514865
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 1,
+        "padding_kib": 256,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 2638569,
+        "max": 7651548
+      },
+      "samples_over_64kib_initial_context": 60,
+      "max_model_input_bytes": 7914708,
+      "max_history_rows": 116,
+      "history_json_bytes": {
+        "min": 2638375,
+        "max": 7651354
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 101634048,
+        "max": 101957632
+      },
+      "python_peak_bytes_max": 24639589,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 154.23079999891343,
+          "p95_ms": 209.57600000110688
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.019950002752011642,
+          "p95_ms": 0.028100002964492887
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 154.21014999810723,
+          "p95_ms": 209.55700000195066
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 36.6086499998346,
+          "p95_ms": 50.477899996622
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 63.15345000621164,
+          "p95_ms": 90.48429999529617
+        },
+        "first_text_from_submission_seconds": null,
+        "first_text_from_admission_seconds": null
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 1,
+        "padding_kib": 256,
+        "mode": "stream",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 2638569,
+        "max": 7651548
+      },
+      "samples_over_64kib_initial_context": 60,
+      "max_model_input_bytes": 7914708,
+      "max_history_rows": 116,
+      "history_json_bytes": {
+        "min": 2638375,
+        "max": 7651354
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 101560320,
+        "max": 102338560
+      },
+      "python_peak_bytes_max": 24387723,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 152.14510000078008,
+          "p95_ms": 226.49529999762308
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.019249997421866283,
+          "p95_ms": 0.02849999873433262
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 152.1247000018775,
+          "p95_ms": 226.47200000210432
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 36.612999996577855,
+          "p95_ms": 52.42739999812329
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 64.09469999925932,
+          "p95_ms": 93.98070000315784
+        },
+        "first_text_from_submission_seconds": {
+          "samples": 60,
+          "p50_ms": 123.50270000024466,
+          "p95_ms": 174.47429999447195
+        },
+        "first_text_from_admission_seconds": {
+          "samples": 60,
+          "p50_ms": 123.4735499965609,
+          "p95_ms": 174.45529999531573
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 4,
+        "padding_kib": 1,
+        "mode": "slow_stream",
+        "smoke": false
+      },
+      "environment": {
+        "python": "3.12.10",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "clock_resolution_seconds": 1e-07
+      },
+      "repetitions": 3,
+      "samples": 60,
+      "initial_context_bytes": {
+        "min": 27369,
+        "max": 38253
+      },
+      "samples_over_64kib_initial_context": 0,
+      "max_model_input_bytes": 40293,
+      "max_history_rows": 56,
+      "history_json_bytes": {
+        "min": 27175,
+        "max": 38059
+      },
+      "rss_measurement_peak_bytes": {
+        "min": 81137664,
+        "max": 81907712
+      },
+      "python_peak_bytes_max": 1141135,
+      "timings": {
+        "end_to_end_seconds": {
+          "samples": 60,
+          "p50_ms": 214.39689999897382,
+          "p95_ms": 290.59390000475105
+        },
+        "queue_seconds": {
+          "samples": 60,
+          "p50_ms": 0.017350001144222915,
+          "p95_ms": 0.03529999958118424
+        },
+        "service_seconds": {
+          "samples": 60,
+          "p50_ms": 214.38014999876032,
+          "p95_ms": 290.5797000057646
+        },
+        "history_read_seconds": {
+          "samples": 60,
+          "p50_ms": 11.234049998165574,
+          "p95_ms": 41.11939999711467
+        },
+        "measurement_seconds": {
+          "samples": 60,
+          "p50_ms": 5.329200004780432,
+          "p95_ms": 7.603199999721255
+        },
+        "first_text_from_submission_seconds": {
+          "samples": 60,
+          "p50_ms": 64.99785000050906,
+          "p95_ms": 119.74850000115111
+        },
+        "first_text_from_admission_seconds": {
+          "samples": 60,
+          "p50_ms": 64.97565000245231,
+          "p95_ms": 119.73430000216467
+        }
+      }
+    }
+  ],
+  "raw_report_sha256": {
+    "r1-h10-c1-p1-invoke.json": "6313f9c2e3f3d40b1ff145d41c63539c8a908df0d9bc4226e99c915018f8137d",
+    "r2-h10-c1-p1-invoke.json": "3b7ef67e9ded76065636707bea56420d2573ae41a81d4cf68ad2bc1d9a0a8c68",
+    "r3-h10-c1-p1-invoke.json": "cfd300b4740663b83c9347cfd6ff74ca6018f81ccc0527a84e5e6bf318a9b12e",
+    "r1-h10-c1-p1-stream.json": "e0c8b1962e4eb6c23091d71a23b72070a49669cc9cdd2e5ed50fcb67843e652f",
+    "r2-h10-c1-p1-stream.json": "1d4fb9e45cb0c84d9903f18cbda8c7d3918de3b36c44933f5d2ba5328a6d4c2f",
+    "r3-h10-c1-p1-stream.json": "938d8fe628c76a45f4b7e066f7eb83533e01b7cc1e8e221809d4682985517ab2",
+    "r1-h100-c1-p1-invoke.json": "4c9995f266d67dc05d51f1cc6eb51022cbe8b2cbe84e1c7b53e583879bc57515",
+    "r2-h100-c1-p1-invoke.json": "a7852aba2182e474493ef8e1ea89807f9ea83e3d7b1ae586cdad9fc1f4cf2fbd",
+    "r3-h100-c1-p1-invoke.json": "e69c5d563c31daa4d91b9342dfa476232da570c3fc3fbbd2fdfdb12640d07416",
+    "r1-h100-c1-p1-stream.json": "a816fcb052d1a87cf667e50cbd513751985b1bc936b375c465e92c40f1ad1012",
+    "r2-h100-c1-p1-stream.json": "b27176b21d531852b519bc961d5d1eb6df3b2732b3bdb57f8eb5867b0c66d440",
+    "r3-h100-c1-p1-stream.json": "8aa7e1c3e8364ff72e0802379d366bd2216f7568dfbb9b607706ef38f5933f5a",
+    "r1-h1000-c1-p1-invoke.json": "5db37373ce4a2f0d1fcd4c4f232c1b5563cef03d30af15ee9cfa1221dfd21bd2",
+    "r2-h1000-c1-p1-invoke.json": "190ad1dbcfff916731e98f6792f9cb071adceea18b0f23d1cb1a70cf10f2c5b9",
+    "r3-h1000-c1-p1-invoke.json": "054c65b957df7487a8193cdbbc478524d602e7a91a7910eefa2eb5f484f20d3b",
+    "r1-h1000-c1-p1-stream.json": "4bda79c089a09710ee4b54089365c752f54051c06910746b52b806c4cbb38e67",
+    "r2-h1000-c1-p1-stream.json": "28c4d9663e8bdda2fe5236bcd26c262a14cd4dce18711c631f04762eb991b3d1",
+    "r3-h1000-c1-p1-stream.json": "fa5c2ec4fd441a3f4868278870b631aed7a67ae61a5a5d4b8d568dbecd433221",
+    "r1-h10-c4-p1-invoke.json": "ed5e01ff655253a7b8c5294d3a00db070eff1c79fbe9066be72c467b9b58bea4",
+    "r2-h10-c4-p1-invoke.json": "757b710b4ac874691fdcab29d9187123b5e37c6b2d0f64481fefaac355a735a5",
+    "r3-h10-c4-p1-invoke.json": "81864809ff0b13293849b9fafeb7cd1fd9e9dccb418b25e3e950c310ba68f563",
+    "r1-h10-c4-p1-stream.json": "0c2bc040fe9161d87edc763dbf7ce8e1d6519be65782040d9fd58adf77175696",
+    "r2-h10-c4-p1-stream.json": "49f44a19552d2ae816514c684e59b72d7d0e9203ac5fa7c83d73b8dcf5bdeef9",
+    "r3-h10-c4-p1-stream.json": "56c29845dac3eed76bfcc1c14fd4d6d36b253331878635ac319cff5c1da78e5d",
+    "r1-h10-c16-p1-invoke.json": "9e9e7fcf3902ce507103b34f3d1b5d954e07082f1101cbb000d8081c5c8d4770",
+    "r2-h10-c16-p1-invoke.json": "7e1591090650d795828c5c947d8aefe84859b6ba645f2a9c521db2de04fb3866",
+    "r3-h10-c16-p1-invoke.json": "e1704af2ded12c2175a7535e3bb2fcb565c85497c36f32b5ac5153985e5a2e9c",
+    "r1-h10-c16-p1-stream.json": "c82eaba3bed5e866ba0e94f619679ffa7aad57be6cca745283e7d0d87357028b",
+    "r2-h10-c16-p1-stream.json": "834f3cbe1ea5138bf000bf2710510bf9cc3c1d70336bb7971d1655ff2487ab68",
+    "r3-h10-c16-p1-stream.json": "81927ac8cd43f8e356b5cace82db872049a2d429cc881fbcc28b05466944f950",
+    "r1-h10-c1-p16-invoke.json": "4b5cc4544e2bab23f8625e3b382a2ce3fbc7b1c06de2d7641cc32c6a7a677112",
+    "r2-h10-c1-p16-invoke.json": "99478579304d8654420d7e350271ed0adda4889fcba4b91698f4a3110f6f1436",
+    "r3-h10-c1-p16-invoke.json": "3685e3be0d959f50598a06932b49f3044130eb9009a3cebb758d52c870020f6e",
+    "r1-h10-c1-p16-stream.json": "c6b914ada8f579957feade7ec6770758e4a7c93ffa4200b740a7d342e4fbf872",
+    "r2-h10-c1-p16-stream.json": "2a27ad80c07d9653bd6f83c7193e11bcee3317690a530d37f32f7b4cfeeebca8",
+    "r3-h10-c1-p16-stream.json": "75c045f9e9a66a179ce6b03236d6e60b5861753c6be2eb9e5c857bf8b0aa3e96",
+    "r1-h10-c1-p256-invoke.json": "41aea8f8f31323a26e8a9f3fc4bf04e6bdfda4638789be4d84bf4cead890564b",
+    "r2-h10-c1-p256-invoke.json": "5d8b33d76e3862f8e267c045ff0ee7239d279641e361df41e2d61d8b373ab56e",
+    "r3-h10-c1-p256-invoke.json": "0b435553f3307e95a5cd325255e084f4c9e5844c9cc37b7a805014429ba29576",
+    "r1-h10-c1-p256-stream.json": "c7a65ccb44e3edb0245f76ef6f0b56a3ae72e397736d082010be32d425126060",
+    "r2-h10-c1-p256-stream.json": "23b301c3069ababe549e358958a78efd61750833d4c809eb688b4942d371c7f0",
+    "r3-h10-c1-p256-stream.json": "3eef31e5c8dcf202eede564b9a06524d210e6e4229ff79b319c109514d83199d",
+    "r1-h10-c4-p1-slow_stream.json": "9ec06eda717bd3eaf85018c81d5124cf71dcaffe262d7ab71f26e096225bbc6e",
+    "r2-h10-c4-p1-slow_stream.json": "9a556fee2f58fa6754f067271409902b78b2ae06dc26492725684b2e4669aa52",
+    "r3-h10-c4-p1-slow_stream.json": "39d90f810732ce5d5e53ad12f08e07eca091ec590f2bd27ce849d2cd4ce5f3e5"
+  }
+}

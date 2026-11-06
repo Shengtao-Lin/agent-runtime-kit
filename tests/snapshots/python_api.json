@@ -39,6 +39,11 @@
       "name": "telemetry",
       "kind": "KEYWORD_ONLY",
       "default": null
+    },
+    {
+      "name": "context_window",
+      "kind": "KEYWORD_ONLY",
+      "default": null
     }
   ],
   "AgentRuntime.invoke": [

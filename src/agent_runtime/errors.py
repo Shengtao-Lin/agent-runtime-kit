@@ -75,6 +75,18 @@ class AgentInvocationError(RuntimeKitError):
     code = "agent_invocation_failed"
 
 
+class ContextSelectionError(RuntimeKitError):
+    """Opt-in context selection cannot preserve a complete tool exchange."""
+
+    code = "context_selection_failed"
+
+
+class ContextBudgetExceededError(ContextSelectionError):
+    """Mandatory context cannot fit the host's explicit initial-context budget."""
+
+    code = "context_budget_exceeded"
+
+
 class MaxToolIterationsError(RuntimeKitError):
     """Raised when a native agent requests tools beyond its configured limit."""
 

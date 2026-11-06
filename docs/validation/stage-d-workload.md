@@ -1,8 +1,8 @@
 # Stage D: Long-Conversation Release Desk Workload
 
 Status: workload specification and [three-repeat published baseline](stage-d-baseline.md) completed.
-Candidate design and implementation remain in progress. This document does not
-claim that context selection or bounded history retrieval has been implemented.
+The [candidate context window and matched comparison](stage-d-context-window.md) are implemented
+in development. Publication/adoption remain pending. Bounded history retrieval is not implemented.
 
 ## Host scenario and requirements
 

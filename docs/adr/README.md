@@ -20,6 +20,7 @@ historical ADRs. Amend decisions explicitly; do not silently treat old implement
 | [0012](0012-library-first-evolution.md) | Library-first evolution | Current direction; proposed work is tracked in the plan |
 | [0013](0013-terminal-stream-conformance.md) | Terminal stream conformance | Shipped in v0.5.0; completion withheld until source EOF/cleanup |
 | [0014](0014-model-result-and-tool-payload-contracts.md) | Model result and tool payload contracts | Shipped in v0.5.0; consistent dispatch/history and finite JSON payloads |
+| [0015](0015-opt-in-initial-context-window.md) | Opt-in initial context window | Implemented and independently validated in development; publication pending |
 
 The original lifetime ADR also used number 0010. Its
 [old path](0010-managed-runtime-lifetime.md) is a navigation alias, not another numbered decision.

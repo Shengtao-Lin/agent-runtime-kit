@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from agent_runtime import AgentRegistry, AgentRuntime
 from agent_runtime.adapters import LangChainRunnableAdapter, LangGraphAdapter
 from agent_runtime.adapters.framework_messages import framework_input, framework_output
+from agent_runtime.context import ContextWindow
 from agent_runtime.feedback import PostgresFeedbackStore
 from agent_runtime.hooks import HookManager
 from agent_runtime.memory import PostgresMemoryStore
@@ -59,6 +60,7 @@ async def application(
     *,
     hooks: HookManager | None = None,
     registry_tools: bool = True,
+    context_window: ContextWindow | None = None,
 ) -> AsyncIterator[FrameworkApplication]:
     engine = create_async_engine(database_url, pool_size=2, max_overflow=0)
     memory = PostgresMemoryStore(engine)
@@ -179,6 +181,7 @@ async def application(
         namespace=identity,
         hooks=hooks,
         invocation_timeout_seconds=5,
+        context_window=context_window,
     )
     try:
         yield FrameworkApplication(

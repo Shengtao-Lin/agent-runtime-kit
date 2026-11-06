@@ -24,8 +24,10 @@ EXPORT_MODULES = (
     "agent_runtime.models_clients",
     "agent_runtime.telemetry",
     "agent_runtime.tools",
+    "agent_runtime.context",
 )
 EXTENSIONS = {
+    "agent_runtime.context": ("ContextWindow", "ContextSelection"),
     "agent_runtime.adapters.base": ("AgentInvoker", "StreamingAgentInvoker"),
     "agent_runtime.models_clients.base": ("ModelClient", "StreamingModelClient"),
     "agent_runtime.memory.base": ("MemoryStore",),

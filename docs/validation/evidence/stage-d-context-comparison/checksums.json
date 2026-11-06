@@ -1,0 +1,7 @@
+{
+  "baseline-raw.tar.gz": "b9238ecdd81a3b67ba0c18863d6eab94e0ea5599b38e29149c267bc25e8ee46b",
+  "baseline-summary.json": "f839ed71dfe11d210e7093ecac905b0d2c82c2150beb20c4b94a1d40ccee39f4",
+  "candidate-raw.tar.gz": "7942bbfafb056cce297120f8dfc2536368f035d2f79004d6eb35ffe50e0f898f",
+  "candidate-summary.json": "a7f971607c5f93c3d2e8d6996450510c04bfbde054d447c6b2345f5c2bee1cb0",
+  "comparison.json": "0f19eebe61731cbc2c73e79f4f4ec54984d641ba396abd56d3a2520da2c5ea12"
+}

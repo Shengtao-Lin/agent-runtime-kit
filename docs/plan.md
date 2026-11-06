@@ -158,6 +158,12 @@ Execution started on 2026-11-05 with the [Release Desk workload specification](v
 The actual v0.5.0 wheel is the frozen baseline. Establish the staged history/concurrency/payload
 measurements before selecting a context or storage API. The [completed baseline](validation/stage-d-baseline.md)
 contains 45 processes and 972 samples; candidate design and implementation remain in progress.
+PR #44 merged after final-head CI passed, including actual-baseline and candidate-wheel workload
+smokes. [ADR 0015](adr/0015-opt-in-initial-context-window.md) chooses an optional initial-context
+window. Its [implementation and independent comparison](validation/stage-d-context-window.md) passed:
+all 972 candidate inputs fit, with full durable history preserved; 681 root tests and 111 installed
+consumer cases passed. Final-head promotion and the resulting minor release/adoption remain pending;
+full history materialization is explicitly outside the new byte guarantee.
 The full Stage D goal includes any justified fix, independent acceptance and publication
 when library behavior changes, not just the measurement report.
 

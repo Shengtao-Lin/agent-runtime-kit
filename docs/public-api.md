@@ -1,6 +1,7 @@
 # Public API Inventory and Compatibility Review
 
-This inventory describes the supported surface in v0.5.0. Published v0.4.2 remains
+This inventory describes v0.5.0 plus the explicitly marked context-window development capability.
+Published v0.5.0 does not include that addition. Published v0.4.2 remains
 immutable. The package version, canonical `v1` contract and PostgreSQL revision `0002` are separate
 compatibility dimensions. An unchanged field/signature does not imply unchanged validation behavior.
 
@@ -9,6 +10,7 @@ compatibility dimensions. An unchanged field/signature does not imply unchanged 
 | Surface | Entry points and responsibility | Acceptance |
 | --- | --- | --- |
 | Runtime and routing | Root `AgentRuntime`, `AgentRegistry`; invoke/stream/shutdown/lifespan; register/get/list descriptors | Runtime/provider signature snapshot, runtime tests and installed consumer |
+| Initial context (development) | `context.ContextWindow(max_bytes)`, `.select(history, current)`; `ContextSelection` fields/`.summary()`; optional `AgentRuntime(context_window=...)`; `ContextSelectionError`/`ContextBudgetExceededError` | Byte/pair/mandatory-input unit tests, real PostgreSQL durable acceptance, installed framework consumers and host workload |
 | Canonical data | Root exports and `agent_runtime.models`: messages, tool calls/results, requests/responses, invocation input/output/context, usage, descriptors and runtime events | Canonical model and HTTP contract tests; durable JSON round trips/replay |
 | Agent extensions | `adapters.base`: `AgentInvoker`, `StreamingAgentInvoker`, `AgentStreamEvent` and its text/tool/completed variants | Extension member inventory, union discriminator checks, invalid-stream regressions |
 | Model extensions | `models_clients`: `ModelClient`, `StreamingModelClient`, `ModelResult`, model stream variants and deterministic client | Extension member inventory, model-result/stream/usage behavior suites |
@@ -23,7 +25,7 @@ compatibility dimensions. An unchanged field/signature does not imply unchanged 
 | Errors | Documented `errors` exception classes/codes, plus exported guardrail block error | Provider/error and safe-service-envelope tests; direct Python calls can propagate unexpected exceptions |
 | Migration and optional HTTP host | `python -m agent_runtime.migrations`, `agent-runtime-migrate`; optional service factory/contracts | Packaged migration/upgrade tests, HTTP snapshots, container startup/shutdown |
 
-Nine package export lists are recorded in
+Ten module export lists are recorded in
 [`public_surface.json`](../tests/snapshots/public_surface.json). The checked extension classes cover
 agent/model/store/hook/guardrail protocols, registries and the three adapters. Both public getters
 and methods are included. Direct documented modules in the table remain usable even when a symbol

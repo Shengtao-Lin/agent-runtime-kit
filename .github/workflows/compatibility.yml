@@ -14,6 +14,8 @@ on:
       - "validation/consumer/**"
       - "validation/frameworks/**"
       - "tests/unit/test_extension_api.py"
+      - "tests/unit/test_context_window.py"
+      - "tests/integration/test_context_persistence.py"
       - "tests/snapshots/public_surface.json"
 
 permissions:

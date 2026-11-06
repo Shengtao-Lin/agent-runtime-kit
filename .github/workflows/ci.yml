@@ -309,7 +309,7 @@ jobs:
           VERSION=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
           uv run --no-project python scripts/validate_workload.py \
             --wheel "dist/agent_runtime_kit-$VERSION-py3-none-any.whl" \
-            --expected-version "$VERSION" --smoke --repetitions 1 --report-dir build/workload-smoke
+            --expected-version "$VERSION" --context-max-bytes 65536 --smoke --repetitions 1 --report-dir build/workload-smoke
       - if: always()
         uses: actions/upload-artifact@v4
         with:

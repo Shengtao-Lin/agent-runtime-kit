@@ -31,6 +31,10 @@
       "NativeAgentInvoker",
       "StreamingAgentInvoker"
     ],
+    "agent_runtime.context": [
+      "ContextSelection",
+      "ContextWindow"
+    ],
     "agent_runtime.feedback": [
       "FeedbackPage",
       "FeedbackRecord",
@@ -402,6 +406,100 @@
             "default": "<required>",
             "kind": "POSITIONAL_OR_KEYWORD",
             "name": "request"
+          }
+        ]
+      }
+    },
+    "agent_runtime.context.ContextSelection": {
+      "summary": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "name": "self",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          }
+        ]
+      },
+      "__init__": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "name": "self",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          },
+          {
+            "name": "messages",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          },
+          {
+            "name": "input_bytes",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          },
+          {
+            "name": "selected_bytes",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          },
+          {
+            "name": "history_messages",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          },
+          {
+            "name": "request_messages",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          },
+          {
+            "name": "omitted_history_messages",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          },
+          {
+            "name": "omitted_history_groups",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          }
+        ]
+      }
+    },
+    "agent_runtime.context.ContextWindow": {
+      "select": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "name": "self",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          },
+          {
+            "name": "history",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          },
+          {
+            "name": "current",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          }
+        ]
+      },
+      "__init__": {
+        "kind": "sync",
+        "parameters": [
+          {
+            "name": "self",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
+          },
+          {
+            "name": "max_bytes",
+            "kind": "POSITIONAL_OR_KEYWORD",
+            "default": "<required>"
           }
         ]
       }
