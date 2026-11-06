@@ -39,9 +39,9 @@ optional integrations and host-owned resources. See [architecture](architecture.
 | C. Guard library boundaries | Shipped in v0.5.0 | Import, packaging, API, documentation and compatibility guards |
 | D. Validate one host workload | Delivered in v0.6.0; actual assets and independent adoption verified | Matched workload, correctness and final-head delivery gates |
 | E. Establish long-history resource boundaries | Published in v0.7.0; actual assets and host acceptance verified | Actual v0.6.0 baseline, separated timing/diagnostic evidence and justified minimal design |
-| F. Validate every protected model input | Host-owned policy and native/framework acceptance implemented; final adoption delivery gates pending | Actual v0.7.0 baseline, explicit host byte policy and model/framework ownership |
+| F. Validate every protected model input | Delivered as host-owned policy on v0.7.0; see delivery audit and promotion gates | Actual v0.7.0 baseline, explicit host byte policy and model/framework ownership |
 
-A-E now have implementation and independent acceptance evidence. Keep final-head/main promotion
+A-F now have implementation and independent acceptance evidence. Keep final-head/main promotion
 checks for the adoption revision. A new stage needs an explicit host requirement and bounded
 acceptance criteria; completion here does not authorize expansion into the deferred product areas.
 
@@ -243,14 +243,11 @@ documents configuration, snapshot/cleanup ownership, full-scan costs and rollbac
 
 ## F. Validate every protected model input
 
-Stage F execution starts with the [frozen model-input workload](validation/stage-f-workload.md).
-Observe actual Release Desk model calls and focused tool-growth/hook cases before selecting an API.
-Compare a host wrapper with native integration; retain framework-owned execution and explicit
-coverage limits. Complete independent correctness/resource/performance acceptance and delivery;
-do not require a library release if existing public extension points satisfy the host requirement.
+Stage F follows the [frozen model-input workload](validation/stage-f-workload.md).
+Actual Release Desk and focused growth cases preceded the API decision. Existing
+public model boundaries satisfy the host requirement without a new library release.
 The [normal Release Desk baseline](validation/stage-f-release-desk-baseline.md) passes 240 actual
-model calls with no message-budget overflow. This is a scoped no-gap finding; execute the frozen
-large-tool, multi-round, tool-schema and hook cases before choosing a policy or new API.
+model calls with no message-budget overflow. This remains a scoped no-gap finding.
 
 Those [focused cases](validation/stage-f-input-growth.md) reproduce post-selection
 growth. [ADR 0017](adr/0017-host-owned-model-input-budgets.md) chooses an explicit host
@@ -259,8 +256,10 @@ wrapper using existing model protocols, with no library API or release. The
 [real framework](validation/stage-f-framework-boundaries.md) acceptance pass against
 the actual v0.7.0 wheel. Release Desk explicitly adopts the two-dimensional policy;
 the [runbook](runbooks/model-input-budgets.md) and [adoption guide](adopting-model-input-budgets.md)
-cover enable/disable, effects, mapping boundaries and rollback. Final-head/main
-checks and the delivery audit still gate Stage F completion.
+cover enable/disable, effects, mapping boundaries and rollback. The
+[delivery audit](validation/stage-f-delivery-audit.md) records requirements, actual-wheel
+acceptance, preserved limitations and owned-service cleanup. Exact-head and applicable
+main checks gate every revision's promotion.
 
 ## Deferred until justified
 

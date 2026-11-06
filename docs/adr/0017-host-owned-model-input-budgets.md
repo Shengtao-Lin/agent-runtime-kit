@@ -1,7 +1,8 @@
 # ADR 0017: Host-owned Model Input Budgets
 
 Status: accepted design; native and explicit real-framework boundaries validated against
-published v0.7.0. Final application adoption and delivery audit are tracked in Stage F.
+published v0.7.0. [Independent application adoption](../validation/stage-f-host-adoption.md)
+passed; final promotion is tracked in the [delivery audit](../validation/stage-f-delivery-audit.md).
 
 ## Evidence and alternatives
 
