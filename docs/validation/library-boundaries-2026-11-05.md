@@ -49,5 +49,7 @@ it is not the published v0.4.2 wheel.
   forbidden import prefixes checked. The report records the actual installed module path.
 - Negative pytest fixtures reject forbidden imports and missing/unexpected wheel resources.
 
-Final-commit CI and downstream wheel acceptance are required before merge. Documentation structure,
-public API inventory and compatibility-trigger expansion are separate remaining Stage C work.
+PR #39 merged after final-commit CI and standalone application checks passed at `827c368`.
+CI included the external core-only wheel probe and downstream PostgreSQL consumer gates.
+Documentation structure, public API inventory and compatibility-trigger expansion are separate
+Stage C work; merging these guards does not complete the whole stage.
