@@ -19,6 +19,7 @@ from release_desk.review import Release, ReviewInput, review_release
 import agent_runtime
 from agent_runtime.errors import ContextBudgetExceededError
 from agent_runtime.feedback import FeedbackSubmission
+from agent_runtime.memory import PostgresMemoryStore
 
 
 class Snapshot:
@@ -66,16 +67,16 @@ def test_consumes_installed_release_not_source_checkout():
     assert provenance["url"].endswith(".whl")
     assert not provenance.get("dir_info", {}).get("editable", False)
     if os.environ.get("RELEASE_DESK_LIBRARY_SOURCE") == "published":
-        assert distribution.version == "0.6.0"
+        assert distribution.version == "0.7.0"
         assert provenance["url"] == (
-            "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.6.0/"
-            "agent_runtime_kit-0.6.0-py3-none-any.whl"
+            "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.7.0/"
+            "agent_runtime_kit-0.7.0-py3-none-any.whl"
         )
         lock = tomllib.loads((Path(__file__).parents[1] / "uv.lock").read_text(encoding="utf-8"))
         package = next(item for item in lock["package"] if item["name"] == "agent-runtime-kit")
         assert package["source"]["url"] == provenance["url"]
         assert package["wheels"][0]["hash"] == (
-            "sha256:abe01feae67feab23f5a5625a3a19f99914bd24e10d87da711f14a119e027798"
+            "sha256:17464f89c4516b9fc3ef706db54c7b69ea5de4d6dfc67049f650d449464b39cd"
         )
     assert importlib.util.find_spec("examples") is None
     assert importlib.util.find_spec("langchain_core") is None
@@ -179,6 +180,10 @@ async def test_application_body_failure_closes_runtime() -> None:
 
 def test_context_configuration_supports_explicit_budget_and_disable(monkeypatch):
     monkeypatch.delenv("RELEASE_DESK_CONTEXT_MAX_BYTES", raising=False)
+    monkeypatch.delenv("RELEASE_DESK_STREAM_HISTORY", raising=False)
+    assert Settings(database_url=SecretStr("synthetic")).stream_history is True
+    monkeypatch.setenv("RELEASE_DESK_STREAM_HISTORY", "false")
+    assert Settings(database_url=SecretStr("synthetic")).stream_history is False
     assert Settings(database_url=SecretStr("synthetic")).context_max_bytes == 65_536
     monkeypatch.setenv("RELEASE_DESK_CONTEXT_MAX_BYTES", "4096")
     assert Settings(database_url=SecretStr("synthetic")).context_max_bytes == 4096
@@ -192,11 +197,31 @@ def test_context_configuration_supports_explicit_budget_and_disable(monkeypatch)
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("stream_history", [False, True])
 async def test_repeated_reviews_bound_initial_context_without_losing_history(
-    monkeypatch, streaming
+    monkeypatch, streaming, stream_history
 ):
     observed = []
     original = ReviewRouter.generate
+    reads = {"materialized": 0, "incremental": 0}
+    original_get = PostgresMemoryStore.get_messages
+    original_stream = PostgresMemoryStore.stream_messages
+
+    async def get_messages(self, *args, **kwargs):
+        reads["materialized"] += 1
+        return await original_get(self, *args, **kwargs)
+
+    async def stream_messages(self, *args, **kwargs):
+        reads["incremental"] += 1
+        source = original_stream(self, *args, **kwargs)
+        try:
+            async for item in source:
+                yield item
+        finally:
+            await source.aclose()
+
+    monkeypatch.setattr(PostgresMemoryStore, "get_messages", get_messages)
+    monkeypatch.setattr(PostgresMemoryStore, "stream_messages", stream_messages)
 
     async def record(self, messages, **kwargs):
         if messages[-1].role == "user":
@@ -217,6 +242,7 @@ async def test_repeated_reviews_bound_initial_context_without_losing_history(
         database_url=SecretStr(os.environ["RELEASE_DESK_DATABASE_URL"]),
         namespace=f"release-desk-context-{uuid4()}",
         context_max_bytes=65536,
+        stream_history=stream_history,
     )
     review = ReviewInput(repository="synthetic/project", tag="v0.3.0")
     source = Snapshot()
@@ -240,6 +266,10 @@ async def test_repeated_reviews_bound_initial_context_without_losing_history(
             assert response.tool_results[0].output["metadata_ready"]
             thread_id = response.thread_id
         assert source.calls == 60 and len(observed) == 60
+        assert reads == {
+            "materialized": 0 if stream_history else 60,
+            "incremental": 60 if stream_history else 0,
+        }
         assert max(size for size, _ in observed) <= 65536
         assert any(omitted > 0 for _, omitted in observed)
         history = await app.memory.get_messages(thread_id, namespace=settings.namespace)
@@ -250,15 +280,55 @@ async def test_repeated_reviews_bound_initial_context_without_losing_history(
             "tool",
             "assistant",
         ] * 60
-    # Recomposition with a different policy does not reexecute the successful key.
+    # Changing both the window and read mode does not reexecute the successful key.
     async with application(
-        settings.model_copy(update={"context_max_bytes": 2}), source=source
+        settings.model_copy(update={"context_max_bytes": 2, "stream_history": not stream_history}),
+        source=source,
     ) as app:
+        before_replay = reads.copy()
         replay = await app.runtime.invoke(app.agent_id, current, idempotency_key="59")
         assert replay == response and source.calls == 60
+        assert reads == before_replay
         with pytest.raises(ContextBudgetExceededError):
             await app.runtime.invoke(
                 app.agent_id, app.request(review, thread_id=thread_id), idempotency_key="overflow"
             )
         assert source.calls == 60
+        expected_reads = before_replay.copy()
+        expected_reads["materialized" if stream_history else "incremental"] += 1
+        assert reads == expected_reads
         assert len(await app.memory.get_messages(thread_id, namespace=settings.namespace)) == 240
+
+
+@pytest.mark.asyncio
+async def test_disabling_context_uses_complete_history_with_incremental_setting(monkeypatch):
+    observed = []
+    original = ReviewRouter.generate
+
+    async def record(self, messages, **kwargs):
+        if messages[-1].role == "user":
+            assert "agent_runtime.context" not in kwargs["context"].attributes
+            observed.append(len(messages))
+        return await original(self, messages, **kwargs)
+
+    def unexpected_stream(*args, **kwargs):
+        pytest.fail("Disabling the context window must disable incremental selection")
+
+    monkeypatch.setattr(ReviewRouter, "generate", record)
+    monkeypatch.setattr(PostgresMemoryStore, "stream_messages", unexpected_stream)
+    settings = Settings(
+        database_url=SecretStr(os.environ["RELEASE_DESK_DATABASE_URL"]),
+        namespace=f"release-desk-no-window-{uuid4()}",
+        context_max_bytes=None,
+        stream_history=True,
+    )
+    review = ReviewInput(repository="synthetic/project", tag="v0.3.0")
+    async with application(settings, source=Snapshot()) as app:
+        first = await app.runtime.invoke(app.agent_id, app.request(review), idempotency_key="first")
+        await app.runtime.invoke(
+            app.agent_id, app.request(review, thread_id=first.thread_id), idempotency_key="second"
+        )
+        assert observed == [1, 5]
+        assert (
+            len(await app.memory.get_messages(first.thread_id, namespace=settings.namespace)) == 8
+        )

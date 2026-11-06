@@ -1,8 +1,7 @@
 # Public API Inventory and Compatibility Review
 
-This inventory describes v0.6.0 plus development Stage E incremental history APIs, which are not yet
-published. Earlier published
-artifacts remain immutable. The package version, canonical `v1` contract and PostgreSQL revision `0002` are separate
+This inventory describes published v0.7.0, including opt-in incremental history APIs. Earlier
+published artifacts remain immutable. The package version, canonical `v1` contract and PostgreSQL revision `0002` are separate
 compatibility dimensions. An unchanged field/signature does not imply unchanged validation behavior.
 
 ## Supported entry points
@@ -11,7 +10,7 @@ compatibility dimensions. An unchanged field/signature does not imply unchanged 
 | --- | --- | --- |
 | Runtime and routing | Root `AgentRuntime`, `AgentRegistry`; invoke/stream/shutdown/lifespan; register/get/list descriptors | Runtime/provider signature snapshot, runtime tests and installed consumer |
 | Initial context (since v0.6.0) | `context.ContextWindow(max_bytes)`, `.select(history, current)`; `ContextSelection` fields/`.summary()`; optional `AgentRuntime(context_window=...)`; `ContextSelectionError`/`ContextBudgetExceededError` | Byte/pair/mandatory-input unit tests, real PostgreSQL durable acceptance, installed framework consumers and host workload |
-| Incremental history (development) | `memory.StreamingMemoryStore.stream_messages(...)`, concrete PostgreSQL implementation; `ContextWindow.select_stream(...)`; explicit `AgentRuntime(stream_history=True)` requiring a window and capable store | Differential selection, real cursor snapshot/cancellation/corrupt-history tests, installed consumers and matched long-history workloads |
+| Incremental history (since v0.7.0) | `memory.StreamingMemoryStore.stream_messages(...)`, concrete PostgreSQL implementation; `ContextWindow.select_stream(...)`; explicit `AgentRuntime(stream_history=True)` requiring a window and capable store | Differential selection, real cursor snapshot/cancellation/corrupt-history tests, installed consumers and matched long-history workloads |
 | Canonical data | Root exports and `agent_runtime.models`: messages, tool calls/results, requests/responses, invocation input/output/context, usage, descriptors and runtime events | Canonical model and HTTP contract tests; durable JSON round trips/replay |
 | Agent extensions | `adapters.base`: `AgentInvoker`, `StreamingAgentInvoker`, `AgentStreamEvent` and its text/tool/completed variants | Extension member inventory, union discriminator checks, invalid-stream regressions |
 | Model extensions | `models_clients`: `ModelClient`, `StreamingModelClient`, `ModelResult`, model stream variants and deterministic client | Extension member inventory, model-result/stream/usage behavior suites |

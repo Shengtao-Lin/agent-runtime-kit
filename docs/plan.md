@@ -1,6 +1,6 @@
 # Development Plan
 
-Reviewed on 2026-10-28 against v0.4.2; execution status updated on 2026-11-06 for v0.6.0.
+Reviewed on 2026-10-28 against v0.4.2; execution status updated on 2026-11-06 for v0.7.0.
 This is the living implementation queue, not a release log
 or authorization to spend money, select credentials or change production systems. Historical
 execution records are [archived separately](validation/iteration-history-through-v0.4.2.md).
@@ -14,15 +14,17 @@ optional integrations and host-owned resources. See [architecture](architecture.
 [design review](validation/architecture-review-2026-10-28.md).
 
 - Initial capability scope is implemented; see [initial-spec closure](validation/initial-spec-closure.md).
-- v0.6.0 is published with Stage D's optional initial-context window, following v0.5.0's B/C
+- v0.7.0 is published with Stage E's opt-in incremental history reads and v0.6.0's initial-context
+  window, following v0.5.0's B/C
   extension and architectural contracts and v0.4.2's atomic/fenced persistence, lifetime management
   and usage accounting. Contract is `v1`, schema `0002`.
 - The 2026-10-28 review used release commit `b4bf577` and publication documentation at `68ac428`.
   [Publication PR #33](https://github.com/Shengtao-Lin/agent-runtime-kit/pull/33) subsequently passed
   CI and merged on 2026-10-29. This revision preserves that review's evidence and current priorities.
-- Release Desk pins actual v0.6.0 in its independent lock and explicitly configures a 64 KiB window.
+- Release Desk pins actual v0.7.0 in its independent lock and explicitly enables incremental
+  history with a 64 KiB window.
   Installed-wheel application tests and the public metadata/restart/feedback canary passed. See
-  [publication and adoption evidence](validation/v0.6.0-publication.md). Earlier adoption reports
+  [publication and adoption evidence](validation/v0.7.0-publication.md). Earlier adoption reports
   remain historical evidence; final-head/main checks gate each adoption revision's promotion.
 - Existing gates cover real PostgreSQL, non-editable wheels, preserved-state upgrades, container
   shutdown and selected dependency matrices. They do not prove universal extension conformance,
@@ -32,13 +34,13 @@ optional integrations and host-owned resources. See [architecture](architecture.
 
 | Stage | Outcome | Depends on |
 | --- | --- | --- |
-| A. Close release adoption | Completed for v0.4.2; repeated for v0.5.0 and v0.6.0 | Verified assets and application acceptance |
+| A. Close release adoption | Completed for v0.4.2; repeated through v0.7.0 | Verified assets and application acceptance |
 | B. Enforce extension contracts | Shipped in v0.5.0 | Terminal/canonical/policy acceptance |
 | C. Guard library boundaries | Shipped in v0.5.0 | Import, packaging, API, documentation and compatibility guards |
 | D. Validate one host workload | Delivered in v0.6.0; actual assets and independent adoption verified | Matched workload, correctness and final-head delivery gates |
-| E. Establish long-history resource boundaries | In progress; pre-measurement requirements frozen | Actual v0.6.0 baseline, separated timing/diagnostic evidence and justified minimal design |
+| E. Establish long-history resource boundaries | Published in v0.7.0; actual assets and host acceptance verified | Actual v0.6.0 baseline, separated timing/diagnostic evidence and justified minimal design |
 
-A-D now have implementation and independent acceptance evidence. Keep final-head/main promotion
+A-E now have implementation and independent acceptance evidence. Keep final-head/main promotion
 checks for the adoption revision. A new stage needs an explicit host requirement and bounded
 acceptance criteria; completion here does not authorize expansion into the deferred product areas.
 
@@ -205,7 +207,7 @@ host workload, required context semantics and operational limits before choosing
 Each option needs its own evidence, ADR where contracts change, rollback and independent acceptance.
 No Stage E implementation is implicitly included in this completed Stage D scope.
 
-## E. Establish long-history resource boundaries
+## E. Establish long-history resource boundaries (published in v0.7.0)
 
 Execution authorized and started on 2026-11-06. The separate
 [Stage E workload specification](validation/stage-e-workload.md) freezes the actual v0.6.0 baseline,
@@ -230,8 +232,11 @@ absolute budget and short-history regression gate across three repetitions, 42 p
 continuations. Source CI passes 758 tests. The installed actual-v0.6.0 upgrade consumer passes 176
 cases (four historical readiness probes deselected, no skips), plus a 30-second shared-engine soak.
 [PR #49](https://github.com/Shengtao-Lin/agent-runtime-kit/pull/49) merged after all final-head checks.
-[v0.7.0 release preparation](validation/v0.7.0-readiness.md), verified main, actual publication and
-independently locked Release Desk adoption remain delivery gates; Stage E is not yet delivered.
+[v0.7.0 preparation](validation/v0.7.0-readiness.md), corrected release-gate verification and verified
+main preceded the immutable tag. [Actual publication and independent adoption](validation/v0.7.0-publication.md)
+passed asset identity, installed-wheel, real-framework upgrade/soak and application canaries. Final-head
+and applicable main checks still gate promotion of this adoption revision; the [delivery audit](validation/stage-e-delivery-audit.md)
+tracks the complete scope without replacing the frozen comparison.
 The [history reading runbook](runbooks/history-reading.md)
 documents configuration, snapshot/cleanup ownership, full-scan costs and rollback.
 

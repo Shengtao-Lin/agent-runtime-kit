@@ -3,10 +3,9 @@
 ## Purpose and availability
 
 Use this capability when complete transcript materialization exceeds a measured host resource
-budget while the application still needs one continuous durable conversation. It is implemented
-in development for Stage E and is **not available in the published v0.6.0 wheel**.
-[Repeated independent acceptance](../validation/stage-e-incremental-history.md) passed; publication
-is pending. See [ADR 0016](../adr/0016-history-materialization-and-validation.md)
+budget while the application still needs one continuous durable conversation. It is available
+since v0.7.0 and absent from v0.6.0. [Repeated independent acceptance](../validation/stage-e-incremental-history.md)
+and [actual publication/adoption](../validation/v0.7.0-publication.md) passed. See [ADR 0016](../adr/0016-history-materialization-and-validation.md)
 and the [frozen workload requirements](../validation/stage-e-workload.md).
 
 The host owns admission, engine/pool lifecycle, input/tool payload limits, timeouts and business

@@ -1,6 +1,6 @@
 # Architecture
 
-Updated for v0.6.0 publication on 2026-11-06, following the v0.4.2 review on 2026-10-28.
+Updated for v0.7.0 publication on 2026-11-06, following the v0.4.2 review on 2026-10-28.
 This describes implemented behavior unless marked
 **proposed**. [The plan](plan.md) owns future work; [ADRs](adr/README.md) explain decisions;
 [runbooks](runbooks/README.md) explain operation. Release evidence is not production certification.
@@ -72,7 +72,7 @@ All registered invokers enter the same durable runtime envelope. The native path
 model client and tool registry. Framework wrappers call their supplied `ainvoke()` or opt-in
 `astream()`; the kit does not take over graph internals.
 
-| Policy / contract | Actual scope in v0.6.0 |
+| Policy / contract | Actual scope in v0.7.0 |
 | --- | --- |
 | `before_model` / `after_model` | Once around the complete invoker, despite the historical names; not each native model round |
 | `before_tool` / `after_tool` | Only a configured `ToolRegistry` receiving a runtime context |
@@ -122,12 +122,12 @@ This capability ships in v0.6.0; the library default remains full-history input.
 explicitly configures 64 KiB. See [actual adoption evidence](validation/v0.6.0-publication.md).
 
 The measured [Stage D baseline](validation/stage-d-baseline.md) justifies an initial-context bound.
-Full history is still loaded and scanned; no bounded database read or process-memory guarantee is
-claimed. Native tool rounds, framework mappers/checkpoints and trusted host hooks can grow/change
+The default path still materializes full history; both paths scan all rows. No bounded database
+read or universal process-memory guarantee is claimed. Native tool rounds, framework mappers/checkpoints and trusted host hooks can grow/change
 context after selection. Per-model token/byte policy requires a separate explicit contract. See
 the [component runbook](runbooks/context-window.md) for configuration, observation and rollback.
 
-### Incremental history consumption (development)
+### Incremental history consumption (since v0.7.0)
 
 Stage E's [baseline](validation/stage-e-baseline.md) reproduces full-history materialization cost.
 [ADR 0016](adr/0016-history-materialization-and-validation.md) adds explicit
@@ -140,9 +140,9 @@ and exact replay remain unchanged. No schema migration is required.
 
 Database scanning/transfer remain complete. Fetch batches cap rows, not bytes; individual payloads,
 pending tool IDs and server work remain workload-dependent. There is no universal RSS or per-model
-input guarantee. This capability is not in published v0.6.0;
-[repeated independent acceptance](validation/stage-e-incremental-history.md) passed and publication
-is pending. See the [history reading runbook](runbooks/history-reading.md).
+input guarantee. [Repeated independent acceptance](validation/stage-e-incremental-history.md) and
+[actual v0.7.0 publication/adoption](validation/v0.7.0-publication.md) passed. Release Desk explicitly
+enables this mode with its 64 KiB window. See the [history reading runbook](runbooks/history-reading.md).
 
 ## Persistence and concurrency invariants
 
