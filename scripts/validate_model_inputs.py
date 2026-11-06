@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import tomllib
+import urllib.request
 from pathlib import Path
 
 BASELINE_VERSION = "0.7.0"
@@ -73,6 +74,11 @@ def main() -> None:
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(path, destination)
     try:
+        with urllib.request.urlopen(BASELINE_URL, timeout=30) as response:
+            wheel_bytes = response.read(5 * 1024 * 1024 + 1)
+        assert hashlib.sha256(wheel_bytes).hexdigest() == BASELINE_SHA256
+        wheel_path = reports / "agent_runtime_kit-0.7.0-py3-none-any.whl"
+        wheel_path.write_bytes(wheel_bytes)
         with tempfile.TemporaryDirectory(prefix="runtime-model-inputs-") as temporary:
             root = Path(temporary)
             consumer = root / "consumer"
@@ -89,15 +95,25 @@ def main() -> None:
             )
 
             def run(command: list[str], *, capture: bool = False):
-                return subprocess.run(
-                    command,
-                    cwd=consumer,
-                    env=environment,
-                    check=True,
-                    text=True,
-                    capture_output=capture,
-                    timeout=180,
-                )
+                try:
+                    return subprocess.run(
+                        command,
+                        cwd=consumer,
+                        env=environment,
+                        check=True,
+                        text=True,
+                        capture_output=capture,
+                        timeout=180,
+                    )
+                except subprocess.CalledProcessError as exc:
+                    if capture:
+                        (reports / "failure.stdout.txt").write_text(
+                            exc.stdout or "", encoding="utf-8"
+                        )
+                        (reports / "failure.stderr.txt").write_text(
+                            exc.stderr or "", encoding="utf-8"
+                        )
+                    raise
 
             run(["uv", "sync", "--locked", "--python", sys.executable])
             run(["uv", "pip", "check", "--python", str(python)])
@@ -105,17 +121,24 @@ def main() -> None:
                 [
                     str(python),
                     "-c",
-                    "import agent_runtime,importlib.metadata as m,json,pathlib,sys,platform; "
+                    "import agent_runtime,importlib.metadata as m,json,pathlib,sys,platform,zipfile; "
                     "d=m.distribution('agent-runtime-kit'); "
                     "location=pathlib.Path(agent_runtime.__file__); "
                     "assert location.is_relative_to(pathlib.Path(sys.prefix)); "
                     "source=json.loads(d.read_text('direct_url.json')); "
                     f"assert d.version=={BASELINE_VERSION!r}; "
                     f"assert source['url']=={BASELINE_URL!r}; "
-                    f"assert source['archive_info']['hashes']['sha256']=={BASELINE_SHA256!r}; "
+                    "archive=zipfile.ZipFile(sys.argv[1]); "
+                    "names=[n for n in archive.namelist() "
+                    "if n.startswith('agent_runtime/') and not n.endswith('/')]; "
+                    "assert len(names)==60; "
+                    "assert all(pathlib.Path(d.locate_file(n)).read_bytes()==archive.read(n) "
+                    "for n in names); "
                     "print(json.dumps({'version':d.version,'source':source,'python':platform.python_version(),"
+                    "'installed_package_files_match_verified_wheel':len(names),"
                     "'platform':platform.platform(),'packages':"
                     "{p.metadata['Name']:p.version for p in m.distributions()}},indent=2))",
+                    str(wheel_path),
                 ],
                 capture=True,
             )
