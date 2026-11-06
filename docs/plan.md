@@ -214,5 +214,5 @@ v0.5.0 has migration/release notes and a checksum-pinned actual v0.4.2 upgrade l
 retaining every earlier source path. Final release-PR/main/tag checks passed, actual downloaded
 wheel acceptance passed, and Release Desk's independent lock adoption passed local installation,
 restart/replay and feedback checks. See [candidate readiness](validation/v0.5.0-readiness.md) and
-[actual publication/adoption](validation/v0.5.0-publication.md). The adoption revision still requires
-its final-commit CI/application checks before promotion, as for every implementation change.
+[actual publication/adoption](validation/v0.5.0-publication.md). Final-commit CI/application checks
+gate promotion of the adoption revision, as for every implementation change.
