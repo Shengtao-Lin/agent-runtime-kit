@@ -36,7 +36,7 @@ uv run alembic upgrade head
 | Agent ID | `my-agent` | Stable public routing key and part of idempotency lookup |
 | Agent version | `1.0.0` | Observable implementation version; change when behavior changes |
 | Idempotency key | Caller-defined | Stable key for retries of the same semantic request |
-| Initial context window | `None` | Optional canonical byte selection after full history loading; development capability, absent from published v0.5.0 |
+| Initial context window | `None` | Optional canonical byte selection after full history loading; available since v0.6.0, disabled by default |
 
 The example maps `INVOCATION_TIMEOUT_SECONDS` to the runtime timeout. Library consumers pass the
 value directly when constructing `AgentRuntime`.

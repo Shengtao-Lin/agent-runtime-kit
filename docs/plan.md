@@ -1,6 +1,6 @@
 # Development Plan
 
-Reviewed on 2026-10-28 against v0.4.2; execution status updated on 2026-11-06 for v0.5.0.
+Reviewed on 2026-10-28 against v0.4.2; execution status updated on 2026-11-06 for v0.6.0.
 This is the living implementation queue, not a release log
 or authorization to spend money, select credentials or change production systems. Historical
 execution records are [archived separately](validation/iteration-history-through-v0.4.2.md).
@@ -14,15 +14,16 @@ optional integrations and host-owned resources. See [architecture](architecture.
 [design review](validation/architecture-review-2026-10-28.md).
 
 - Initial capability scope is implemented; see [initial-spec closure](validation/initial-spec-closure.md).
-- v0.5.0 is published with the B/C extension and architectural contracts below, on top of v0.4.2's
-  atomic/fenced persistence, lifetime management and usage accounting. Contract is `v1`, schema `0002`.
+- v0.6.0 is published with Stage D's optional initial-context window, following v0.5.0's B/C
+  extension and architectural contracts and v0.4.2's atomic/fenced persistence, lifetime management
+  and usage accounting. Contract is `v1`, schema `0002`.
 - The 2026-10-28 review used release commit `b4bf577` and publication documentation at `68ac428`.
   [Publication PR #33](https://github.com/Shengtao-Lin/agent-runtime-kit/pull/33) subsequently passed
   CI and merged on 2026-10-29. This revision preserves that review's evidence and current priorities.
-- Release Desk now pins actual v0.5.0 in its independent lock; local published-wheel application
-  tests and the public metadata/restart/feedback canary passed. See
-  [publication and adoption evidence](validation/v0.5.0-publication.md). PR #35's earlier v0.4.2
-  adoption remains historical evidence.
+- Release Desk pins actual v0.6.0 in its independent lock and explicitly configures a 64 KiB window.
+  Installed-wheel application tests and the public metadata/restart/feedback canary passed. See
+  [publication and adoption evidence](validation/v0.6.0-publication.md). Earlier adoption reports
+  remain historical evidence; final-head/main checks gate each adoption revision's promotion.
 - Existing gates cover real PostgreSQL, non-editable wheels, preserved-state upgrades, container
   shutdown and selected dependency matrices. They do not prove universal extension conformance,
   production load capacity or account-specific provider compatibility.
@@ -31,14 +32,14 @@ optional integrations and host-owned resources. See [architecture](architecture.
 
 | Stage | Outcome | Depends on |
 | --- | --- | --- |
-| A. Close release adoption | Completed for v0.4.2; repeated for actual v0.5.0 below | Verified assets and application acceptance |
+| A. Close release adoption | Completed for v0.4.2; repeated for v0.5.0 and v0.6.0 | Verified assets and application acceptance |
 | B. Enforce extension contracts | Shipped in v0.5.0 | Terminal/canonical/policy acceptance |
 | C. Guard library boundaries | Shipped in v0.5.0 | Import, packaging, API, documentation and compatibility guards |
-| D. Validate one host workload | Context-window candidate validated; v0.6.0 publication/adoption pending | Matched workload, correctness and final-head delivery gates |
+| D. Validate one host workload | Delivered in v0.6.0; actual assets and independent adoption verified | Matched workload, correctness and final-head delivery gates |
 
-A and B can be prepared independently; keep separate PRs and acceptance evidence. Documentation
-clarification does not implement B/C/D. Do not promise a version or feature release before its
-compatibility impact and acceptance criteria are known.
+A-D now have implementation and independent acceptance evidence. Keep final-head/main promotion
+checks for the adoption revision. A new stage needs an explicit host requirement and bounded
+acceptance criteria; completion here does not authorize expansion into the deferred product areas.
 
 ## A. Complete actual-release adoption
 
@@ -152,20 +153,22 @@ a problem, measure redundancy and propose an explicit matrix instead of silently
 **Exit:** deliberate architectural violations are caught and guards run on the changes they protect,
 while core-only consumers remain lightweight.
 
-## D. Choose one concrete host workload before expanding scope
+## D. Validate one concrete host workload (delivered in v0.6.0)
 
 Execution started on 2026-11-05 with the [Release Desk workload specification](validation/stage-d-workload.md).
 The actual v0.5.0 wheel is the frozen baseline. Establish the staged history/concurrency/payload
 measurements before selecting a context or storage API. The [completed baseline](validation/stage-d-baseline.md)
-contains 45 processes and 972 samples; candidate design and implementation remain in progress.
+contains 45 processes and 972 samples; it established the initial-context requirement before the fix.
 PR #44 merged after final-head CI passed, including actual-baseline and candidate-wheel workload
 smokes. [ADR 0015](adr/0015-opt-in-initial-context-window.md) chooses an optional initial-context
 window. Its [implementation and independent comparison](validation/stage-d-context-window.md) passed:
 all 972 candidate inputs fit, with full durable history preserved; 681 root tests and 111 installed
 consumer cases passed. PR #45 merged after final-head CI, application and lower/latest compatibility
-gates passed. The resulting [v0.6.0 release preparation](validation/v0.6.0-readiness.md) and adoption
-remain pending;
-full history materialization is explicitly outside the new byte guarantee.
+gates passed. [Release preparation](validation/v0.6.0-readiness.md) merged in PR #46 after final-head
+checks; verified main was tagged and published. [Actual v0.6.0 acceptance and independent adoption](validation/v0.6.0-publication.md)
+passed core/provider/fresh/upgrade/workload/application checks. Release Desk explicitly enables
+64 KiB, retains complete history and replays across a changed policy. Full history materialization
+is explicitly outside the new byte guarantee.
 The full Stage D goal includes any justified fix, independent acceptance and publication
 when library behavior changes, not just the measurement report.
 
@@ -173,16 +176,33 @@ Start with a host-owned scenario, which may be deterministic/offline. Specify co
 conversation length, input/tool payload sizes, downstream timeouts, side-effect idempotency,
 restart/recovery expectations and privacy constraints. Do not infer capacity from test counts.
 
-The strongest current design pressure is **history/context growth**: runtime loads the whole thread.
-Measure it first. If needed, design context selection separately from durable history, preserving
-tool-call/result pairs and system policy, keeping replay unchanged and making omissions observable.
-No implicit deletion, truncation, summarization or semantic retrieval.
+The measured **initial-context growth** gap is addressed by optional whole-group selection, separate
+from durable history, with current/system messages, tool relationships, replay and omission counts
+preserved. There is no implicit deletion, truncation, summarization or semantic retrieval. Full
+history reads and later model inputs remain distinct limitations, not failures hidden by this bound.
 
 Credentialed provider canaries are an optional separate lane requiring an approved provider/model,
 account, fixture, secret provisioning and spend cap. Offline architecture work is not blocked on them.
 
-**Exit:** a reproducible host scenario demonstrates a gap, a small ADR compares alternatives, and
-candidate-wheel acceptance verifies the chosen contract. Versioning follows the actual change.
+**Exit evidence:** reproducible host gap, alternatives in ADR 0015, three matched repetitions,
+source/installed-wheel correctness, actual v0.6.0 assets and independently locked host adoption.
+Final-head and applicable main checks remain mandatory for promotion of the adoption revision.
+
+### Next decision after Stage D
+
+Do not add another abstraction simply because the finite experiment completed. Collect a concrete
+host workload, required context semantics and operational limits before choosing the next scope:
+
+- If full-history loading violates a measured database/RSS budget, design a separate history-read
+  contract preserving global system policy, tool closure and exact replay; do not claim the current
+  selector supplies it.
+- If a host needs a bound at every model call, specify its model/provider encoding and complete
+  current-tool-result behavior. The initial canonical-byte window cannot provide that guarantee.
+- If neither gap affects the host, retain the current API and focus on integration feedback and
+  relevant compatibility maintenance. Production SLOs require representative uninstrumented runs.
+
+Each option needs its own evidence, ADR where contracts change, rollback and independent acceptance.
+No Stage E implementation is implicitly included in this completed Stage D scope.
 
 ## Deferred until justified
 

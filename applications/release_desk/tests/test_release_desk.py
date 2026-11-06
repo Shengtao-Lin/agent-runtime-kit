@@ -13,10 +13,11 @@ from uuid import uuid4
 
 import pytest
 from pydantic import SecretStr, ValidationError
-from release_desk.application import Settings, application
+from release_desk.application import ReviewRouter, Settings, application
 from release_desk.review import Release, ReviewInput, review_release
 
 import agent_runtime
+from agent_runtime.errors import ContextBudgetExceededError
 from agent_runtime.feedback import FeedbackSubmission
 
 
@@ -65,16 +66,16 @@ def test_consumes_installed_release_not_source_checkout():
     assert provenance["url"].endswith(".whl")
     assert not provenance.get("dir_info", {}).get("editable", False)
     if os.environ.get("RELEASE_DESK_LIBRARY_SOURCE") == "published":
-        assert distribution.version == "0.5.0"
+        assert distribution.version == "0.6.0"
         assert provenance["url"] == (
-            "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.5.0/"
-            "agent_runtime_kit-0.5.0-py3-none-any.whl"
+            "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.6.0/"
+            "agent_runtime_kit-0.6.0-py3-none-any.whl"
         )
         lock = tomllib.loads((Path(__file__).parents[1] / "uv.lock").read_text(encoding="utf-8"))
         package = next(item for item in lock["package"] if item["name"] == "agent-runtime-kit")
         assert package["source"]["url"] == provenance["url"]
         assert package["wheels"][0]["hash"] == (
-            "sha256:d112163a318aa280e64bd20a0d8dd1db519007db3fc5aa419f0f3d1bdb60cd59"
+            "sha256:abe01feae67feab23f5a5625a3a19f99914bd24e10d87da711f14a119e027798"
         )
     assert importlib.util.find_spec("examples") is None
     assert importlib.util.find_spec("langchain_core") is None
@@ -174,3 +175,90 @@ async def test_application_body_failure_closes_runtime() -> None:
             app.request(ReviewInput(repository="synthetic/project", tag="v0.4.0")),
         )
     assert source.calls == 0
+
+
+def test_context_configuration_supports_explicit_budget_and_disable(monkeypatch):
+    monkeypatch.delenv("RELEASE_DESK_CONTEXT_MAX_BYTES", raising=False)
+    assert Settings(database_url=SecretStr("synthetic")).context_max_bytes == 65_536
+    monkeypatch.setenv("RELEASE_DESK_CONTEXT_MAX_BYTES", "4096")
+    assert Settings(database_url=SecretStr("synthetic")).context_max_bytes == 4096
+    monkeypatch.setenv("RELEASE_DESK_CONTEXT_MAX_BYTES", "none")
+    assert Settings(database_url=SecretStr("synthetic")).context_max_bytes is None
+    for value in ("0", "1", "-1"):
+        monkeypatch.setenv("RELEASE_DESK_CONTEXT_MAX_BYTES", value)
+        with pytest.raises(ValidationError):
+            Settings(database_url=SecretStr("synthetic"))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("streaming", [False, True])
+async def test_repeated_reviews_bound_initial_context_without_losing_history(
+    monkeypatch, streaming
+):
+    observed = []
+    original = ReviewRouter.generate
+
+    async def record(self, messages, **kwargs):
+        if messages[-1].role == "user":
+            byte_count = len(
+                json.dumps(
+                    [message.model_dump(mode="json") for message in messages],
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ).encode()
+            )
+            summary = kwargs["context"].attributes["agent_runtime.context"]
+            assert summary["selected_bytes"] == byte_count
+            observed.append((byte_count, summary["omitted_history_messages"]))
+        return await original(self, messages, **kwargs)
+
+    monkeypatch.setattr(ReviewRouter, "generate", record)
+    settings = Settings(
+        database_url=SecretStr(os.environ["RELEASE_DESK_DATABASE_URL"]),
+        namespace=f"release-desk-context-{uuid4()}",
+        context_max_bytes=65536,
+    )
+    review = ReviewInput(repository="synthetic/project", tag="v0.3.0")
+    source = Snapshot()
+    async with application(settings, source=source) as app:
+        thread_id = None
+        for turn in range(60):
+            current = app.request(review, thread_id=thread_id)
+            if streaming:
+                events = [
+                    event
+                    async for event in app.runtime.stream(
+                        app.agent_id, current, idempotency_key=str(turn)
+                    )
+                ]
+                assert events[-1].type == "completed"
+                response = events[-1].response
+            else:
+                response = await app.runtime.invoke(
+                    app.agent_id, current, idempotency_key=str(turn)
+                )
+            assert response.tool_results[0].output["metadata_ready"]
+            thread_id = response.thread_id
+        assert source.calls == 60 and len(observed) == 60
+        assert max(size for size, _ in observed) <= 65536
+        assert any(omitted > 0 for _, omitted in observed)
+        history = await app.memory.get_messages(thread_id, namespace=settings.namespace)
+        assert len(history) == 240
+        assert [item.message.role for item in history] == [
+            "user",
+            "assistant",
+            "tool",
+            "assistant",
+        ] * 60
+    # Recomposition with a different policy does not reexecute the successful key.
+    async with application(
+        settings.model_copy(update={"context_max_bytes": 2}), source=source
+    ) as app:
+        replay = await app.runtime.invoke(app.agent_id, current, idempotency_key="59")
+        assert replay == response and source.calls == 60
+        with pytest.raises(ContextBudgetExceededError):
+            await app.runtime.invoke(
+                app.agent_id, app.request(review, thread_id=thread_id), idempotency_key="overflow"
+            )
+        assert source.calls == 60
+        assert len(await app.memory.get_messages(thread_id, namespace=settings.namespace)) == 240

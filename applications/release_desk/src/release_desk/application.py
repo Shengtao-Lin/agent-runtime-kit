@@ -35,9 +35,12 @@ from release_desk.review import (
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="RELEASE_DESK_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="RELEASE_DESK_", extra="ignore", env_parse_none_str="none"
+    )
     database_url: SecretStr
     namespace: str = Field(default="release-desk", min_length=1, max_length=128)
+    context_max_bytes: int | None = Field(default=65_536, ge=2)
 
 
 class ReviewRouter:
@@ -111,6 +114,9 @@ class Application:
 async def application(
     settings: Settings, *, source: ReleaseSource | None = None
 ) -> AsyncGenerator[Application, None]:
+    # The frozen v0.5.0 workload imports only ReviewRouter, not this newer host composition.
+    from agent_runtime.context import ContextWindow
+
     engine = create_async_engine(
         settings.database_url.get_secret_value(),
         pool_size=2,
@@ -161,6 +167,11 @@ async def application(
             runs=PostgresRunStore(engine),
             namespace=settings.namespace,
             invocation_timeout_seconds=30,
+            context_window=(
+                ContextWindow(settings.context_max_bytes)
+                if settings.context_max_bytes is not None
+                else None
+            ),
         )
         async with runtime.lifespan(shutdown_timeout_seconds=6):
             yield Application(agent_id, runtime, memory, PostgresFeedbackStore(engine))
