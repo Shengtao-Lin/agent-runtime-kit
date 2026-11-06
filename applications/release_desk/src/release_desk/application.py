@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     database_url: SecretStr
     namespace: str = Field(default="release-desk", min_length=1, max_length=128)
     context_max_bytes: int | None = Field(default=65_536, ge=2)
+    stream_history: bool = True
 
 
 class ReviewRouter:
@@ -167,6 +168,7 @@ async def application(
             runs=PostgresRunStore(engine),
             namespace=settings.namespace,
             invocation_timeout_seconds=30,
+            stream_history=settings.stream_history and settings.context_max_bytes is not None,
             context_window=(
                 ContextWindow(settings.context_max_bytes)
                 if settings.context_max_bytes is not None
