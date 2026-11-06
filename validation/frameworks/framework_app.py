@@ -19,6 +19,7 @@ from agent_runtime import AgentRegistry, AgentRuntime
 from agent_runtime.adapters import LangChainRunnableAdapter, LangGraphAdapter
 from agent_runtime.adapters.framework_messages import framework_input, framework_output
 from agent_runtime.feedback import PostgresFeedbackStore
+from agent_runtime.hooks import HookManager
 from agent_runtime.memory import PostgresMemoryStore
 from agent_runtime.models import InvocationInput, RuntimeContext
 from agent_runtime.runs import PostgresRunStore
@@ -52,13 +53,18 @@ class FrameworkApplication:
 
 @asynccontextmanager
 async def application(
-    database_url: str, identity: str, framework: Literal["langchain", "langgraph"]
+    database_url: str,
+    identity: str,
+    framework: Literal["langchain", "langgraph"],
+    *,
+    hooks: HookManager | None = None,
+    registry_tools: bool = True,
 ) -> AsyncIterator[FrameworkApplication]:
     engine = create_async_engine(database_url, pool_size=2, max_overflow=0)
     memory = PostgresMemoryStore(engine)
     runs = PostgresRunStore(engine)
     feedback = PostgresFeedbackStore(engine)
-    tools = ToolRegistry()
+    tools = ToolRegistry(hooks=hooks)
     seen: list[int] = []
     calls: list[int] = []
     entered, cancelled = asyncio.Event(), asyncio.Event()
@@ -118,6 +124,12 @@ async def application(
         message = state["transcript"][-1]
         assert isinstance(message, AIMessage)
         call = message.tool_calls[0]
+        if not registry_tools:
+            value = await quote(**call["args"])
+            tool_message = ToolMessage(
+                id=str(uuid4()), name="quote", tool_call_id=call["id"], content=str(value["cents"])
+            )
+            return {**state, "transcript": [*state["transcript"], tool_message], "phase": "model"}
         result = await tools.invoke(
             call["name"], call["args"], tool_call_id=call["id"], context=state["context"]
         )
@@ -165,6 +177,7 @@ async def application(
         memory=memory,
         runs=runs,
         namespace=identity,
+        hooks=hooks,
         invocation_timeout_seconds=5,
     )
     try:

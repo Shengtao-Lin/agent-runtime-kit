@@ -158,6 +158,7 @@ def main() -> None:
             shutil.copy2(framework_source / "framework_app.py", consumer)
             shutil.copy2(framework_source / "test_frameworks.py", consumer / "tests")
             shutil.copy2(framework_source / "test_streaming.py", consumer / "tests")
+            shutil.copy2(framework_source / "test_policy_frameworks.py", consumer / "tests")
         sync_command = ["uv", "sync", "--locked"]
         if args.frameworks:
             sync_command.extend(["--group", "frameworks"])

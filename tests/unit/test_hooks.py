@@ -79,3 +79,50 @@ async def test_tool_hooks_wrap_execution() -> None:
     result = await tools.invoke("ping", {}, tool_call_id="call-1", context=context())
     assert result.output == "pong"
     assert calls == ["audit:before_tool", "audit:after_tool"]
+
+
+@pytest.mark.parametrize("configured,with_context", [(False, True), (True, False), (True, True)])
+async def test_tool_policy_requires_explicit_manager_and_context(
+    configured: bool, with_context: bool
+) -> None:
+    calls: list[str] = []
+    tools = ToolRegistry(HookManager([RecordingHook("audit", calls)]) if configured else None)
+    tools.register(
+        name="ping", description="Synthetic tool", input_model=EmptyInput, handler=lambda: "pong"
+    )
+    await tools.invoke(
+        "ping", {}, tool_call_id="call-1", context=context() if with_context else None
+    )
+    assert calls == (
+        ["audit:before_tool", "audit:after_tool"] if configured and with_context else []
+    )
+
+
+@pytest.mark.parametrize("phase", ["before_tool", "after_tool"])
+async def test_block_stops_later_hooks_and_records_effect_timing(phase: str) -> None:
+    from agent_runtime.hooks import GuardrailDecision
+
+    calls: list[str] = []
+
+    class Block:
+        name = "block"
+
+        async def handle(self, event: HookEvent) -> None:
+            calls.append(f"block:{event.phase}")
+            if event.phase == phase:
+                raise GuardrailBlockedError(GuardrailDecision(allowed=False))
+
+    async def handler() -> None:
+        calls.append("handler")
+
+    tools = ToolRegistry(HookManager([Block(), RecordingHook("later", calls)]))
+    tools.register(
+        name="ping", description="Synthetic effect", input_model=EmptyInput, handler=handler
+    )
+    with pytest.raises(GuardrailBlockedError):
+        await tools.invoke("ping", {}, tool_call_id="call-1", context=context())
+    assert calls == (
+        ["block:before_tool"]
+        if phase == "before_tool"
+        else ["block:before_tool", "later:before_tool", "handler", "block:after_tool"]
+    )
