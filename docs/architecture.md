@@ -1,6 +1,6 @@
 # Architecture
 
-Updated for v0.5.0 publication on 2026-11-06, following the v0.4.2 review on 2026-10-28.
+Updated for v0.6.0 publication on 2026-11-06, following the v0.4.2 review on 2026-10-28.
 This describes implemented behavior unless marked
 **proposed**. [The plan](plan.md) owns future work; [ADRs](adr/README.md) explain decisions;
 [runbooks](runbooks/README.md) explain operation. Release evidence is not production certification.
@@ -72,7 +72,7 @@ All registered invokers enter the same durable runtime envelope. The native path
 model client and tool registry. Framework wrappers call their supplied `ainvoke()` or opt-in
 `astream()`; the kit does not take over graph internals.
 
-| Policy / contract | Actual scope in v0.5.0 |
+| Policy / contract | Actual scope in v0.6.0 |
 | --- | --- |
 | `before_model` / `after_model` | Once around the complete invoker, despite the historical names; not each native model round |
 | `before_tool` / `after_tool` | Only a configured `ToolRegistry` receiving a runtime context |
@@ -83,7 +83,8 @@ model client and tool registry. Framework wrappers call their supplied `ainvoke(
 The host deliberately shares hook/telemetry configuration where required. Supplying runtime hooks
 does not configure tool registries automatically. Custom extensions are trusted code, not a sandbox.
 
-Input hooks see loaded history plus the new request. Output hooks run before durable completion,
+Input hooks see selected history plus the complete new request when a context window is configured;
+otherwise they see full history plus the request. Output hooks run before durable completion,
 but stream deltas and tool-result events may already have been delivered when they block. Hosts
 requiring pre-disclosure moderation must explicitly buffer/filter output; an output guardrail
 is not a streaming confidentiality gate.
@@ -94,7 +95,7 @@ is not a streaming confidentiality gate.
 2. For an existing agent-scoped idempotency key, verify namespace and request equivalence. Replay
    success; report an active conflict or unavailable failed/blocked outcome otherwise.
 3. Create or verify the thread and claim its active run slot in a short transaction.
-4. Transition to running, then load history. An explicitly configured development context window
+4. Transition to running, then load history. An explicitly configured context window
    selects initial input before `before_model`; the default retains all history. Only the owner
    executes hooks and agent work.
 5. Apply output hooks, find the final assistant message and build the canonical response.
@@ -110,14 +111,15 @@ Keys are unique within `(agent_id, idempotency_key)`, not agent version, namespa
 Successful replay returns the original response IDs, agent version and usage, without executing
 models/tools again. Failed keys never implicitly restart execution.
 
-### Initial context selection (development)
+### Initial context selection (since v0.6.0)
 
 The optional `ContextWindow` from [ADR 0015](adr/0015-opt-in-initial-context-window.md) separates
 execution context from durable history. It retains current-request/system messages and complete
 tool exchanges, then the newest historical groups fitting an explicit canonical UTF-8 byte budget.
 Mandatory overflow fails before invoker dispatch. Hooks see selected input and content-free counts;
 successful finalization still stores the original current request and generated output only.
-This capability targets the next minor release and is absent from published v0.5.0.
+This capability ships in v0.6.0; the library default remains full-history input. Release Desk
+explicitly configures 64 KiB. See [actual adoption evidence](validation/v0.6.0-publication.md).
 
 The measured [Stage D baseline](validation/stage-d-baseline.md) justifies an initial-context bound.
 Full history is still loaded and scanned; no bounded database read or process-memory guarantee is

@@ -17,7 +17,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--wheel", type=Path, help="Pre-publication candidate override")
     parser.add_argument(
-        "--live", action="store_true", help="Read public GitHub v0.5.0 metadata once"
+        "--live", action="store_true", help="Read public GitHub v0.6.0 metadata once"
     )
     parser.add_argument("--report-dir", type=Path, default=Path("build/release-desk-validation"))
     args = parser.parse_args()
@@ -31,6 +31,7 @@ def main() -> None:
     environment.pop("PYTHONHOME", None)
     environment["RELEASE_DESK_NAMESPACE"] = f"release-desk-canary-{uuid4()}"
     environment["RELEASE_DESK_LIBRARY_SOURCE"] = "candidate" if args.wheel else "published"
+    environment["RELEASE_DESK_CONTEXT_MAX_BYTES"] = "65536"
     with tempfile.TemporaryDirectory(prefix="release-desk-") as temporary:
         app = Path(temporary) / "application"
         shutil.copytree(
@@ -104,7 +105,7 @@ def main() -> None:
         )
         if args.live:
             key = f"public-canary-{uuid4()}"
-            command = [str(cli), "review", "Shengtao-Lin/agent-runtime-kit", "v0.5.0", "--key", key]
+            command = [str(cli), "review", "Shengtao-Lin/agent-runtime-kit", "v0.6.0", "--key", key]
             streamed = run([*command, "--stream"], capture=True)
             events = [json.loads(line) for line in streamed.stdout.splitlines()]
             assert events[-1]["type"] == "completed"
@@ -113,7 +114,11 @@ def main() -> None:
             assert review["metadata_ready"]
             assert review["repository"] == command[2]
             assert review["tag"] == command[3]
-            replay = json.loads(run(command, capture=True).stdout)
+            environment["RELEASE_DESK_CONTEXT_MAX_BYTES"] = "2"
+            try:
+                replay = json.loads(run(command, capture=True).stdout)
+            finally:
+                environment["RELEASE_DESK_CONTEXT_MAX_BYTES"] = "65536"
             assert replay == response
             history = json.loads(
                 run([str(cli), "history", response["thread_id"]], capture=True).stdout
@@ -142,6 +147,8 @@ def main() -> None:
                         "checks": review["checks"],
                         "replay_preserved": True,
                         "feedback_idempotent": True,
+                        "context_max_bytes": 65536,
+                        "replay_context_max_bytes": 2,
                     },
                     indent=2,
                 )

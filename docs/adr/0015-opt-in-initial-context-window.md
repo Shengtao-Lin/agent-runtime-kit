@@ -1,6 +1,6 @@
 # ADR 0015: Opt-in Initial Context Window
 
-Status: accepted; implemented and independently validated in development. Publication remains pending.
+Status: accepted; shipped in v0.6.0 with [actual asset and independent adoption evidence](../validation/v0.6.0-publication.md).
 
 ## Evidence and alternatives
 

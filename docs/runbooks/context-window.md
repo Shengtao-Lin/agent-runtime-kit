@@ -3,8 +3,8 @@
 ## Purpose and availability
 
 Use this component when a host needs to retain the complete durable transcript while limiting the
-canonical messages passed into an agent. It is an opt-in development capability targeting the next
-minor release; published v0.5.0 does not include it. See
+canonical messages passed into an agent. It is available since v0.6.0 and disabled by default in the
+library. See
 [ADR 0015](../adr/0015-opt-in-initial-context-window.md) and the
 [measured workload](../validation/stage-d-baseline.md).
 

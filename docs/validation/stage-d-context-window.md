@@ -2,7 +2,8 @@
 
 Validated on 2026-11-05 (America/New_York). The optional window resolves the measured initial-context
 gap while preserving full durable history. This report covers development code and an independently
-installed candidate wheel; publication and Release Desk adoption remain separate delivery gates.
+installed candidate wheel. Subsequent [v0.6.0 publication and Release Desk adoption](v0.6.0-publication.md)
+are recorded separately rather than attributed to this candidate artifact.
 See [ADR 0015](../adr/0015-opt-in-initial-context-window.md) and the
 [component runbook](../runbooks/context-window.md).
 
@@ -97,4 +98,5 @@ history, replay and cancellation. Their internal mapper/checkpoint/model budget 
 The CI candidate workload smoke now opts into the window while the actual v0.5.0 smoke keeps default
 behavior. Consumer and lower/latest compatibility lanes include selector, persistence and real
 framework context acceptance. Existing upgrade, provider, streaming and ownership gates remain.
-Final-head PR/main checks and the subsequent minor release's actual assets/adoption are still required.
+Final-head PR/main promotion and actual v0.6.0 assets/adoption are recorded in the publication report.
+This candidate report retains the scope and provenance of the original experiment.

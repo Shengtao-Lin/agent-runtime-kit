@@ -2,14 +2,14 @@
 
 ## Scope and compatibility
 
-v0.6.0 is a release candidate until the tag's actual assets and application adoption are verified.
+v0.6.0 is published with [verified actual assets and independent adoption](validation/v0.6.0-publication.md).
 It adds optional `AgentRuntime(context_window=...)` and the importable `agent_runtime.context`
 module. Existing calls remain valid, `context_window=None` retains full history, and canonical
 contract `v1`, PostgreSQL revision `0002` and dependency ranges are unchanged.
 
 The [Stage D evidence](validation/stage-d-context-window.md) records the development candidate's
 matched workload and correctness acceptance. That candidate used pre-release metadata; it is not
-the published v0.5.0 asset or a claim that v0.6.0 has already shipped.
+the published v0.5.0 or v0.6.0 asset. Actual publication acceptance is recorded separately above.
 
 ## Opt in deliberately
 

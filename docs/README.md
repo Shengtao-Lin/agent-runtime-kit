@@ -13,11 +13,10 @@ sample service is not required for application integration.
 | Operate or troubleshoot one component | [Component runbooks](runbooks/README.md) |
 | Run the fictional service / local walkthrough | [User runbook](user-runbook.md) |
 | Review the current design assessment | [2026-10-28 review](validation/architecture-review-2026-10-28.md) |
-| Upgrade to the current release | [v0.5.0 upgrade guide](upgrading-to-v0.5.0.md) |
-| Prepare for the context-window candidate | [v0.6.0 upgrade guide](upgrading-to-v0.6.0.md) |
-| Inspect current release preparation | [v0.6.0 readiness](validation/v0.6.0-readiness.md) |
+| Upgrade to the current release | [v0.6.0 upgrade guide](upgrading-to-v0.6.0.md) |
+| Review v0.6.0 pre-publication checks | [v0.6.0 readiness](validation/v0.6.0-readiness.md) |
 | Inspect the independent host workload comparison | [Stage D context acceptance](validation/stage-d-context-window.md) |
-| Inspect actual publication and adoption evidence | [v0.5.0 evidence](validation/v0.5.0-publication.md) |
+| Inspect actual publication and adoption evidence | [v0.6.0 evidence](validation/v0.6.0-publication.md) |
 | Review the pre-publication candidate checks | [v0.5.0 readiness](validation/v0.5.0-readiness.md) |
 
 ## Which document is authoritative for what?

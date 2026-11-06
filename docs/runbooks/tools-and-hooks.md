@@ -61,7 +61,7 @@ should not run before an inexpensive rejection.
 | `after_tool` | Tool name, call ID, and result | Result checks and categorical audit |
 
 The runtime calls `before_model`/`after_model` once around the complete invoker, not on each model
-round. With the opt-in development [context window](context-window.md), `before_model` sees selected
+round. With the opt-in [context window](context-window.md), `before_model` sees selected
 input and omission counts, not the full durable transcript. Tool hooks require both an explicitly
 configured `ToolRegistry(hooks=...)` and a supplied
 runtime context. Reuse the intended hook manager deliberately; runtime construction does not wire
