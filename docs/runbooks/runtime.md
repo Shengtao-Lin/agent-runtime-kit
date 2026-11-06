@@ -36,11 +36,14 @@ uv run alembic upgrade head
 | Agent ID | `my-agent` | Stable public routing key and part of idempotency lookup |
 | Agent version | `1.0.0` | Observable implementation version; change when behavior changes |
 | Idempotency key | Caller-defined | Stable key for retries of the same semantic request |
+| Initial context window | `None` | Optional canonical byte selection after full history loading; development capability, absent from published v0.5.0 |
 
 The example maps `INVOCATION_TIMEOUT_SECONDS` to the runtime timeout. Library consumers pass the
 value directly when constructing `AgentRuntime`.
 
 Consumers can also pass `cleanup_timeout_seconds`. Both values must be finite and positive.
+For explicit history selection, see the [context window runbook](context-window.md). Its allowance
+does not bound database reads, process memory or every model call.
 Expect the invocation budget plus one cleanup budget and cooperative teardown overhead, not a
 hard real-time guarantee. Blocking code and slow driver cancellation require host-side limits.
 Cancellation cannot undo tool effects. See [ADR 0008](../adr/0008-full-invocation-deadline.md).

@@ -15,6 +15,7 @@ from uuid import UUID, uuid4
 
 from agent_runtime._streams import checked_stream, close_source
 from agent_runtime.adapters.base import StreamingAgentInvoker
+from agent_runtime.context import ContextWindow
 from agent_runtime.errors import (
     AgentInvocationError,
     IdempotencyConflictError,
@@ -76,6 +77,7 @@ class AgentRuntime:
         invocation_timeout_seconds: float = 60.0,
         cleanup_timeout_seconds: float = 5.0,
         telemetry: RuntimeTelemetry | None = None,
+        context_window: ContextWindow | None = None,
     ) -> None:
         if not isfinite(invocation_timeout_seconds) or invocation_timeout_seconds <= 0:
             raise ValueError("invocation_timeout_seconds must be finite and positive")
@@ -94,6 +96,7 @@ class AgentRuntime:
         self._timeout = invocation_timeout_seconds
         self._cleanup_timeout = cleanup_timeout_seconds
         self._telemetry = telemetry or RuntimeTelemetry()
+        self._context_window = context_window
         self._closing = False
         self._lifespan_active = False
         self._active_invocations: set[asyncio.Task[object]] = set()
@@ -407,6 +410,16 @@ class AgentRuntime:
             )
         history = await self._memory.get_messages(thread.id, namespace=self._namespace)
         input_messages = [item.message for item in history] + list(request.messages)
+        if self._context_window is not None:
+            selection = self._context_window.select(
+                [item.message for item in history], request.messages
+            )
+            input_messages = list(selection.messages)
+            summary = {**selection.summary(), "max_bytes": self._context_window.max_bytes}
+            context.attributes["agent_runtime.context"] = summary
+            self._telemetry.annotate(
+                {f"agent.context.{key}": value for key, value in summary.items()}
+            )
         await self._hooks.run(
             HookEvent(phase="before_model", context=context, messages=input_messages)
         )

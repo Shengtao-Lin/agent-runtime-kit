@@ -94,7 +94,9 @@ is not a streaming confidentiality gate.
 2. For an existing agent-scoped idempotency key, verify namespace and request equivalence. Replay
    success; report an active conflict or unavailable failed/blocked outcome otherwise.
 3. Create or verify the thread and claim its active run slot in a short transaction.
-4. Transition to running, then load history. Only the owner executes hooks and agent work.
+4. Transition to running, then load history. An explicitly configured development context window
+   selects initial input before `before_model`; the default retains all history. Only the owner
+   executes hooks and agent work.
 5. Apply output hooks, find the final assistant message and build the canonical response.
 6. `RunStore.complete()` atomically commits the new request/output message batch and succeeded
    run/replay response. Only then can the runtime emit public `completed`.
@@ -107,6 +109,21 @@ still propagates even if the transaction committed; an equivalent request can re
 Keys are unique within `(agent_id, idempotency_key)`, not agent version, namespace, user or thread.
 Successful replay returns the original response IDs, agent version and usage, without executing
 models/tools again. Failed keys never implicitly restart execution.
+
+### Initial context selection (development)
+
+The optional `ContextWindow` from [ADR 0015](adr/0015-opt-in-initial-context-window.md) separates
+execution context from durable history. It retains current-request/system messages and complete
+tool exchanges, then the newest historical groups fitting an explicit canonical UTF-8 byte budget.
+Mandatory overflow fails before invoker dispatch. Hooks see selected input and content-free counts;
+successful finalization still stores the original current request and generated output only.
+This capability targets the next minor release and is absent from published v0.5.0.
+
+The measured [Stage D baseline](validation/stage-d-baseline.md) justifies an initial-context bound.
+Full history is still loaded and scanned; no bounded database read or process-memory guarantee is
+claimed. Native tool rounds, framework mappers/checkpoints and trusted host hooks can grow/change
+context after selection. Per-model token/byte policy requires a separate explicit contract. See
+the [component runbook](runbooks/context-window.md) for configuration, observation and rollback.
 
 ## Persistence and concurrency invariants
 

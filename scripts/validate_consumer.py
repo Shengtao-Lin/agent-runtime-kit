@@ -156,6 +156,10 @@ def main() -> None:
         )
         if args.wheel:
             shutil.copy2(repository / "tests/unit/test_extension_api.py", consumer / "tests")
+            shutil.copy2(repository / "tests/unit/test_context_window.py", consumer / "tests")
+            shutil.copy2(
+                repository / "tests/integration/test_context_persistence.py", consumer / "tests"
+            )
             snapshots = consumer / "snapshots"
             snapshots.mkdir()
             shutil.copy2(repository / "tests/snapshots/public_surface.json", snapshots)
@@ -165,6 +169,7 @@ def main() -> None:
             shutil.copy2(framework_source / "test_frameworks.py", consumer / "tests")
             shutil.copy2(framework_source / "test_streaming.py", consumer / "tests")
             shutil.copy2(framework_source / "test_policy_frameworks.py", consumer / "tests")
+            shutil.copy2(framework_source / "test_context_frameworks.py", consumer / "tests")
         sync_command = ["uv", "sync", "--locked"]
         if args.frameworks:
             sync_command.extend(["--group", "frameworks"])

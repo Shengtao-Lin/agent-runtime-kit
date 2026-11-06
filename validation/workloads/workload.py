@@ -92,10 +92,14 @@ class MeasuredInvoker:
 
     async def invoke(self, request):
         record_messages("invoker_inputs", request.messages)
+        if (sample := ACTIVE.get()) is not None:
+            sample["context_selection"] = request.context.attributes.get("agent_runtime.context")
         return await self.delegate.invoke(request)
 
     async def stream(self, request):
         record_messages("invoker_inputs", request.messages)
+        if (sample := ACTIVE.get()) is not None:
+            sample["context_selection"] = request.context.attributes.get("agent_runtime.context")
         async with aclosing(self.delegate.stream(request)) as stream:
             async for event in stream:
                 yield event
@@ -182,12 +186,18 @@ async def experiment(args, report):
             )
         )
     )
+    context_options = {}
+    if getattr(args, "context_max_bytes", None) is not None:
+        from agent_runtime.context import ContextWindow
+
+        context_options["context_window"] = ContextWindow(args.context_max_bytes)
     runtime = AgentRuntime(
         agents=registry,
         memory=memory,
         runs=PostgresRunStore(engine),
         namespace=identity,
         invocation_timeout_seconds=30,
+        **context_options,
     )
     review = ReviewInput(repository="synthetic/project", tag="v0.5.0")
 
@@ -276,6 +286,14 @@ async def experiment(args, report):
                         assert len(sample["history"]) == len(sample["invoker_inputs"]) == 1
                         assert len(sample["model_inputs"]) == 2
                         assert sample["history"][0]["messages"] == 4 * (args.history_turns + turn)
+                        if context_options:
+                            assert (
+                                sample["invoker_inputs"][0]["json_bytes"] <= args.context_max_bytes
+                            )
+                            assert (
+                                sample["context_selection"]["selected_bytes"]
+                                == sample["invoker_inputs"][0]["json_bytes"]
+                            )
                         report["samples"].append(sample)
                         if turn == rounds - 1:
                             last_responses.append((invocation, key, response))
@@ -323,6 +341,7 @@ async def experiment(args, report):
 async def main(args):
     report = {
         "version": agent_runtime.__version__,
+        "context_max_bytes": getattr(args, "context_max_bytes", None),
         "python": platform.python_version(),
         "platform": platform.platform(),
         "profile": {
@@ -342,9 +361,10 @@ async def main(args):
     }
     done = threading.Event()
     exceeded = threading.Event()
+    sampler_failed = threading.Event()
     loop, owner = asyncio.get_running_loop(), asyncio.current_task()
 
-    def sample_rss():
+    def collect_rss():
         process = psutil.Process()
         while not done.is_set():
             rss = process.memory_info().rss
@@ -359,12 +379,22 @@ async def main(args):
                 return
             done.wait(0.01)
 
+    def sample_rss():
+        try:
+            collect_rss()
+        except Exception as exc:
+            report["rss_sampler_failure"] = type(exc).__name__
+            sampler_failed.set()
+            loop.call_soon_threadsafe(owner.cancel)
+
     sampler = threading.Thread(target=sample_rss, name="workload-rss", daemon=True)
     sampler.start()
     started = time.perf_counter()
     try:
         async with asyncio.timeout(180):
             await experiment(args, report)
+        if sampler_failed.is_set():
+            raise RuntimeError("RSS sampler failed")
         report["status"] = "passed"
     except BaseException as exc:
         report["status"] = "rss_limit" if exceeded.is_set() else "failed"
@@ -395,6 +425,7 @@ if __name__ == "__main__":
     parser.add_argument("--mode", choices=("invoke", "stream", "slow_stream"), required=True)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--context-max-bytes", type=int)
     if os.name == "nt":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main(parser.parse_args()))

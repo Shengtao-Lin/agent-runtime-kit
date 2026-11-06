@@ -1,0 +1,1771 @@
+{
+  "status": "matched",
+  "baseline_manifest": {
+    "target": "published-baseline",
+    "expected_version": "0.5.0",
+    "wheel_sha256": "d112163a318aa280e64bd20a0d8dd1db519007db3fc5aa419f0f3d1bdb60cd59",
+    "baseline_url": "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.5.0/agent_runtime_kit-0.5.0-py3-none-any.whl",
+    "repetitions": 3,
+    "smoke": false,
+    "context_max_bytes": null,
+    "profiles": [
+      [
+        10,
+        1,
+        1,
+        "invoke"
+      ],
+      [
+        10,
+        1,
+        1,
+        "stream"
+      ],
+      [
+        100,
+        1,
+        1,
+        "invoke"
+      ],
+      [
+        100,
+        1,
+        1,
+        "stream"
+      ],
+      [
+        1000,
+        1,
+        1,
+        "invoke"
+      ],
+      [
+        1000,
+        1,
+        1,
+        "stream"
+      ],
+      [
+        10,
+        4,
+        1,
+        "invoke"
+      ],
+      [
+        10,
+        4,
+        1,
+        "stream"
+      ],
+      [
+        10,
+        16,
+        1,
+        "invoke"
+      ],
+      [
+        10,
+        16,
+        1,
+        "stream"
+      ],
+      [
+        10,
+        1,
+        16,
+        "invoke"
+      ],
+      [
+        10,
+        1,
+        16,
+        "stream"
+      ],
+      [
+        10,
+        1,
+        256,
+        "invoke"
+      ],
+      [
+        10,
+        1,
+        256,
+        "stream"
+      ],
+      [
+        10,
+        4,
+        1,
+        "slow_stream"
+      ]
+    ],
+    "source_hashes": {
+      "scripts/validate_workload.py": "15109c51cf7b35cdeba49c59b2d3c98e628e4bb5585c11e4df1f54b1e91933c4",
+      "validation/workloads/tests/conftest.py": "e4e7ec2e85674c62df7f527e13cb91a4d1443304ed0a4ef4840f757ef9d81d42",
+      "validation/workloads/tests/test_workload.py": "1b7a076a507823de9afd51c35b1bfdbccd08087da0f5e6ed9fb656a6443c7556",
+      "validation/workloads/workload.py": "e1a9da831699e0756dc98756af3b3b46de97005f7e35e7242d4d04257bc8a7e5",
+      "validation/workloads/pyproject.toml": "2e54e139670fc50ef4eb38e0880ac266533ce80271f0fd2b947909c0b9720bec",
+      "validation/workloads/uv.lock": "c6c14325e6d787980edf982a8daaa5356161c3d283f41d3a3ad71d3b0245cfbf",
+      "applications/release_desk/src/release_desk/__init__.py": "9765fb05f5c7299500fe3a4751fe7613d4ce2a195937d5b3cfd567011a35ee5f",
+      "applications/release_desk/src/release_desk/application.py": "67c6783a76c83fc199f94e4cc03ac3a816acdbe99bc9ec1285e708787a280749",
+      "applications/release_desk/src/release_desk/cli.py": "ac54ee2ee0d0aa97199643e2f1eefc70a0292a8229d184c4d64886459ccc9273",
+      "applications/release_desk/src/release_desk/review.py": "8c506aec6c1ecffda562442f4365c8ac39f5c4bf1ffc3bd881b1633ee2f1b1a4"
+    },
+    "status": "passed"
+  },
+  "candidate_manifest": {
+    "target": "candidate",
+    "expected_version": "0.5.0",
+    "wheel_sha256": "3b6f4c68eed835bf339d7bf37af0eec106eebc007c913b0bbf79253df578fbd5",
+    "baseline_url": "https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.5.0/agent_runtime_kit-0.5.0-py3-none-any.whl",
+    "repetitions": 3,
+    "smoke": false,
+    "context_max_bytes": 65536,
+    "profiles": [
+      [
+        10,
+        1,
+        1,
+        "invoke"
+      ],
+      [
+        10,
+        1,
+        1,
+        "stream"
+      ],
+      [
+        100,
+        1,
+        1,
+        "invoke"
+      ],
+      [
+        100,
+        1,
+        1,
+        "stream"
+      ],
+      [
+        1000,
+        1,
+        1,
+        "invoke"
+      ],
+      [
+        1000,
+        1,
+        1,
+        "stream"
+      ],
+      [
+        10,
+        4,
+        1,
+        "invoke"
+      ],
+      [
+        10,
+        4,
+        1,
+        "stream"
+      ],
+      [
+        10,
+        16,
+        1,
+        "invoke"
+      ],
+      [
+        10,
+        16,
+        1,
+        "stream"
+      ],
+      [
+        10,
+        1,
+        16,
+        "invoke"
+      ],
+      [
+        10,
+        1,
+        16,
+        "stream"
+      ],
+      [
+        10,
+        1,
+        256,
+        "invoke"
+      ],
+      [
+        10,
+        1,
+        256,
+        "stream"
+      ],
+      [
+        10,
+        4,
+        1,
+        "slow_stream"
+      ]
+    ],
+    "source_hashes": {
+      "scripts/validate_workload.py": "15109c51cf7b35cdeba49c59b2d3c98e628e4bb5585c11e4df1f54b1e91933c4",
+      "validation/workloads/tests/conftest.py": "e4e7ec2e85674c62df7f527e13cb91a4d1443304ed0a4ef4840f757ef9d81d42",
+      "validation/workloads/tests/test_workload.py": "1b7a076a507823de9afd51c35b1bfdbccd08087da0f5e6ed9fb656a6443c7556",
+      "validation/workloads/workload.py": "e1a9da831699e0756dc98756af3b3b46de97005f7e35e7242d4d04257bc8a7e5",
+      "validation/workloads/pyproject.toml": "2e54e139670fc50ef4eb38e0880ac266533ce80271f0fd2b947909c0b9720bec",
+      "validation/workloads/uv.lock": "c6c14325e6d787980edf982a8daaa5356161c3d283f41d3a3ad71d3b0245cfbf",
+      "applications/release_desk/src/release_desk/__init__.py": "9765fb05f5c7299500fe3a4751fe7613d4ce2a195937d5b3cfd567011a35ee5f",
+      "applications/release_desk/src/release_desk/application.py": "67c6783a76c83fc199f94e4cc03ac3a816acdbe99bc9ec1285e708787a280749",
+      "applications/release_desk/src/release_desk/cli.py": "ac54ee2ee0d0aa97199643e2f1eefc70a0292a8229d184c4d64886459ccc9273",
+      "applications/release_desk/src/release_desk/review.py": "8c506aec6c1ecffda562442f4365c8ac39f5c4bf1ffc3bd881b1633ee2f1b1a4"
+    },
+    "status": "passed"
+  },
+  "profiles": [
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 1,
+        "padding_kib": 1,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 27369,
+          "max": 79068
+        },
+        "candidate": {
+          "min": 27369,
+          "max": 65479
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 81108,
+        "candidate": 67519
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 81104896,
+          "max": 81170432
+        },
+        "candidate": {
+          "min": 81387520,
+          "max": 81453056
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 53.16320000201813,
+            "p95_ms": 62.454999999317806
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.018149999959859997,
+            "p95_ms": 0.026900001103058457
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 53.14450000150828,
+            "p95_ms": 62.42589999601478
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 9.262049999961164,
+            "p95_ms": 13.00440000341041
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 7.745350005279761,
+            "p95_ms": 11.369900006684475
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 63.09555000188993,
+            "p95_ms": 87.62550000392366
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.018799997633323073,
+            "p95_ms": 0.028100002964492887
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 63.07999999989988,
+            "p95_ms": 87.59590000408934
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 10.082050001074094,
+            "p95_ms": 12.684799999988172
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 8.24829999692156,
+            "p95_ms": 12.067999996361323
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 1,
+        "padding_kib": 1,
+        "mode": "stream",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 27369,
+          "max": 79068
+        },
+        "candidate": {
+          "min": 27369,
+          "max": 65479
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 81108,
+        "candidate": 67519
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 81297408,
+          "max": 81334272
+        },
+        "candidate": {
+          "min": 81334272,
+          "max": 81793024
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 54.75325000224984,
+            "p95_ms": 62.72220000391826
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.018050002836389467,
+            "p95_ms": 0.02649999805726111
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 54.72564999945462,
+            "p95_ms": 62.70349999977043
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 9.50830000147107,
+            "p95_ms": 12.71880000422243
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 8.054899997659959,
+            "p95_ms": 12.008500008960254
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 40.86664999704226,
+            "p95_ms": 48.28249999991385
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 40.84034999686992,
+            "p95_ms": 48.26379999576602
+          }
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 61.75819999771193,
+            "p95_ms": 78.18630000110716
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.01774999691406265,
+            "p95_ms": 0.02649999805726111
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 61.73580000177026,
+            "p95_ms": 78.1663000016124
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 9.1447499980859,
+            "p95_ms": 13.286399997014087
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 8.209950003220001,
+            "p95_ms": 11.46129999688128
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 48.1640999969386,
+            "p95_ms": 61.80780000431696
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 48.14519999854383,
+            "p95_ms": 61.779800002113916
+          }
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 100,
+        "concurrency": 1,
+        "padding_kib": 1,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 271899,
+          "max": 323598
+        },
+        "candidate": {
+          "min": 65403,
+          "max": 65479
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 325638,
+        "candidate": 67519
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 86474752,
+          "max": 86822912
+        },
+        "candidate": {
+          "min": 86294528,
+          "max": 86691840
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 120.95090000002529,
+            "p95_ms": 136.55779999680817
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.018999999156221747,
+            "p95_ms": 0.027199996111448854
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 120.93280000044615,
+            "p95_ms": 136.53879999765195
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 35.775000003923196,
+            "p95_ms": 50.6900999971549
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 44.94859999977052,
+            "p95_ms": 56.58969999785768
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 123.00619999950868,
+            "p95_ms": 151.8632000006619
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.02085000232909806,
+            "p95_ms": 0.03309999738121405
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 122.98664999980247,
+            "p95_ms": 151.84120000049006
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 38.77420000208076,
+            "p95_ms": 56.7972999997437
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 19.328750004206086,
+            "p95_ms": 30.957600007241126
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 100,
+        "concurrency": 1,
+        "padding_kib": 1,
+        "mode": "stream",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 271899,
+          "max": 323598
+        },
+        "candidate": {
+          "min": 65403,
+          "max": 65479
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 325638,
+        "candidate": 67519
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 86589440,
+          "max": 86917120
+        },
+        "candidate": {
+          "min": 86626304,
+          "max": 87076864
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 121.56360000153654,
+            "p95_ms": 138.9398999963305
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.018999999156221747,
+            "p95_ms": 0.027199996111448854
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 121.54075000216835,
+            "p95_ms": 138.92079999641282
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 35.781750000751344,
+            "p95_ms": 50.08050000469666
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 44.49010000098497,
+            "p95_ms": 58.528899993689265
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 105.80790000312845,
+            "p95_ms": 121.4308999988134
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 105.78795000037644,
+            "p95_ms": 121.41189999965718
+          }
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 121.79304999881424,
+            "p95_ms": 143.06580000265967
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.01925000105984509,
+            "p95_ms": 0.027599999157246202
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 121.76985000041896,
+            "p95_ms": 143.04540000011912
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 36.751850002474384,
+            "p95_ms": 51.61299999599578
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 19.075949996476993,
+            "p95_ms": 23.7693999952171
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 104.27290000006906,
+            "p95_ms": 124.80250000226079
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 104.2494000030274,
+            "p95_ms": 124.78270000428893
+          }
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 1000,
+        "concurrency": 1,
+        "padding_kib": 1,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 2717199,
+          "max": 2768898
+        },
+        "candidate": {
+          "min": 65403,
+          "max": 65479
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 2770938,
+        "candidate": 67519
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 136052736,
+          "max": 136589312
+        },
+        "candidate": {
+          "min": 135540736,
+          "max": 135983104
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 935.1244999998016,
+            "p95_ms": 1173.247500002617
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.02814999606925994,
+            "p95_ms": 0.04550000448944047
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 935.094050000771,
+            "p95_ms": 1173.2210999980452
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 354.1162500041537,
+            "p95_ms": 432.22660000174074
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 511.97890000548796,
+            "p95_ms": 651.4769999994314
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 711.7851500006509,
+            "p95_ms": 851.1983999997028
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.028350001230137423,
+            "p95_ms": 0.03760000254260376
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 711.7527500013239,
+            "p95_ms": 851.1607000036747
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 356.78120000011404,
+            "p95_ms": 461.60039999813307
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 129.53579999521025,
+            "p95_ms": 169.67070000100648
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 1000,
+        "concurrency": 1,
+        "padding_kib": 1,
+        "mode": "stream",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 2717199,
+          "max": 2768898
+        },
+        "candidate": {
+          "min": 65403,
+          "max": 65479
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 2770938,
+        "candidate": 67519
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 133459968,
+          "max": 136323072
+        },
+        "candidate": {
+          "min": 133283840,
+          "max": 136105984
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 961.5831499977503,
+            "p95_ms": 1269.6720000021742
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.025249999453080818,
+            "p95_ms": 0.03429999924264848
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 961.5598000018508,
+            "p95_ms": 1269.6377000029315
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 355.8000999983051,
+            "p95_ms": 469.620700001542
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 525.3008999934536,
+            "p95_ms": 699.2178999935277
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 912.1689000021433,
+            "p95_ms": 1219.0811000036774
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 912.1443000040017,
+            "p95_ms": 1219.0468000044348
+          }
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 704.0564499984612,
+            "p95_ms": 793.5410999998567
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.02425000275252387,
+            "p95_ms": 0.03239999932702631
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 704.0354499986279,
+            "p95_ms": 793.5175000020536
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 347.5719999987632,
+            "p95_ms": 408.9953000002424
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 127.37429999833694,
+            "p95_ms": 164.79769999568816
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 664.3080499998177,
+            "p95_ms": 748.8838999997824
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 664.2880999970657,
+            "p95_ms": 748.8582999940263
+          }
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 4,
+        "padding_kib": 1,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 27369,
+          "max": 38253
+        },
+        "candidate": {
+          "min": 27369,
+          "max": 38253
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 40293,
+        "candidate": 40293
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 81317888,
+          "max": 82001920
+        },
+        "candidate": {
+          "min": 81674240,
+          "max": 83267584
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 143.65605000421056,
+            "p95_ms": 159.86820000398438
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.017400001524947584,
+            "p95_ms": 0.029100003303028643
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 143.6364000037429,
+            "p95_ms": 159.85100000398234
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 27.06045000013546,
+            "p95_ms": 40.723500002059154
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 5.089300004328834,
+            "p95_ms": 7.338600000366569
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 158.25219999896945,
+            "p95_ms": 187.64889999874867
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.016099998902063817,
+            "p95_ms": 0.026100002287421376
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 158.23679999812157,
+            "p95_ms": 187.63240000407677
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 31.623400001990376,
+            "p95_ms": 52.8651999993599
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 5.073799995443551,
+            "p95_ms": 6.190000000060536
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 4,
+        "padding_kib": 1,
+        "mode": "stream",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 27369,
+          "max": 38253
+        },
+        "candidate": {
+          "min": 27369,
+          "max": 38253
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 40293,
+        "candidate": 40293
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 81936384,
+          "max": 82067456
+        },
+        "candidate": {
+          "min": 81739776,
+          "max": 83316736
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 138.1770999978471,
+            "p95_ms": 165.04279999935534
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.01590000101714395,
+            "p95_ms": 0.025300003471784294
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 138.157899997168,
+            "p95_ms": 165.02349999791477
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 27.575599997362588,
+            "p95_ms": 40.65199999604374
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 4.961750004440546,
+            "p95_ms": 5.774199998995755
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 102.27550000126939,
+            "p95_ms": 126.26449999515899
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 102.25445000105537,
+            "p95_ms": 126.2427999972715
+          }
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 159.03615000206628,
+            "p95_ms": 185.64799999876413
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.01585000427439809,
+            "p95_ms": 0.02439999661874026
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 159.0092000005825,
+            "p95_ms": 185.63159999757772
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 31.823149998672307,
+            "p95_ms": 56.85129999619676
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 5.1351999973121565,
+            "p95_ms": 6.040600004780572
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 116.17280000427854,
+            "p95_ms": 144.12000000447733
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 116.15295000228798,
+            "p95_ms": 144.10299999872223
+          }
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 16,
+        "padding_kib": 1,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "samples": 96,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 27369,
+          "max": 30090
+        },
+        "candidate": {
+          "min": 27369,
+          "max": 30090
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 32130,
+        "candidate": 32130
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 81678336,
+          "max": 82046976
+        },
+        "candidate": {
+          "min": 82083840,
+          "max": 82337792
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 96,
+            "p50_ms": 513.7940000022354,
+            "p95_ms": 625.1482000006945
+          },
+          "queue_seconds": {
+            "samples": 96,
+            "p50_ms": 385.14705000125105,
+            "p95_ms": 461.4856999978656
+          },
+          "service_seconds": {
+            "samples": 96,
+            "p50_ms": 135.38580000022193,
+            "p95_ms": 160.2123000047868
+          },
+          "history_read_seconds": {
+            "samples": 96,
+            "p50_ms": 23.27259999947273,
+            "p95_ms": 37.641399998392444
+          },
+          "measurement_seconds": {
+            "samples": 96,
+            "p50_ms": 4.409399993164698,
+            "p95_ms": 5.7554999948479235
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 96,
+            "p50_ms": 608.321399999113,
+            "p95_ms": 858.2478999960585
+          },
+          "queue_seconds": {
+            "samples": 96,
+            "p50_ms": 454.05324999956065,
+            "p95_ms": 642.6004000022658
+          },
+          "service_seconds": {
+            "samples": 96,
+            "p50_ms": 160.12145000058808,
+            "p95_ms": 245.46120000013616
+          },
+          "history_read_seconds": {
+            "samples": 96,
+            "p50_ms": 28.673849996266654,
+            "p95_ms": 53.43200000061188
+          },
+          "measurement_seconds": {
+            "samples": 96,
+            "p50_ms": 4.694049999670824,
+            "p95_ms": 8.048099996813107
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 16,
+        "padding_kib": 1,
+        "mode": "stream",
+        "smoke": false
+      },
+      "samples": 96,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 27369,
+          "max": 30090
+        },
+        "candidate": {
+          "min": 27369,
+          "max": 30090
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 32130,
+        "candidate": 32130
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 80932864,
+          "max": 81924096
+        },
+        "candidate": {
+          "min": 82194432,
+          "max": 82444288
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 96,
+            "p50_ms": 524.9045500022476,
+            "p95_ms": 583.5637999989558
+          },
+          "queue_seconds": {
+            "samples": 96,
+            "p50_ms": 392.0335000002524,
+            "p95_ms": 441.8108999961987
+          },
+          "service_seconds": {
+            "samples": 96,
+            "p50_ms": 136.84864999959245,
+            "p95_ms": 162.34589999658056
+          },
+          "history_read_seconds": {
+            "samples": 96,
+            "p50_ms": 26.423549999890383,
+            "p95_ms": 38.84449999895878
+          },
+          "measurement_seconds": {
+            "samples": 96,
+            "p50_ms": 4.425249997439096,
+            "p95_ms": 5.524399995920248
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 96,
+            "p50_ms": 492.62659999658354,
+            "p95_ms": 553.4272000004421
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 96,
+            "p50_ms": 101.20735000236891,
+            "p95_ms": 125.42779999785125
+          }
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 96,
+            "p50_ms": 607.6818000001367,
+            "p95_ms": 692.5339000008535
+          },
+          "queue_seconds": {
+            "samples": 96,
+            "p50_ms": 450.9979000031308,
+            "p95_ms": 510.74700000026496
+          },
+          "service_seconds": {
+            "samples": 96,
+            "p50_ms": 158.40585000114515,
+            "p95_ms": 202.65029999427497
+          },
+          "history_read_seconds": {
+            "samples": 96,
+            "p50_ms": 28.816350000852253,
+            "p95_ms": 51.647499996761326
+          },
+          "measurement_seconds": {
+            "samples": 96,
+            "p50_ms": 4.612500008079223,
+            "p95_ms": 6.8074000082560815
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 96,
+            "p50_ms": 564.0253000019584,
+            "p95_ms": 651.6912000006414
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 96,
+            "p50_ms": 117.17270000008284,
+            "p95_ms": 152.39470000233268
+          }
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 1,
+        "padding_kib": 16,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 180969,
+          "max": 524508
+        },
+        "candidate": {
+          "min": 54426,
+          "max": 54438
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 541908,
+        "candidate": 71838
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 83021824,
+          "max": 83668992
+        },
+        "candidate": {
+          "min": 82665472,
+          "max": 83206144
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 147.91069999773754,
+            "p95_ms": 160.42390000075102
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.020950003090547398,
+            "p95_ms": 0.02529999619582668
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 147.8907499986235,
+            "p95_ms": 160.40179999981774
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 12.519200005044695,
+            "p95_ms": 17.213799997989554
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 10.880349997023586,
+            "p95_ms": 16.806300001917407
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 144.3848999988404,
+            "p95_ms": 156.2883000005968
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.021200001356191933,
+            "p95_ms": 0.02970000059576705
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 144.3651499976113,
+            "p95_ms": 156.26720000000205
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 12.195049999718321,
+            "p95_ms": 16.29710000270279
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 4.315649988711812,
+            "p95_ms": 5.556299998715986
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 1,
+        "padding_kib": 16,
+        "mode": "stream",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 180969,
+          "max": 524508
+        },
+        "candidate": {
+          "min": 54426,
+          "max": 54438
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 541908,
+        "candidate": 71838
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 82784256,
+          "max": 83324928
+        },
+        "candidate": {
+          "min": 82780160,
+          "max": 82980864
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 147.9370499982906,
+            "p95_ms": 159.75320000143256
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.02059999678749591,
+            "p95_ms": 0.024400003894697875
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 147.91684999727295,
+            "p95_ms": 159.72879999753786
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 11.903699996764772,
+            "p95_ms": 16.03120000072522
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 11.118699996586656,
+            "p95_ms": 16.458800004329532
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 47.10419999901205,
+            "p95_ms": 58.01709999650484
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 47.08269999900949,
+            "p95_ms": 57.99589999514865
+          }
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 143.67069999570958,
+            "p95_ms": 151.1601000020164
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.020049999875482172,
+            "p95_ms": 0.028800001018680632
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 143.65054999871063,
+            "p95_ms": 151.1402999967686
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 11.77050000114832,
+            "p95_ms": 15.323599996918347
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 4.00245000855648,
+            "p95_ms": 5.239799997070804
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 44.1964999990887,
+            "p95_ms": 50.72439999639755
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 44.17644999921322,
+            "p95_ms": 50.70229999546427
+          }
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 1,
+        "padding_kib": 256,
+        "mode": "invoke",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 2638569,
+          "max": 7651548
+        },
+        "candidate": {
+          "min": 195,
+          "max": 195
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 7914708,
+        "candidate": 263355
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 101634048,
+          "max": 101957632
+        },
+        "candidate": {
+          "min": 100245504,
+          "max": 100507648
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 154.23079999891343,
+            "p95_ms": 209.57600000110688
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.019950002752011642,
+            "p95_ms": 0.028100002964492887
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 154.21014999810723,
+            "p95_ms": 209.55700000195066
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 36.6086499998346,
+            "p95_ms": 50.477899996622
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 63.15345000621164,
+            "p95_ms": 90.48429999529617
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 109.10095000144793,
+            "p95_ms": 166.13049999432405
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.020399995264597237,
+            "p95_ms": 0.0284000052488409
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 109.0756000012334,
+            "p95_ms": 166.11169999669073
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 36.05320000133361,
+            "p95_ms": 52.92580000241287
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 16.422299999248935,
+            "p95_ms": 24.602500001492444
+          },
+          "first_text_from_submission_seconds": null,
+          "first_text_from_admission_seconds": null
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 1,
+        "padding_kib": 256,
+        "mode": "stream",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 2638569,
+          "max": 7651548
+        },
+        "candidate": {
+          "min": 195,
+          "max": 195
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 7914708,
+        "candidate": 263355
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 101560320,
+          "max": 102338560
+        },
+        "candidate": {
+          "min": 99692544,
+          "max": 100077568
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 152.14510000078008,
+            "p95_ms": 226.49529999762308
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.019249997421866283,
+            "p95_ms": 0.02849999873433262
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 152.1247000018775,
+            "p95_ms": 226.47200000210432
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 36.612999996577855,
+            "p95_ms": 52.42739999812329
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 64.09469999925932,
+            "p95_ms": 93.98070000315784
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 123.50270000024466,
+            "p95_ms": 174.47429999447195
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 123.4735499965609,
+            "p95_ms": 174.45529999531573
+          }
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 117.80314999850816,
+            "p95_ms": 177.44529999617953
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.018799997633323073,
+            "p95_ms": 0.02540000423323363
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 117.78139999660198,
+            "p95_ms": 177.4275999996462
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 38.47980000136886,
+            "p95_ms": 52.71409999841126
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 16.884750002645887,
+            "p95_ms": 25.18749998853309
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 96.3716000005661,
+            "p95_ms": 126.50880000001052
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 96.35019999768701,
+            "p95_ms": 126.4900000023772
+          }
+        }
+      }
+    },
+    {
+      "profile": {
+        "history_turns": 10,
+        "concurrency": 4,
+        "padding_kib": 1,
+        "mode": "slow_stream",
+        "smoke": false
+      },
+      "samples": 60,
+      "initial_context_bytes": {
+        "baseline": {
+          "min": 27369,
+          "max": 38253
+        },
+        "candidate": {
+          "min": 27369,
+          "max": 38253
+        }
+      },
+      "max_model_input_bytes": {
+        "baseline": 40293,
+        "candidate": 40293
+      },
+      "rss_measurement_peak_bytes": {
+        "baseline": {
+          "min": 81137664,
+          "max": 81907712
+        },
+        "candidate": {
+          "min": 82046976,
+          "max": 82554880
+        }
+      },
+      "timings": {
+        "baseline": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 214.39689999897382,
+            "p95_ms": 290.59390000475105
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.017350001144222915,
+            "p95_ms": 0.03529999958118424
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 214.38014999876032,
+            "p95_ms": 290.5797000057646
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 11.234049998165574,
+            "p95_ms": 41.11939999711467
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 5.329200004780432,
+            "p95_ms": 7.603199999721255
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 64.99785000050906,
+            "p95_ms": 119.74850000115111
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 64.97565000245231,
+            "p95_ms": 119.73430000216467
+          }
+        },
+        "candidate": {
+          "end_to_end_seconds": {
+            "samples": 60,
+            "p50_ms": 189.38455000170507,
+            "p95_ms": 289.6885000009206
+          },
+          "queue_seconds": {
+            "samples": 60,
+            "p50_ms": 0.016600002709310502,
+            "p95_ms": 0.027599999157246202
+          },
+          "service_seconds": {
+            "samples": 60,
+            "p50_ms": 189.3680499997572,
+            "p95_ms": 289.67250000278
+          },
+          "history_read_seconds": {
+            "samples": 60,
+            "p50_ms": 9.046549999766285,
+            "p95_ms": 44.91499999858206
+          },
+          "measurement_seconds": {
+            "samples": 60,
+            "p50_ms": 5.323300007148646,
+            "p95_ms": 6.736300005286466
+          },
+          "first_text_from_submission_seconds": {
+            "samples": 60,
+            "p50_ms": 65.24220000210335,
+            "p95_ms": 126.19699999777367
+          },
+          "first_text_from_admission_seconds": {
+            "samples": 60,
+            "p50_ms": 65.22449999829405,
+            "p95_ms": 126.18449999717996
+          }
+        }
+      }
+    }
+  ]
+}

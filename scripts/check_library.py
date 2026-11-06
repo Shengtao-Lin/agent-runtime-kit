@@ -10,6 +10,7 @@ from pathlib import Path
 CORE_FILES = {
     "__init__.py",
     "models.py",
+    "context.py",
     "errors.py",
     "runtime.py",
     "registry.py",

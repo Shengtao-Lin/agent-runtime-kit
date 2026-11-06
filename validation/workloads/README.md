@@ -12,9 +12,12 @@ it does not create/drop the database or delete retained synthetic history. From 
 python scripts/validate_workload.py --smoke --repetitions 1 --report-dir build/workload-smoke
 python scripts/validate_workload.py --repetitions 3 --report-dir build/workload-v050-baseline
 python scripts/validate_workload.py --wheel dist/agent_runtime_kit-VERSION-py3-none-any.whl \
-  --expected-version VERSION --repetitions 3 --report-dir build/workload-candidate
+  --expected-version VERSION --context-max-bytes 65536 --repetitions 3 \
+  --report-dir build/workload-candidate
 python scripts/summarize_workload.py build/workload-v050-baseline \
   --output build/workload-v050-baseline/summary.json
+python scripts/compare_workloads.py build/workload-v050-baseline build/workload-candidate \
+  --output build/workload-candidate/comparison.json
 ```
 
 Use a new report directory for every run. Full mode has fifteen profiles: seven single-axis
@@ -37,3 +40,7 @@ a policy that the installed version does not implement. Subsequent ADR/contract 
 The summary accepts only complete passing profiles with their expected sample counts and cleanup
 assertions. Percentiles pool samples across repetitions and use nearest-rank p95; they are descriptive,
 not confidence intervals. Raw JSON remains authoritative for repetition-level comparisons.
+The full comparison rejects differing workload source hashes, dependencies, platform/Python,
+profiles, effective historical sizes or sample counts. It requires three or more repetitions,
+default baseline behavior and a 65,536-byte candidate window. It verifies the candidate input
+allowance; latency and RSS remain reported observations, with no invented pass/fail threshold.

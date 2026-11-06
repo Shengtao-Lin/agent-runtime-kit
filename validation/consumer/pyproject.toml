@@ -18,4 +18,7 @@ frameworks = ["langchain-core==1.6.2", "langgraph==1.2.11"]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["."]
-markers = ["readiness: expected failures demonstrating v0.2.0 reliability gaps"]
+markers = [
+  "readiness: expected failures demonstrating v0.2.0 reliability gaps",
+  "integration: requires a real PostgreSQL database",
+]
