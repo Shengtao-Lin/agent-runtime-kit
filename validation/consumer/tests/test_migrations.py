@@ -111,7 +111,7 @@ async def test_upgrade_preserves_published_records(database_url: str) -> None:
                 for item in await app.memory.get_messages(original.thread_id)
             ] == selected["messages"]
         async with application(
-            database_url, selected["identity"], context_max_bytes=2048, stream_history=True
+            database_url, selected["identity"], context_max_bytes=1024, stream_history=True
         ) as app:
             await app.runtime.invoke(
                 app.agent_id, request("continue", thread_id=original.thread_id)

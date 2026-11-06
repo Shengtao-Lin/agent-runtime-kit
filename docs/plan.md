@@ -229,6 +229,12 @@ publication claims. Three matched final repetitions, final-head/main checks and 
 adoption remain outstanding. The [history reading runbook](runbooks/history-reading.md) documents
 configuration, snapshot/cleanup ownership, remaining full-scan costs and rollback.
 
+The first three-repeat incremental comparison subsequently failed one per-repetition stream latency
+gate despite passing every memory and short-history gate. Its failed evidence is retained in ADR
+0016. A column-row read candidate removes per-row ORM construction without skipping any fields or
+validation; a separate profile and 33 database cases support proceeding to independent acceptance.
+Do not treat the pooled latency or the earlier exploratory pass as completion.
+
 ## Deferred until justified
 
 - Distributed workers, resumable workflows, human-approval queues or exactly-once tools need a

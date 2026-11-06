@@ -9,7 +9,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import delete, or_, select, text
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.engine import CursorResult
+from sqlalchemy.engine import CursorResult, Row
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 
 from agent_runtime.errors import ThreadNotFoundError
@@ -198,8 +198,16 @@ class PostgresMemoryStore:
                     )
                     if thread is None:
                         raise ThreadNotFoundError(f"Thread '{thread_id}' does not exist")
-                rows = await session.stream_scalars(
-                    select(AgentMessageTable)
+                rows = await session.stream(
+                    select(
+                        AgentMessageTable.id,
+                        AgentMessageTable.thread_id,
+                        AgentMessageTable.sequence,
+                        AgentMessageTable.role,
+                        AgentMessageTable.content,
+                        AgentMessageTable.metadata_,
+                        AgentMessageTable.created_at,
+                    )
                     .where(AgentMessageTable.thread_id == thread_id)
                     .order_by(AgentMessageTable.sequence)
                     .execution_options(yield_per=256)
@@ -381,7 +389,7 @@ class PostgresMemoryStore:
         )
 
     @staticmethod
-    def _message_model(row: AgentMessageTable) -> StoredMessage:
+    def _message_model(row: AgentMessageTable | Row[Any]) -> StoredMessage:
         return StoredMessage(
             thread_id=row.thread_id,
             sequence=row.sequence,

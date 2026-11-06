@@ -150,6 +150,14 @@ async def test_cursor_retains_one_snapshot_across_batches_and_scopes() -> None:
         thread = await h.memory.create_thread(namespace=h.namespace)
         history = [message(str(index)) for index in range(600)]
         await h.memory.append_messages(thread.id, history)
+        async with h.engine.begin() as connection:
+            await connection.execute(
+                sql(
+                    "UPDATE agent_messages SET metadata='{}'::jsonb || "
+                    "jsonb_build_object('probe', sequence) WHERE thread_id=:id"
+                ),
+                {"id": thread.id},
+            )
         async with aclosing(h.memory.stream_messages(thread.id, namespace=h.namespace)) as source:
             first = await anext(source)
             assert h.engine.pool.checkedout() == 1  # type: ignore[attr-defined]
@@ -158,7 +166,10 @@ async def test_cursor_retains_one_snapshot_across_batches_and_scopes() -> None:
             records = [first, *[item async for item in source]]
         assert [item.sequence for item in records] == list(range(1, 601))
         assert [item.message for item in records] == history
-        assert [item.message for item in await h.memory.get_messages(thread.id)] == [
+        complete = await h.memory.get_messages(thread.id)
+        assert records == list(complete[:-1])
+        assert records[256].metadata == {"probe": 257}
+        assert [item.message for item in complete] == [
             *history,
             later,
         ]
