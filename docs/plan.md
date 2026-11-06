@@ -105,7 +105,8 @@ arguments, fragmented provider arguments and explicit zero/unknown usage retain 
 Implemented as acceptance coverage on 2026-11-05. Native and real framework consumers exercise
 phase ordering, explicit registry composition, blocked/failed outcomes, cancellation and replay;
 framework-native tool bypass is tested explicitly. See
-[the policy evidence](validation/policy-coverage-2026-11-05.md). PR checks must pass before merging.
+[the policy evidence](validation/policy-coverage-2026-11-05.md). PR #38 merged after CI and
+lower/latest compatibility checks passed; main CI passed at `4f3a7e8`.
 
 Keep existing hook names compatible while documenting invocation-level semantics. Test deliberate
 runtime/tool hook composition; framework-native operations bypass the registry unless integrated.
@@ -116,7 +117,12 @@ output guardrail. Do not claim a universal framework safety interceptor.
 
 ## C. Add architectural fitness checks
 
-These are proposed checks; current CI does not implement the complete list.
+Import, dependency-direction and wheel-content guards are implemented in the current working
+change, including an external core-only wheel probe. The probe reproduced eager adapter loading;
+adapter exports now resolve implementations lazily while preserving their public import paths.
+See [boundary evidence](validation/library-boundaries-2026-11-05.md). PR acceptance is still
+required. Public-surface, compatibility-trigger and documentation guards remain outstanding;
+current CI does not implement the complete list below.
 
 | Invariant | Planned automated evidence |
 | --- | --- |
