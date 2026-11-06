@@ -50,6 +50,8 @@ def main() -> None:
     environment.pop("PYTHONHOME", None)
     environment["DATABASE_URL"] = environment["MODEL_INPUT_DATABASE_URL"]
     environment["MODEL_INPUT_REPORTS"] = str(reports)
+    environment["LANGSMITH_TRACING"] = "false"
+    environment["LANGCHAIN_TRACING_V2"] = "false"
     paths = [
         Path(__file__).resolve(),
         repository / "docs/validation/stage-f-workload.md",

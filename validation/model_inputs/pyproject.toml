@@ -3,7 +3,7 @@ name = "runtime-kit-model-input-validation"
 version = "0.0.0"
 requires-python = ">=3.11"
 dependencies = [
-  "agent-runtime-kit[postgres] @ https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.7.0/agent_runtime_kit-0.7.0-py3-none-any.whl",
+  "agent-runtime-kit[postgres,adapters] @ https://github.com/Shengtao-Lin/agent-runtime-kit/releases/download/v0.7.0/agent_runtime_kit-0.7.0-py3-none-any.whl",
   "psutil>=7.2,<8",
   "pytest>=8.3,<9",
   "pytest-asyncio>=0.24,<1",

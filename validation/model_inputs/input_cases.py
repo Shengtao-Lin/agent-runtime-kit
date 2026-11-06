@@ -131,6 +131,10 @@ async def growth_host(
     generate_only=False,
     model_override=None,
     invocation_seconds=30,
+    framework=None,
+    entry_only=False,
+    mapper_growth=False,
+    model_stream=False,
 ):
     namespace = f"stage-f-growth-{uuid4()}"
     engine = create_async_engine(
@@ -148,7 +152,7 @@ async def growth_host(
             generate = model.generate
 
         delegate = GenerateOnly()
-    if protected:
+    if protected and not entry_only:
         delegate = budget_model(delegate, ModelInputBudget(65536, 8192))
     effects, cleanup = [], {}
     tools = ToolRegistry()
@@ -164,15 +168,27 @@ async def growth_host(
         handler=emit,
     )
     agents = AgentRegistry()
-    agents.register(
-        NativeAgentInvoker(
+    if framework:
+        from framework_cases import framework_invoker
+
+        invoker = framework_invoker(
+            namespace,
+            framework,
+            delegate,
+            tools,
+            entry_only=entry_only,
+            mapper_growth=mapper_growth,
+            model_stream=model_stream,
+        )
+    else:
+        invoker = NativeAgentInvoker(
             agent_id=namespace,
             version="1",
             model_client=delegate,
             tools=tools,
             max_tool_iterations=3,
         )
-    )
+    agents.register(invoker)
     memory, runs = PostgresMemoryStore(engine), PostgresRunStore(engine)
     runtime = AgentRuntime(
         agents=agents,

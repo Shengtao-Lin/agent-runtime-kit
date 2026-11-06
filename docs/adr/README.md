@@ -22,6 +22,7 @@ historical ADRs. Amend decisions explicitly; do not silently treat old implement
 | [0014](0014-model-result-and-tool-payload-contracts.md) | Model result and tool payload contracts | Shipped in v0.5.0; consistent dispatch/history and finite JSON payloads |
 | [0015](0015-opt-in-initial-context-window.md) | Opt-in initial context window | Shipped in v0.6.0; actual assets and independent adoption verified |
 | [0016](0016-history-materialization-and-validation.md) | History materialization and complete validation | Shipped in v0.7.0; repeated acceptance, actual assets and independent adoption verified |
+| [0017](0017-host-owned-model-input-budgets.md) | Host-owned model input budgets | Existing model protocols suffice; explicit native/framework boundary validation, no new library API |
 
 The original lifetime ADR also used number 0010. Its
 [old path](0010-managed-runtime-lifetime.md) is a navigation alias, not another numbered decision.
